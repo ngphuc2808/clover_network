@@ -30,12 +30,10 @@ const LoginPage = () => {
     password: "",
   });
 
-  const [regexEmail, setRegexEmail] = useState<boolean>(true);
   const [emptyEmail, setEmptyEmail] = useState<boolean>(true);
   const [emptyPassword, setEmptyPassword] = useState<boolean>(true);
 
   useEffect(() => {
-    if (validateEmail(formValue.email)) setRegexEmail(true);
     if (formValue.email.length > 0) setEmptyEmail(true);
     if (formValue.password.length > 0) setEmptyPassword(true);
   }, [formValue]);
@@ -54,11 +52,6 @@ const LoginPage = () => {
   };
 
   const handleLogin = async () => {
-    if (validateEmail(formValue.email) === null) {
-      setRegexEmail(false);
-      return;
-    } else setRegexEmail(true);
-
     if (formValue.email.length === 0) setEmptyEmail(false);
     else setEmptyEmail(true);
     if (formValue.password.length === 0) setEmptyPassword(false);
@@ -66,32 +59,40 @@ const LoginPage = () => {
 
     if (formValue.email.length > 0 && formValue.password.length > 0) {
       try {
-        const result = await UsersApi.login(formValue);
-        if (result.messageEN === "Action success") {
-          dispatch(setLoggedIn(result.data.tokenId));
-          router("/");
-          return;
-        }
-        if (
-          result.messageEN ===
-          "Account doesn't activated. Please verify account by link send to your email before first login"
-        ) {
-          toast.error(
-            "Please verify account by link send to your email before first login!"
-          );
-          return;
-        }
-        if (result.messageEN === "Profile empty ") {
-          toast.error("Account not found!");
-          return;
-        }
-        if (result.messageEN === "Email or password is incorrect") {
-          toast.error("Email or password is incorrect!");
-          return;
-        }
-        if (result === 1) {
-          toast.error("Sign in failed, please check your information again!");
-          return;
+        if (!validateEmail(formValue.email))
+          toast.error("Sign in failed, email is invalid!");
+        else {
+          const result = await UsersApi.login(formValue);
+          if (result.messageEN === "Action success") {
+            dispatch(setLoggedIn(result.data.tokenId));
+            router("/");
+            return;
+          }
+          if (
+            result.messageEN ===
+            "Account doesn't activated. Please verify account by link send to your email before first login"
+          ) {
+            toast.error(
+              "Please verify account by link send to your email before first login!"
+            );
+            return;
+          }
+          if (result.messageEN === "Profile empty ") {
+            toast.error("Account not found!");
+            return;
+          }
+          if (result.messageEN === "Invalid data input") {
+            toast.error("Sign in failed, email is invalid!");
+            return;
+          }
+          if (result.messageEN === "Email or password is incorrect") {
+            toast.error("Email or password is incorrect!");
+            return;
+          }
+          if (result === 1) {
+            toast.error("Sign in failed, please check your information again!");
+            return;
+          }
         }
       } catch (error: any) {
         if (error.error) {
@@ -125,18 +126,12 @@ const LoginPage = () => {
                 value={formValue.email}
                 onChange={handleInput}
                 className={`${styles.input} ${
-                  !emptyEmail || !regexEmail
-                    ? `${styles.errorInput}`
-                    : `${styles.normalInput}`
+                  !emptyEmail ? `${styles.errorInput}` : `${styles.normalInput}`
                 }`}
                 placeholder="Email"
               />
-              {!emptyEmail ? (
+              {!emptyEmail && (
                 <p className={`${styles.warning}`}>Email is empty!</p>
-              ) : (
-                !regexEmail && (
-                  <p className={`${styles.warning}`}>Email is invalid!</p>
-                )
               )}
             </div>
             <div className="mb-16">

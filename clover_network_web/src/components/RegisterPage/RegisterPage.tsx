@@ -1,5 +1,5 @@
 import { useState, useEffect, ChangeEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 
 import { Helmet, HelmetProvider } from "react-helmet-async";
@@ -19,7 +19,6 @@ import { UsersApi } from "@/services/api/users";
 import styles from "./RegisterPage.module.css";
 
 const RegisterPage = () => {
-  const [regexEmail, setRegexEmail] = useState<boolean>(true);
   const [emptyFirstname, setEmptyFirstname] = useState<boolean>(true);
   const [emptyLastname, setEmptyLastname] = useState<boolean>(true);
   const [emptyEmail, setEmptyEmail] = useState<boolean>(true);
@@ -36,20 +35,11 @@ const RegisterPage = () => {
   });
 
   useEffect(() => {
-    if (validateEmail(formValue.email)) setRegexEmail(true);
     if (formValue.firstname.length > 0) setEmptyFirstname(true);
     if (formValue.lastname.length > 0) setEmptyLastname(true);
     if (formValue.email.length > 0) setEmptyEmail(true);
     if (formValue.password.length > 0) setEmptyPassword(true);
   }, [formValue]);
-
-  const validateEmail = (email: string) => {
-    return String(email)
-      .toLowerCase()
-      .match(
-        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-      );
-  };
 
   const {
     handleSubmit,
@@ -68,6 +58,14 @@ const RegisterPage = () => {
     });
   };
 
+  const validateEmail = (email: string) => {
+    return String(email)
+      .toLowerCase()
+      .match(
+        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+      );
+  };
+
   const handleInput = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value }: { name: string; value: string } = e.target;
     if (name === "gender")
@@ -76,10 +74,6 @@ const RegisterPage = () => {
   };
 
   const handleRegister = async () => {
-    if (validateEmail(formValue.email) === null) {
-      setRegexEmail(false);
-    } else setRegexEmail(true);
-
     if (formValue.firstname.length === 0) setEmptyFirstname(false);
     else setEmptyFirstname(true);
     if (formValue.lastname.length === 0) setEmptyLastname(false);
@@ -96,14 +90,22 @@ const RegisterPage = () => {
       formValue.password.length > 0
     ) {
       try {
-        const result = await UsersApi.register(formValue);
-        if (result.messages === "Action Success") {
-          toast.success("Sign up successful, please confirm email!");
-          return;
-        }
-        if (result.messageEN === "Existed user ") {
-          toast.error("Sign up failed, account already exists!");
-          return;
+        if (!validateEmail(formValue.email))
+          toast.error("Sign up failed, email is invalid!");
+        else {
+          const result = await UsersApi.register(formValue);
+          if (result.messages === "Action Success") {
+            toast.success("Sign up successful, please confirm email!");
+            return;
+          }
+          if (result.messageEN === "Invalid data input") {
+            toast.error("Sign up failed, email is invalid!");
+            return;
+          }
+          if (result.messageEN === "Existed user ") {
+            toast.error("Sign up failed, account already exists!");
+            return;
+          }
         }
       } catch (error: any) {
         if (error.error) {
@@ -175,18 +177,12 @@ const RegisterPage = () => {
                 value={formValue.email}
                 onChange={handleInput}
                 className={`${styles.input} ${
-                  !emptyEmail || !regexEmail
-                    ? `${styles.errorInput}`
-                    : `${styles.normalInput}`
+                  !emptyEmail ? `${styles.errorInput}` : `${styles.normalInput}`
                 }`}
                 placeholder="Email"
               />
-              {!emptyEmail ? (
+              {!emptyEmail && (
                 <p className={`${styles.warning}`}>Email is empty!</p>
-              ) : (
-                !regexEmail && (
-                  <p className={`${styles.warning}`}>Email is invalid!</p>
-                )
               )}
             </div>
             <div className="mb-5">
