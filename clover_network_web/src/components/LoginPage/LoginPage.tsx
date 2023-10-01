@@ -109,12 +109,12 @@ const LoginPage = () => {
       </Helmet>
       <section className={`${styles.wrapper}`}>
         <div
-          className={`${styles.leftContent} bg-[url('banner.png')] bg-repeat`}
+          className={`${styles.leftContent} bg-[url('../../banner.png')] bg-repeat`}
         ></div>
         <div className={`${styles.rightContent}`}>
           <div className={`${styles.logoArea}`}>
             <figure className={`${styles.logoImage}`}>
-              <img src="logo.png" alt="logo" />
+              <img src="../../logo.png" alt="logo" />
             </figure>
             <h1 className={`${styles.logoTitle}`}>Clover</h1>
           </div>
