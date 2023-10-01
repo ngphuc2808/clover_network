@@ -3,7 +3,7 @@
 }
 
 .leftContent {
-  @apply w-full h-screen col-span-6 hidden lg:block;
+  @apply w-full h-screen bg-[url('../../banner.png')] bg-repeat col-span-6 hidden lg:block;
 }
 
 .rightContent {

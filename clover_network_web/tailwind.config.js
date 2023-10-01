@@ -16,9 +16,6 @@ export default {
       fontFamily: {
         beVietnam: ["Be Vietnam Pro", "sans-serif"],
       },
-      backgroundImage: {
-        banner: "url('banner.png')",
-      },
       boxShadow: {
         formButton: "rgba(0, 0, 0, 0.6) 0px 3px 9px;",
       },
