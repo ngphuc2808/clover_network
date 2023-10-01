@@ -1,35 +1,63 @@
-import { useState, useEffect, SyntheticEvent, ChangeEvent } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect, ChangeEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { useDispatch } from "react-redux";
 
 import { Helmet, HelmetProvider } from "react-helmet-async";
 
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 import { FcGoogle } from "react-icons/fc";
+import { BiLoaderAlt } from "react-icons/bi";
 
 import { UsersApi } from "@/services/api/users";
+import { setLoggedIn } from "@/features/redux/slices/authSlice";
 
 import styles from "./LoginPage.module.css";
 
 const LoginPage = () => {
+  const router = useNavigate();
+  const dispatch = useDispatch();
+
+  const {
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm<FormInputs>();
+
   const [formValue, setFormValue] = useState<iAccountLogin>({
     email: "",
     password: "",
   });
 
+  const [regexEmail, setRegexEmail] = useState<boolean>(true);
   const [emptyEmail, setEmptyEmail] = useState<boolean>(true);
   const [emptyPassword, setEmptyPassword] = useState<boolean>(true);
 
   useEffect(() => {
+    if (validateEmail(formValue.email)) setRegexEmail(true);
     if (formValue.email.length > 0) setEmptyEmail(true);
     if (formValue.password.length > 0) setEmptyPassword(true);
   }, [formValue]);
+
+  const validateEmail = (email: string) => {
+    return String(email)
+      .toLowerCase()
+      .match(
+        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+      );
+  };
 
   const handleInput = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value }: { name: string; value: string } = e.target;
     setFormValue({ ...formValue, [name]: value });
   };
 
-  const handleLogin = async (e: SyntheticEvent) => {
-    e.preventDefault();
+  const handleLogin = async () => {
+    if (validateEmail(formValue.email) === null) {
+      setRegexEmail(false);
+      return;
+    } else setRegexEmail(true);
 
     if (formValue.email.length === 0) setEmptyEmail(false);
     else setEmptyEmail(true);
@@ -39,9 +67,36 @@ const LoginPage = () => {
     if (formValue.email.length > 0 && formValue.password.length > 0) {
       try {
         const result = await UsersApi.login(formValue);
-        console.log(result);
+        if (result.messageEN === "Action success") {
+          dispatch(setLoggedIn(result.data.tokenId));
+          router("/");
+          return;
+        }
+        if (
+          result.messageEN ===
+          "Account doesn't activated. Please verify account by link send to your email before first login"
+        ) {
+          toast.error(
+            "Please verify account by link send to your email before first login!"
+          );
+          return;
+        }
+        if (result.messageEN === "Profile empty ") {
+          toast.error("Account not found!");
+          return;
+        }
+        if (result.messageEN === "Email or password is incorrect") {
+          toast.error("Email or password is incorrect!");
+          return;
+        }
+        if (result === 1) {
+          toast.error("Sign in failed, please check your information again!");
+          return;
+        }
       } catch (error: any) {
-        console.log(error);
+        if (error.error) {
+          toast.error("Sign in failed, please check your information again!");
+        }
       }
     }
   };
@@ -64,18 +119,24 @@ const LoginPage = () => {
           <form className={`${styles.form}`}>
             <div className="mb-5">
               <input
-                type="text"
+                type="email"
                 id="email"
                 name="email"
                 value={formValue.email}
                 onChange={handleInput}
                 className={`${styles.input} ${
-                  !emptyEmail ? `${styles.errorInput}` : `${styles.normalInput}`
+                  !emptyEmail || !regexEmail
+                    ? `${styles.errorInput}`
+                    : `${styles.normalInput}`
                 }`}
                 placeholder="Email"
               />
-              {!emptyEmail && (
+              {!emptyEmail ? (
                 <p className={`${styles.warning}`}>Email is empty!</p>
+              ) : (
+                !regexEmail && (
+                  <p className={`${styles.warning}`}>Email is invalid!</p>
+                )
               )}
             </div>
             <div className="mb-16">
@@ -96,8 +157,15 @@ const LoginPage = () => {
                 <p className={`${styles.warning}`}>Password is empty!</p>
               )}
             </div>
-            <button className={`${styles.button}`} onClick={handleLogin}>
-              Sign in
+            <button
+              className={`${styles.button}`}
+              onClick={handleSubmit(handleLogin)}
+            >
+              {isSubmitting ? (
+                <BiLoaderAlt className="text-2xl animate-loading" />
+              ) : (
+                "Sign in"
+              )}
             </button>
           </form>
           <div>
@@ -117,6 +185,19 @@ const LoginPage = () => {
           </button>
         </div>
       </section>
+      <ToastContainer
+        position="bottom-right"
+        autoClose={1500}
+        bodyClassName={`${styles.toastBody}`}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </HelmetProvider>
   );
 };

@@ -11,3 +11,7 @@ interface iAccountRegister {
   dayOfBirth: string;
   gender: number;
 }
+
+interface FormInputs {
+  test: string;
+}

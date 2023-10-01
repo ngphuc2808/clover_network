@@ -1,5 +1,7 @@
-import { useState, useEffect, SyntheticEvent, ChangeEvent } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect, ChangeEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+
 import { Helmet, HelmetProvider } from "react-helmet-async";
 
 import { ToastContainer, toast } from "react-toastify";
@@ -10,46 +12,49 @@ import "react-datepicker/dist/react-datepicker.css";
 
 import { FcGoogle } from "react-icons/fc";
 import { AiFillCalendar } from "react-icons/ai";
+import { BiLoaderAlt } from "react-icons/bi";
 
 import { UsersApi } from "@/services/api/users";
 
 import styles from "./RegisterPage.module.css";
 
 const RegisterPage = () => {
+  const [regexEmail, setRegexEmail] = useState<boolean>(true);
+  const [emptyFirstname, setEmptyFirstname] = useState<boolean>(true);
+  const [emptyLastname, setEmptyLastname] = useState<boolean>(true);
+  const [emptyEmail, setEmptyEmail] = useState<boolean>(true);
+  const [emptyPassword, setEmptyPassword] = useState<boolean>(true);
+  const [startDate, setStartDate] = useState(new Date());
+
   const [formValue, setFormValue] = useState<iAccountRegister>({
     firstname: "",
     lastname: "",
     email: "",
     password: "",
-    dayOfBirth: "",
+    dayOfBirth: startDate.toISOString().split("T")[0],
     gender: 0,
   });
 
-  const [emptyFirstname, setEmptyFirstname] = useState<boolean>(true);
-  const [emptyLastname, setEmptyLastname] = useState<boolean>(true);
-  const [emptyEmail, setEmptyEmail] = useState<boolean>(true);
-  const [emptyPassword, setEmptyPassword] = useState<boolean>(true);
-
   useEffect(() => {
+    if (validateEmail(formValue.email)) setRegexEmail(true);
     if (formValue.firstname.length > 0) setEmptyFirstname(true);
     if (formValue.lastname.length > 0) setEmptyLastname(true);
     if (formValue.email.length > 0) setEmptyEmail(true);
     if (formValue.password.length > 0) setEmptyPassword(true);
   }, [formValue]);
 
-  const [startDate, setStartDate] = useState(new Date());
-
-  const formatDate = (date: Date) => {
-    var d = new Date(date),
-      month = "" + (d.getMonth() + 1),
-      day = "" + d.getDate(),
-      year = d.getFullYear();
-
-    if (month.length < 2) month = "0" + month;
-    if (day.length < 2) day = "0" + day;
-
-    return [year, month, day].join("-");
+  const validateEmail = (email: string) => {
+    return String(email)
+      .toLowerCase()
+      .match(
+        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+      );
   };
+
+  const {
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm<FormInputs>();
 
   const handleSetDate = (date: Date) => {
     if (date < new Date()) {
@@ -57,12 +62,10 @@ const RegisterPage = () => {
     } else {
       toast.warning("Please choose the correct date of birth!");
     }
-    setFormValue({ ...formValue, dayOfBirth: formatDate(startDate) });
-
-    const x = new Date("2013-05-24");
-    const y = new Date("2013-05-23");
-
-    console.log(x > y);
+    setFormValue({
+      ...formValue,
+      dayOfBirth: startDate.toISOString().split("T")[0],
+    });
   };
 
   const handleInput = (e: ChangeEvent<HTMLInputElement>) => {
@@ -72,8 +75,10 @@ const RegisterPage = () => {
     else setFormValue({ ...formValue, [name]: value });
   };
 
-  const handleRegister = async (e: SyntheticEvent) => {
-    e.preventDefault();
+  const handleRegister = async () => {
+    if (validateEmail(formValue.email) === null) {
+      setRegexEmail(false);
+    } else setRegexEmail(true);
 
     if (formValue.firstname.length === 0) setEmptyFirstname(false);
     else setEmptyFirstname(true);
@@ -92,10 +97,18 @@ const RegisterPage = () => {
     ) {
       try {
         const result = await UsersApi.register(formValue);
-        console.log(result);
-        toast.success("Sign up success!");
+        if (result.messages === "Action Success") {
+          toast.success("Sign up successful, please confirm email!");
+          return;
+        }
+        if (result.messageEN === "Existed user ") {
+          toast.error("Sign up failed, account already exists!");
+          return;
+        }
       } catch (error: any) {
-        console.log(error);
+        if (error.error) {
+          toast.error("Sign up failed, please check your information again!");
+        }
       }
     }
   };
@@ -162,12 +175,18 @@ const RegisterPage = () => {
                 value={formValue.email}
                 onChange={handleInput}
                 className={`${styles.input} ${
-                  !emptyEmail ? `${styles.errorInput}` : `${styles.normalInput}`
+                  !emptyEmail || !regexEmail
+                    ? `${styles.errorInput}`
+                    : `${styles.normalInput}`
                 }`}
                 placeholder="Email"
               />
-              {!emptyEmail && (
+              {!emptyEmail ? (
                 <p className={`${styles.warning}`}>Email is empty!</p>
+              ) : (
+                !regexEmail && (
+                  <p className={`${styles.warning}`}>Email is invalid!</p>
+                )
               )}
             </div>
             <div className="mb-5">
@@ -214,7 +233,7 @@ const RegisterPage = () => {
               <div className="w-full">
                 <p className="mb-2">Gender</p>
                 <div className={`${styles.customDivSelect}`}>
-                  <label htmlFor="male" className="flex gap-4 items-center">
+                  <label htmlFor="male" className="flex gap-3 items-center">
                     <input
                       checked={formValue.gender === 0 ? true : false}
                       type="radio"
@@ -227,7 +246,7 @@ const RegisterPage = () => {
                     Male
                   </label>
                   <span className="h-6 bg-secondColor w-px"></span>
-                  <label htmlFor="female" className="flex gap-4 items-center">
+                  <label htmlFor="female" className="flex gap-3 items-center">
                     <input
                       checked={formValue.gender === 1 ? true : false}
                       type="radio"
@@ -239,11 +258,31 @@ const RegisterPage = () => {
                     />
                     Female
                   </label>
+                  <span className="h-6 bg-secondColor w-px"></span>
+                  <label htmlFor="female" className="flex gap-3 items-center">
+                    <input
+                      checked={formValue.gender === 2 ? true : false}
+                      type="radio"
+                      id="other"
+                      value={2}
+                      name="gender"
+                      onChange={handleInput}
+                      className={`${styles.customRadio}`}
+                    />
+                    Other
+                  </label>
                 </div>
               </div>
             </div>
-            <button className={`${styles.button}`} onClick={handleRegister}>
-              Sign up
+            <button
+              className={`${styles.button}`}
+              onClick={handleSubmit(handleRegister)}
+            >
+              {isSubmitting ? (
+                <BiLoaderAlt className="text-2xl animate-loading" />
+              ) : (
+                "Sign up"
+              )}
             </button>
           </form>
           <div>
@@ -265,7 +304,8 @@ const RegisterPage = () => {
       </section>
       <ToastContainer
         position="bottom-right"
-        autoClose={1000}
+        autoClose={1500}
+        bodyClassName={`${styles.toastBody}`}
         hideProgressBar={false}
         newestOnTop={false}
         closeOnClick
