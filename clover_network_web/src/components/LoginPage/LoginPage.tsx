@@ -108,7 +108,9 @@ const LoginPage = () => {
         <title>Login</title>
       </Helmet>
       <section className={`${styles.wrapper}`}>
-        <div className={`${styles.leftContent}`}></div>
+        <div
+          className={`${styles.leftContent} bg-[url('banner.png')] bg-repeat`}
+        ></div>
         <div className={`${styles.rightContent}`}>
           <div className={`${styles.logoArea}`}>
             <figure className={`${styles.logoImage}`}>
