@@ -1,5 +1,4 @@
-const BASE_URL = "https://47.128.64.91:8080";
-const API_BASE = `${BASE_URL}/api`;
+const API_BASE = `/api`;
 
 export const API_URL = {
   login: `${API_BASE}/authenticate/login-by-email`,
