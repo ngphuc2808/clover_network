@@ -54,7 +54,7 @@ const RegisterPage = () => {
     }
     setFormValue({
       ...formValue,
-      dayOfBirth: startDate.toISOString().split("T")[0],
+      dayOfBirth: date.toISOString().split("T")[0],
     });
   };
 
@@ -94,7 +94,7 @@ const RegisterPage = () => {
           toast.error("Sign up failed, email is invalid!");
         else {
           const result = await UsersApi.register(formValue);
-          if (result.messages === "Action Success") {
+          if (result.messageEN === "Action success") {
             toast.success("Sign up successful, please confirm email!");
             return;
           }

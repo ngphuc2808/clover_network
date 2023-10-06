@@ -5,7 +5,9 @@ import { useSelector } from "react-redux";
 const HomePage = () => {
   const router = useNavigate();
 
-  const { isLoggedIn } = useSelector((state: any) => state.auth);
+  const { isLoggedIn } = useSelector(
+    (state: { auth: { isLoggedIn: boolean; tokenId: string } }) => state.auth
+  );
 
   useEffect(() => {
     if (!isLoggedIn) {

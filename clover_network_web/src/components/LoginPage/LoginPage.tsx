@@ -1,7 +1,7 @@
 import { useState, useEffect, ChangeEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import { Helmet, HelmetProvider } from "react-helmet-async";
 
@@ -19,6 +19,17 @@ import styles from "./LoginPage.module.css";
 const LoginPage = () => {
   const router = useNavigate();
   const dispatch = useDispatch();
+
+  const { isLoggedIn } = useSelector(
+    (state: { auth: { isLoggedIn: boolean; tokenId: string } }) => state.auth
+  );
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      router("/");
+      return;
+    }
+  }, []);
 
   const {
     handleSubmit,
