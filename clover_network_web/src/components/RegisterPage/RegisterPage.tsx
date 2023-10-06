@@ -275,7 +275,7 @@ const RegisterPage = () => {
               onClick={handleSubmit(handleRegister)}
             >
               {isSubmitting ? (
-                <BiLoaderAlt className="text-2xl animate-loading" />
+                <BiLoaderAlt className="text-2xl animate-spin" />
               ) : (
                 "Sign up"
               )}

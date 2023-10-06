@@ -69,3 +69,7 @@
 .buttonGoogle {
   @apply flex items-center justify-center gap-3 w-full px-3 py-4 border rounded-lg font-semibold shadow;
 }
+
+.toastBody {
+  @apply font-beVietnam;
+}

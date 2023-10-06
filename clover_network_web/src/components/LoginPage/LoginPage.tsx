@@ -57,8 +57,8 @@ const LoginPage = () => {
     if (formValue.password.length === 0) setEmptyPassword(false);
     else setEmptyPassword(true);
 
-    if (formValue.email.length > 0 && formValue.password.length > 0) {
-      try {
+    try {
+      if (formValue.email.length > 0 && formValue.password.length > 0) {
         if (!validateEmail(formValue.email))
           toast.error("Sign in failed, email is invalid!");
         else {
@@ -94,10 +94,11 @@ const LoginPage = () => {
             return;
           }
         }
-      } catch (error: any) {
-        if (error.error) {
-          toast.error("Sign in failed, please check your information again!");
-        }
+        return;
+      }
+    } catch (error: any) {
+      if (error.error) {
+        toast.error("Sign in failed, please check your information again!");
       }
     }
   };
@@ -157,7 +158,7 @@ const LoginPage = () => {
               onClick={handleSubmit(handleLogin)}
             >
               {isSubmitting ? (
-                <BiLoaderAlt className="text-2xl animate-loading" />
+                <BiLoaderAlt className="text-2xl animate-spin" />
               ) : (
                 "Sign in"
               )}

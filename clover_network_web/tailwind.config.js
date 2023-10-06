@@ -19,19 +19,6 @@ export default {
       boxShadow: {
         formButton: "rgba(0, 0, 0, 0.6) 0px 3px 9px;",
       },
-      keyframes: {
-        loading: {
-          "0%": {
-            transform: "rotate(0deg)",
-          },
-          "100%": {
-            transform: "rotate(360deg)",
-          },
-        },
-      },
-      animation: {
-        loading: "loading 1.2s linear infinite",
-      },
     },
   },
   plugins: [],
