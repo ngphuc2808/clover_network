@@ -103,5 +103,5 @@
 }
 
 .toastBody {
-  @apply font-beVietnam;
+  @apply font-beVietnam text-sm;
 }

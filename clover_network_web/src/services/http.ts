@@ -1,8 +1,8 @@
-import Axios, { AxiosResponse } from "axios";
+import axios, { AxiosError, AxiosResponse } from "axios";
 
-const http = Axios.create({
-  baseURL: "http://47.128.64.91:8080",
+const http = axios.create({
   withCredentials: true,
+  timeout: 10000,
   headers: {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
@@ -10,10 +10,11 @@ const http = Axios.create({
 });
 
 http.interceptors.response.use(
-  (response: AxiosResponse) => response.data,
-  (error) => {
+  (response: AxiosResponse) => {
+    return response;
+  },
+  (error: AxiosError) => {
     return Promise.reject(error.response?.data ? error.response.data : error);
   }
 );
-
 export default http;

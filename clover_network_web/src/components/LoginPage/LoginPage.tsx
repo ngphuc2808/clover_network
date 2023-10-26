@@ -74,8 +74,9 @@ const LoginPage = () => {
           toast.error("Sign in failed, email is invalid!");
         else {
           const result = await UsersApi.login(formValue);
-          if (result.messageEN === "Action success") {
-            dispatch(setLoggedIn(result.data.tokenId));
+          console.log(result.data.data.data);
+          if (result.data.messageEN === "Action success") {
+            dispatch(setLoggedIn(result.data.data.tokenId));
             router("/");
             return;
           }
@@ -88,15 +89,15 @@ const LoginPage = () => {
             );
             return;
           }
-          if (result.messageEN === "Profile empty ") {
+          if (result.data.messageEN === "Profile empty ") {
             toast.error("Account not found!");
             return;
           }
-          if (result.messageEN === "Invalid data input") {
+          if (result.data.messageEN === "Invalid data input") {
             toast.error("Sign in failed, email is invalid!");
             return;
           }
-          if (result.messageEN === "Email or password is incorrect") {
+          if (result.data.messageEN === "Email or password is incorrect") {
             toast.error("Email or password is incorrect!");
             return;
           }
