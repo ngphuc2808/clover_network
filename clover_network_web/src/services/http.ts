@@ -2,7 +2,7 @@ import axios, { AxiosError, AxiosResponse } from "axios";
 
 const http = axios.create({
   withCredentials: true,
-  timeout: 10000,
+  timeout: 20000,
   headers: {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",

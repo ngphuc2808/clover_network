@@ -1,18 +1,41 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { publicRoutes } from "../routes";
+import HomePage from "@/components/templates/HomePage";
+import LoginPage from "@/components/templates/LoginPage";
+import RegisterPage from "@/components/templates/RegisterPage";
+import { useRoutes } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
 
-const App = () => {
+const App: React.FC = () => {
+  const elements = useRoutes([
+    {
+      path: "/",
+      element: <HomePage />,
+    },
+    {
+      path: "/login",
+      element: <LoginPage />,
+    },
+    {
+      path: "/register",
+      element: <RegisterPage />,
+    },
+  ]);
   return (
-    <Router>
-      <div className="App">
-        <Routes>
-          {publicRoutes.map((route, index) => {
-            const Page = route.component;
-            return <Route key={index} path={route.path} element={<Page />} />;
-          })}
-        </Routes>
-      </div>
-    </Router>
+    <div className="App">
+      {elements}
+      <ToastContainer
+        position="bottom-right"
+        autoClose={1500}
+        bodyClassName="font-beVietnam text-sm"
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+    </div>
   );
 };
 

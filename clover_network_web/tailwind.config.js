@@ -12,6 +12,7 @@ export default {
         textHeadingColor: "#1f2937",
         primaryColor: "#2EA043",
         secondColor: "#0F7422",
+        thirdColor: "#0F7422",
       },
       fontFamily: {
         beVietnam: ["Be Vietnam Pro", "sans-serif"],
