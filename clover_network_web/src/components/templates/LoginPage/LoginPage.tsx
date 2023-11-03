@@ -1,162 +1,162 @@
-import { useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { Helmet, HelmetProvider } from "react-helmet-async";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
+import { Helmet, HelmetProvider } from 'react-helmet-async'
+import { toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
-import { FcGoogle } from "react-icons/fc";
-import { BiLoaderAlt } from "react-icons/bi";
+import { FcGoogle } from 'react-icons/fc'
+import { BiLoaderAlt } from 'react-icons/bi'
 
-import { usePostLogin } from "@/hook";
+import { usePostLogin } from '@/hook'
+
+import Button from '@/components/atoms/Button'
 
 const LoginPage = () => {
-  const router = useNavigate();
+  const router = useNavigate()
 
-  const isLogin = JSON.parse(localStorage.getItem("userLogin")!);
+  const isLogin = JSON.parse(localStorage.getItem('userLogin')!)
 
-  const loginApi = usePostLogin();
+  const loginApi = usePostLogin()
 
   useEffect(() => {
     if (isLogin) {
-      router("/");
-      return;
+      router('/')
+      return
     }
-  }, []);
+  }, [])
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginType>();
+  } = useForm<LoginType>()
 
   const handleLogin = (data: LoginType) => {
     loginApi.mutate(data, {
       onSuccess(data) {
-        if (data.data.messageEN === "Action success") {
-          localStorage.setItem("userLogin", JSON.stringify(data.data.data));
-          router("/");
-          return;
+        if (data.data.messageEN === 'Action success') {
+          localStorage.setItem('userLogin', JSON.stringify(data.data.data))
+          router('/')
+          return
         }
-        if (data.data.messageEN === "Profile empty ") {
-          toast.error("Account not found, please check again!");
-          return;
+        if (data.data.messageEN === 'Profile empty ') {
+          toast.error('Account not found, please check again!')
+          return
         }
-        if (data.data.messageEN === "Email or password is incorrect") {
-          toast.error("Wrong email or password, please check again!");
-          return;
+        if (data.data.messageEN === 'Email or password is incorrect') {
+          toast.error('Wrong email or password, please check again!')
+          return
         }
-        toast.error("Please verify email!");
+        toast.error('Please verify email!')
       },
-    });
-  };
+    })
+  }
 
   return (
     <HelmetProvider>
       <Helmet>
         <title>Login</title>
       </Helmet>
-      <section className="grid grid-cols-12 text-textPrimaryColor h-screen lg:h-auto">
-        <div className="w-full h-screen bg-[url('../../banner.png')] bg-repeat col-span-6 hidden lg:block"></div>
-        <div className="lg:p-32 md:p-20 p-8 flex flex-col justify-center col-span-full lg:col-span-6">
-          <div className="flex items-center justify-center gap-3 mb-5">
-            <figure className="w-20 h-20 p-3 border border-secondColor rounded-full">
-              <img src="../../logo.png" alt="logo" />
+      <section className='grid grid-cols-12 text-textPrimaryColor'>
+        <div className="col-span-0 h-screen bg-[url('../../banner.png')] bg-repeat lg:col-span-6"></div>
+        <div className='col-span-full flex flex-col justify-center p-8 md:p-20 lg:col-span-6 lg:p-32'>
+          <div className='mb-5 flex items-center justify-center gap-3'>
+            <figure className='h-20 w-20 rounded-full border border-secondColor p-3'>
+              <img src='../../logo.png' alt='logo' />
             </figure>
-            <h1 className="text-5xl font-semibold text-primaryColor">Clover</h1>
+            <h1 className='text-5xl font-semibold text-primaryColor'>Clover</h1>
           </div>
-          <h1 className="mx-auto mb-10 text-3xl font-semibold text-primaryColor">
+          <h1 className='mx-auto mb-10 text-3xl font-semibold text-primaryColor'>
             Welcome back!
           </h1>
-          <form className="mb-6">
-            <div className="mb-5">
+          <form className='mb-6'>
+            <div className='mb-5'>
               <input
-                type="email"
-                id="email"
-                {...register("email", {
-                  required: true,
-                  pattern: /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/,
+                type='email'
+                id='email'
+                {...register('email', {
+                  required: {
+                    value: true,
+                    message: 'Please enter email!',
+                  },
                 })}
-                className={`w-full px-3 py-4 border border-thirdColor rounded-lg outline-none ${
+                className={`w-full rounded-lg border border-thirdColor px-3 py-4 outline-none ${
                   errors.email
-                    ? "bg-red-50 border-red-500 placeholder-red-400"
-                    : "bg-white border border-thirdColor"
+                    ? 'border-warnColor bg-red-50 placeholder-lightWarnColor'
+                    : 'bg-white'
                 }`}
-                placeholder="Email"
+                placeholder='Email'
               />
-              {errors.email?.type === "required" && (
-                <p className="mt-2 text-sm text-red-600">Please enter email!</p>
-              )}
-              {errors.email?.type === "pattern" && (
-                <p className="mt-2 text-sm text-red-600">
-                  Please enter the correct email format!
-                </p>
-              )}
+              <p className='mt-2 text-sm text-warnColor'>
+                {errors.email?.message}
+              </p>
             </div>
-            <div className="mb-16">
+            <div className='mb-16'>
               <input
-                type="password"
-                id="password"
-                {...register("password", {
-                  required: true,
-                  pattern:
-                    /^(?=.*[a-z])(?=.*[A-Z])[a-zA-Z0-9!@#\$%\^\&*\)\(+=._-]{8,}$/,
+                type='password'
+                id='password'
+                {...register('password', {
+                  required: {
+                    value: true,
+                    message: 'Please enter password!',
+                  },
                 })}
-                autoComplete="on"
-                className={`w-full px-3 py-4 border border-thirdColor rounded-lg outline-none ${
+                autoComplete='on'
+                className={`w-full rounded-lg border border-thirdColor px-3 py-4 outline-none ${
                   errors.password
-                    ? "bg-red-50 border-red-500 placeholder-red-400"
-                    : "bg-white border border-thirdColor"
+                    ? 'border-warnColor bg-red-50 placeholder-lightWarnColor'
+                    : 'bg-white'
                 }`}
-                placeholder="Password"
+                placeholder='Password'
               />
-              {errors.password?.type === "required" && (
-                <p className="mt-2 text-sm text-red-600">
-                  Please enter password!
-                </p>
-              )}
-              {errors.password?.type === "pattern" && (
-                <p className="mt-2 text-sm text-red-600">
-                  Vui lòng nhập đúng định dạng mật khẩu!
-                  <br />
-                  Bao gồm ít nhất 8 ký tự, 1 chữ cái viết thường, 1 chữ cái viết
-                  hoa và 1 chữ số!
-                </p>
-              )}
+              <p className='mt-2 text-sm text-warnColor'>
+                {errors.password?.message}
+              </p>
             </div>
-            <button
-              className="flex items-center justify-center min-h-[58px] w-full px-3 py-4 bg-primaryColor rounded-lg text-white font-semibold shadow-formButton hover:opacity-90"
+            <Button
+              className='flex min-h-[58px] w-full items-center justify-center rounded-lg bg-primaryColor px-3 py-4 font-semibold text-white shadow-formButton hover:opacity-90'
               onClick={handleSubmit(handleLogin)}
             >
               {loginApi.isLoading ? (
-                <BiLoaderAlt className="text-3xl animate-spin" />
+                <BiLoaderAlt className='animate-spin text-3xl' />
               ) : (
-                "Sign in"
+                'Sign in'
               )}
-            </button>
+            </Button>
           </form>
-          <div>
-            <span>Don't have account ?</span>
-            <Link
-              to={"/register"}
-              className="font-semibold ml-2 hover:opacity-90"
-            >
-              Sign up
-            </Link>
+          <div className='flex w-full items-center justify-between'>
+            <div>
+              <span>Don't have account ?</span>
+              <Button
+                to={'/register'}
+                className='ml-2 font-semibold hover:opacity-80'
+              >
+                Sign up
+              </Button>
+            </div>
+            <div>
+              <Button
+                to={'/login/identify'}
+                className='ml-2 font-semibold hover:opacity-80'
+              >
+                Forgotten password?
+              </Button>
+            </div>
           </div>
-          <div className="flex items-center my-5">
-            <span className="flex-1 h-px bg-secondColor opacity-30"></span>
-            <p className="px-3 text-secondColor opacity-30 font-semibold">or</p>
-            <span className="flex-1 h-px bg-secondColor opacity-30"></span>
+          <div className='my-5 flex items-center'>
+            <span className='h-px flex-1 bg-secondColor opacity-30'></span>
+            <p className='px-3 font-semibold text-secondColor opacity-30'>or</p>
+            <span className='h-px flex-1 bg-secondColor opacity-30'></span>
           </div>
-          <button className="flex items-center justify-center gap-3 w-full px-3 py-4 border rounded-lg font-semibold shadow">
-            <FcGoogle className="text-3xl" />
+          <Button className='flex w-full items-center justify-center gap-3 rounded-lg border px-3 py-4 font-semibold shadow'>
+            <FcGoogle className='text-3xl' />
             <p>Continue with Google</p>
-          </button>
+          </Button>
         </div>
       </section>
     </HelmetProvider>
-  );
-};
+  )
+}
 
-export default LoginPage;
+export default LoginPage
