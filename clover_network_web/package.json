@@ -16,6 +16,7 @@
     "react-router-dom": "^6.15.0"
   },
   "devDependencies": {
+    "@tippyjs/react": "^4.2.6",
     "@types/node": "^20.6.5",
     "@types/react": "^18.2.15",
     "@types/react-datepicker": "^4.19.1",

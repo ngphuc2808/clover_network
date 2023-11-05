@@ -15,6 +15,7 @@ export default {
         thirdColor: '#0F7422',
         warnColor: '#ef4444',
         lightWarnColor: '#f87171',
+        bgPrimaryColor: '#F0F2F5',
       },
       fontFamily: {
         beVietnam: ['Be Vietnam Pro', 'sans-serif'],

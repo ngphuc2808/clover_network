@@ -40,7 +40,7 @@ const ForgotPasswordPage = () => {
   }
   return (
     <section className='flex h-screen flex-col justify-between'>
-      <header className='fixed left-0 right-0 top-0 flex h-[61px] items-center justify-center bg-white px-3 shadow sm:justify-between'>
+      <header className='fixed left-0 right-0 top-0 flex h-[61px] items-center justify-center bg-white px-3 shadow-md sm:justify-between'>
         <Button to={'/login'} className='flex items-center gap-1'>
           <figure className='w-12'>
             <img src='../../logo.png' />
@@ -98,7 +98,7 @@ const ForgotPasswordPage = () => {
         </form>
       </header>
       <div className='mt-[61px] flex flex-1 items-center justify-center bg-[#e9ebee]'>
-        <div className='shadow-shadowPrimary my-10 w-[500px] max-w-[95%] rounded-xl bg-white sm:my-0'>
+        <div className='my-10 w-[500px] max-w-[95%] rounded-xl bg-white shadow-shadowPrimary sm:my-0'>
           <h1 className='p-5 text-2xl text-primaryColor'>Find Your Account</h1>
           <div className='flex items-center'>
             <span className='h-px flex-1 bg-secondColor opacity-30'></span>

@@ -1,9 +1,7 @@
-import logo from "./logo.png";
-import banner from "./banner.png";
+import avatar from './avatar.jpg'
 
 const images = {
-  logo,
-  banner,
-};
+  avatar,
+}
 
-export default images;
+export default images

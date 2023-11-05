@@ -296,7 +296,7 @@ const RegisterPage = () => {
               )}
             </Button>
           </form>
-          <div>
+          <div className='flex items-center'>
             <span>Already have account ?</span>
             <Button
               to={'/login'}

@@ -126,7 +126,7 @@ const LoginPage = () => {
             </Button>
           </form>
           <div className='flex w-full items-center justify-between'>
-            <div>
+            <div className='flex items-center'>
               <span>Don't have account ?</span>
               <Button
                 to={'/register'}
@@ -135,7 +135,7 @@ const LoginPage = () => {
                 Sign up
               </Button>
             </div>
-            <div>
+            <div className='flex items-center'>
               <Button
                 to={'/login/identify'}
                 className='ml-2 font-semibold hover:opacity-80'
