@@ -48,6 +48,10 @@ const LoginPage = () => {
           toast.error('Wrong email or password, please check again!')
           return
         }
+        if (data.data.messageEN === 'Invalid data input') {
+          toast.error('Invalid data input, please check again!')
+          return
+        }
         toast.error('Please verify email!')
       },
     })
@@ -59,7 +63,7 @@ const LoginPage = () => {
         <title>Login</title>
       </Helmet>
       <section className='grid grid-cols-12 text-textPrimaryColor'>
-        <div className="col-span-0 h-screen bg-[url('../../banner.png')] bg-repeat lg:col-span-6"></div>
+        <div className="col-span-0 hidden h-screen bg-[url('../../banner.png')] bg-repeat lg:col-span-6 lg:block"></div>
         <div className='col-span-full flex flex-col justify-center p-8 md:p-20 lg:col-span-6 lg:p-32'>
           <div className='mb-5 flex items-center justify-center gap-3'>
             <figure className='h-20 w-20 rounded-full border border-secondColor p-3'>

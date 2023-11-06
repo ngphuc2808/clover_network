@@ -1,7 +1,7 @@
 export const authHeader = () => {
-  const result = JSON.parse(localStorage.getItem("persist:root")!);
+  const result = JSON.parse(localStorage.getItem('userLogin')!)
 
-  if (result.isLoggedIn && result.tokenId)
-    return { Authorization: `Bearer ${result.tokenId.slice(1, -1)}` };
-  return {};
-};
+  if (result && result.tokenId)
+    return { Authorization: `Bearer ${result.tokenId}` }
+  return {}
+}

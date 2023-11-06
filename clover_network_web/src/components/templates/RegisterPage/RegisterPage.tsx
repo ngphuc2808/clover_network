@@ -28,18 +28,24 @@ const RegisterPage = () => {
     }
   }, [])
 
-  const [startDate, setStartDate] = useState(new Date())
+  const formatDate = () => {
+    const date = new Date()
+    const timeZoneOffset = date.getTimezoneOffset()
+
+    date.setDate(date.getDate())
+
+    date.setMinutes(date.getMinutes() - timeZoneOffset)
+
+    return date
+  }
+
+  const [startDate, setStartDate] = useState(formatDate())
 
   const {
     register,
-    setValue,
     handleSubmit,
     formState: { errors },
-  } = useForm<RegisterType>({
-    defaultValues: {
-      dayOfBirth: startDate.toISOString().split('T')[0],
-    },
-  })
+  } = useForm<RegisterType>()
 
   const handleSetDate = (date: Date) => {
     if (date < new Date()) {
@@ -47,10 +53,11 @@ const RegisterPage = () => {
     } else {
       toast.warning('Please choose the correct date of birth!')
     }
-    setValue('dayOfBirth', date.toISOString().split('T')[0])
   }
 
   const handleRegister = (data: RegisterType) => {
+    data.dayOfBirth = startDate.toISOString().split('T')[0]
+
     registerApi.mutate(data, {
       onSuccess(data) {
         if (data.data.messageEN === 'Action success') {
@@ -71,8 +78,8 @@ const RegisterPage = () => {
         <title>Register</title>
       </Helmet>
       <section className='grid grid-cols-12 text-textPrimaryColor'>
-        <div className="col-span-0 h-screen bg-[url('../../banner.png')] bg-repeat lg:col-span-6"></div>
-        <div className='col-span-full flex h-screen flex-col justify-center p-8 md:p-20 lg:col-span-6 lg:p-32'>
+        <div className="col-span-0 hidden h-screen bg-[url('../../banner.png')] bg-repeat lg:col-span-6 lg:block"></div>
+        <div className='col-span-full flex flex-col justify-center p-8 sm:h-screen md:p-20 lg:col-span-6 lg:p-32'>
           <div className='mb-5 flex items-center justify-center gap-3'>
             <figure className='h-20 w-20 rounded-full border border-secondColor p-3'>
               <img src='logo.png' alt='logo' />
@@ -202,6 +209,7 @@ const RegisterPage = () => {
                         ? '!bg-primaryColor'
                         : 'bg-primaryColor/10'
                     }}
+                    onKeyDown={(e) => e.preventDefault()}
                     selected={startDate}
                     showMonthDropdown
                     showYearDropdown
@@ -218,7 +226,7 @@ const RegisterPage = () => {
                 <p className='mb-2'>Gender</p>
                 <div
                   className={`flex items-center justify-center gap-4 rounded-lg border border-secondColor px-2 py-4 ${
-                    errors.password
+                    errors.gender
                       ? 'border-warnColor bg-red-50 placeholder-lightWarnColor'
                       : 'bg-white'
                   }`}
