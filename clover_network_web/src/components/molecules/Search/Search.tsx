@@ -1,4 +1,4 @@
-import { useRef, ChangeEvent, useState, useEffect } from 'react'
+import { useRef, ChangeEvent } from 'react'
 
 import { AiOutlineClose } from 'react-icons/ai'
 import { HiOutlineMagnifyingGlass } from 'react-icons/hi2'

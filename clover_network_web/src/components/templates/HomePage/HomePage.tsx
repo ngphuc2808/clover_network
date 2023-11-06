@@ -6,7 +6,7 @@ import { IoLogOutOutline } from 'react-icons/io5'
 import { AiOutlineSetting } from 'react-icons/ai'
 import { MdOutlineKeyboardBackspace } from 'react-icons/md'
 
-import { useDebounce, useGetUserInfo } from '@/hook'
+import { useGetUserInfo } from '@/hook'
 import Button from '@/components/atoms/Button'
 import Search from '@/components/molecules/Search'
 import images from '@/assets/images'
@@ -41,7 +41,7 @@ const HomePage = () => {
   const [search, setOpenSearch] = useState<boolean>(false)
   const [searchTerm, setSearchTerm] = useState<string>('')
 
-  const debouncedSearchTerm = useDebounce(searchTerm, 300)
+  // const debouncedSearchTerm = useDebounce(searchTerm, 300)
 
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value)
