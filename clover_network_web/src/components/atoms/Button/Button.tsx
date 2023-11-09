@@ -1,7 +1,7 @@
 import { Fragment, ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
-type Props = {
+interface iProps {
   children?: ReactNode
   title?: string
   to?: string
@@ -17,7 +17,7 @@ const Button = ({
   className = '',
   onClick,
   disable,
-}: Props) => {
+}: iProps) => {
   return (
     <Fragment>
       {to ? (

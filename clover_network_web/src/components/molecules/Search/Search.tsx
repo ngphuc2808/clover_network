@@ -3,12 +3,12 @@ import { useRef, ChangeEvent } from 'react'
 import { AiOutlineClose } from 'react-icons/ai'
 import { HiOutlineMagnifyingGlass } from 'react-icons/hi2'
 
-interface Props {
+interface iProps {
   title: string
   searchTerm: string
   isMobile: boolean
-  search: boolean
-  setOpenSearch: (search: boolean) => void
+  openSearch: boolean
+  setOpenSearch: (openSearch: boolean) => void
   handleSearchChange: (e: ChangeEvent<HTMLInputElement>) => void
   handleClearChange: () => void
 }
@@ -17,20 +17,20 @@ const Search = ({
   title,
   searchTerm,
   isMobile,
-  search,
+  openSearch,
   setOpenSearch,
   handleSearchChange,
   handleClearChange,
-}: Props) => {
+}: iProps) => {
   const inputRef = useRef() as React.MutableRefObject<HTMLInputElement>
 
   return (
     <div
       onClick={() => isMobile && setOpenSearch(true)}
       className={`lg:basis-inherit flex h-[45px] w-[45px] items-center ${
-        isMobile && search ? 'mr-3 flex-1' : ''
+        isMobile && openSearch ? 'mr-3 w-auto' : ''
       }
-      justify-between overflow-hidden rounded-full bg-bgPrimaryColor md:w-[275px] lg:mt-0 lg:w-[500px]`}
+      justify-between overflow-hidden rounded-full bg-bgPrimaryColor md:w-[275px] lg:mt-0 lg:w-auto`}
     >
       <span className='cursor-pointer p-3 text-2xl text-primaryColor hover:text-secondColor sm:px-3 sm:py-[5px]'>
         <HiOutlineMagnifyingGlass />
