@@ -190,7 +190,6 @@ const ModalPost = ({
                   </div>
                 </div>
               </div>
-
               <Button
                 className={`mt-4 w-full rounded-lg p-3 outline-none hover:opacity-90 ${
                   watch('content').length > 0

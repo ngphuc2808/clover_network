@@ -11,6 +11,7 @@ import { FaRegCommentAlt } from 'react-icons/fa'
 import { FaEarthAsia } from 'react-icons/fa6'
 import { BsEmojiSmile } from 'react-icons/bs'
 import { IoLogOutOutline } from 'react-icons/io5'
+import { useIsFetching, useIsMutating } from 'react-query'
 import { AiOutlineLike, AiOutlineSetting } from 'react-icons/ai'
 import { MdKeyboardArrowDown, MdOutlineKeyboardBackspace } from 'react-icons/md'
 
@@ -23,6 +24,7 @@ import {
   CameraIcon,
   FriendsIcon,
   GroupFriendsIcon,
+  SpinnerIcon,
 } from '@/components/atoms/Icons'
 import { HiMagnifyingGlass } from 'react-icons/hi2'
 import { FcAddImage } from 'react-icons/fc'
@@ -31,6 +33,10 @@ import ModalAudience from '@/components/molecules/ModalAudience'
 
 const HomePage = () => {
   const router = useNavigate()
+
+  const isFetching = useIsFetching()
+
+  const isMutating = useIsMutating()
 
   const isLogin = JSON.parse(localStorage.getItem('userLogin')!)
 
@@ -754,6 +760,12 @@ const HomePage = () => {
             </ul>
           </div>
         </div>
+        {isFetching + isMutating !== 0 && (
+          <div role='status' className='fixed bottom-10 right-10'>
+            <SpinnerIcon />
+            <span className='sr-only'>Loading...</span>
+          </div>
+        )}
       </section>
       {modalPost && !modalAudience && (
         <ModalPost
