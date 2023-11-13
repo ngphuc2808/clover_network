@@ -1,7 +1,13 @@
 import { useEffect, useState } from 'react'
-import { UseQueryOptions, useMutation, useQuery } from 'react-query'
+import {
+  UseQueryOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from 'react-query'
 
 import { UsersApi } from '@/services/api/users'
+import { FeedsApi } from '@/services/api/feeds'
 
 export const useAutosizeTextArea = (
   textAreaRef: HTMLTextAreaElement | null,
@@ -32,6 +38,11 @@ export const useDebounce = (value: string, delay: number) => {
   }, [value, delay])
 
   return debouncedValue
+}
+
+export const useGetFetchQuery = <T>(name: string) => {
+  const queryClient = useQueryClient()
+  return queryClient.getQueryData<T>(name)
 }
 
 //Auth
@@ -65,5 +76,14 @@ export const useGetUserInfo = (options?: UseQueryOptions<ResponseUserType>) => {
     keepPreviousData: true,
     retry: 2,
     ...options,
+  })
+}
+
+//Feed
+export const usePostFeed = () => {
+  return useMutation({
+    mutationFn: (body: FeedsType) => {
+      return FeedsApi.postFeed(body)
+    },
   })
 }

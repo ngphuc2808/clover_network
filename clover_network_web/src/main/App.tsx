@@ -2,6 +2,7 @@ import NotFoundPage from '@/components/pages/NotFoundPage'
 import ForgotPasswordPage from '@/components/templates/ForgotPasswordPage'
 import LoadingPage from '@/components/templates/LoadingPage'
 import React, { Suspense, useEffect, useState } from 'react'
+import { ConfigProvider } from 'antd'
 import { useRoutes } from 'react-router-dom'
 import { ToastContainer } from 'react-toastify'
 
@@ -43,7 +44,21 @@ const App: React.FC = () => {
       <Suspense fallback={<LoadingPage />}>
         {suspended ? (
           <>
-            {elements}
+            <ConfigProvider
+              theme={{
+                components: {
+                  Radio: {
+                    radioSize: 21,
+                    colorWhite: '#ffffff',
+                    colorPrimary: '#2EA043',
+                    colorBorder: '#2EA043',
+                  },
+                },
+              }}
+            >
+              {elements}
+            </ConfigProvider>
+
             <ToastContainer
               position='bottom-right'
               autoClose={1500}

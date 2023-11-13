@@ -26,7 +26,8 @@ import {
 } from '@/components/atoms/Icons'
 import { HiMagnifyingGlass } from 'react-icons/hi2'
 import { FcAddImage } from 'react-icons/fc'
-import Modal from '@/components/molecules/Modal'
+import ModalPost from '@/components/molecules/ModalPost'
+import ModalAudience from '@/components/molecules/ModalAudience'
 
 const HomePage = () => {
   const router = useNavigate()
@@ -57,8 +58,18 @@ const HomePage = () => {
   const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth <= 640)
   const [openSearch, setOpenSearch] = useState<boolean>(false)
   const [searchTerm, setSearchTerm] = useState<string>('')
+  const [audienceValue, setAudienceValue] = useState<string>('PUBLIC')
 
   const [modalPost, setModalPost] = useState<boolean>(false)
+  const [modalAudience, setModalAudience] = useState<boolean>(false)
+
+  const handleOpenModalAudience = () => {
+    setModalAudience(true)
+  }
+
+  const handleCloseModalAudience = () => {
+    setModalAudience(false)
+  }
 
   // const debouncedSearchTerm = useDebounce(searchTerm, 300)
 
@@ -744,7 +755,20 @@ const HomePage = () => {
           </div>
         </div>
       </section>
-      {modalPost && <Modal setModalPost={setModalPost} />}
+      {modalPost && !modalAudience && (
+        <ModalPost
+          audienceValue={audienceValue}
+          setModalPost={setModalPost}
+          handleOpenModalAudience={handleOpenModalAudience}
+        />
+      )}
+      {modalAudience && (
+        <ModalAudience
+          audienceValue={audienceValue}
+          setAudienceValue={setAudienceValue}
+          handleCloseModalAudience={handleCloseModalAudience}
+        />
+      )}
     </Fragment>
   )
 }

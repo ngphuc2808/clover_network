@@ -10,4 +10,7 @@ export const API_URL = {
   //user
   getUserInfo: `${API_BASE}/user/get-user-info`,
   getListAllGroupOfUser: `${API_BASE}/group/list-all-group-of-user`,
+
+  //feed
+  postFeed: `${API_BASE}/feed/post`,
 }
