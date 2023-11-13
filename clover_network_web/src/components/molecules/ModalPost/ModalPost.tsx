@@ -1,16 +1,17 @@
 import { Fragment, useRef, useImperativeHandle } from 'react'
-import { toast } from 'react-toastify'
 import { useForm } from 'react-hook-form'
-import EmojiPicker, { EmojiClickData, EmojiStyle } from 'emoji-picker-react'
+import { toast } from 'react-toastify'
+import Tippy from '@tippyjs/react/headless'
 import { BsEmojiSmile, BsEmojiWink, BsFillCaretDownFill } from 'react-icons/bs'
 import { AiOutlineClose } from 'react-icons/ai'
 import { FcAddImage } from 'react-icons/fc'
-import Tippy from '@tippyjs/react/headless'
 
 import { listAudience } from '@/utils/data'
 import images from '@/assets/images'
-import Button from '@/components/atoms/Button'
 import useAutosizeTextArea, { useGetFetchQuery, usePostFeed } from '@/hook'
+
+import CustomEmoji from '@/components/atoms/CustomEmoji'
+import Button from '@/components/atoms/Button'
 
 interface iProps {
   audienceValue: string
@@ -56,8 +57,8 @@ const ModalPost = ({
 
   useAutosizeTextArea(textAreaRef.current, watch('content'))
 
-  const handleEmojiClick = (emoData: EmojiClickData) => {
-    const newText = watch('content') + emoData.emoji
+  const handleEmojiClick = (emoData: string) => {
+    const newText = watch('content') + emoData
     setValue('content', newText)
   }
 
@@ -140,16 +141,12 @@ const ModalPost = ({
                     interactive
                     arrow={true}
                     trigger='click'
-                    placement={window.innerWidth <= 640 ? 'bottom' : 'right'}
+                    placement={
+                      window.innerWidth <= 640 ? 'bottom-start' : 'right'
+                    }
                     render={(attrs) => (
                       <div {...attrs}>
-                        <EmojiPicker
-                          skinTonesDisabled={true}
-                          emojiStyle={EmojiStyle.TWITTER}
-                          height={400}
-                          width={400}
-                          onEmojiClick={handleEmojiClick}
-                        />
+                        <CustomEmoji handleEmojiClick={handleEmojiClick} />
                       </div>
                     )}
                   >
