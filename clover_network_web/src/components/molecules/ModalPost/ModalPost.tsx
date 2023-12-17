@@ -1,4 +1,4 @@
-import { Fragment, useRef, useImperativeHandle } from 'react'
+import { Fragment, useRef, useImperativeHandle, ChangeEvent } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'react-toastify'
 import Tippy from '@tippyjs/react/headless'
@@ -8,23 +8,32 @@ import { FcAddImage } from 'react-icons/fc'
 
 import { listAudience } from '@/utils/data'
 import images from '@/assets/images'
-import useAutosizeTextArea, { useGetFetchQuery, usePostFeed } from '@/hook'
+import { useAutosizeTextArea, useGetFetchQuery, usePostFeed } from '@/hook'
 
 import CustomEmoji from '@/components/atoms/CustomEmoji'
 import Button from '@/components/atoms/Button'
+import { useQueryClient } from '@tanstack/react-query'
 
 interface iProps {
+  photos?: string[]
+  setPhotos?: (photos: string[]) => void
+  handleUploadImage?: (e: ChangeEvent<HTMLInputElement>) => void
   audienceValue: string
   setModalPost: (modalPost: boolean) => void
   handleOpenModalAudience: () => void
 }
 
 const ModalPost = ({
+  photos,
+  setPhotos,
+  handleUploadImage,
   audienceValue,
   setModalPost,
   handleOpenModalAudience,
 }: iProps) => {
-  const getUserInfo = useGetFetchQuery<ResponseUserType>('UserInfo')
+  const queryClient = useQueryClient()
+
+  const getUserInfo = useGetFetchQuery<ResponseUserType>(['UserInfo'])
 
   const postFeedApi = usePostFeed()
 
@@ -68,9 +77,18 @@ const ModalPost = ({
         setModalPost(false)
         setTimeout(() => {
           toast.success('Posted successfully!')
+          queryClient.invalidateQueries({ queryKey: ['UserInfo'] })
         }, 200)
       },
     })
+  }
+
+  const handleDeletePhoto = (item: string) => {
+    if (setPhotos && photos) {
+      URL.revokeObjectURL(item)
+      const newPhotos = photos.filter((it) => it !== item)
+      setPhotos(newPhotos)
+    }
   }
 
   return (
@@ -86,7 +104,11 @@ const ModalPost = ({
                 </h3>
                 <span
                   className=' absolute right-0 top-1/2 flex h-10 w-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-bgPrimaryColor text-2xl text-textPrimaryColor hover:text-red-500'
-                  onClick={() => setModalPost(false)}
+                  onClick={() => {
+                    photos && photos.map((it) => URL.revokeObjectURL(it))
+                    setPhotos && setPhotos([])
+                    setModalPost(false)
+                  }}
                 >
                   <AiOutlineClose />
                 </span>
@@ -95,8 +117,7 @@ const ModalPost = ({
               <div className='mt-4 flex items-center gap-3'>
                 <figure className='h-[45px] w-[45px] overflow-hidden rounded-full hover:cursor-pointer'>
                   <img
-                    crossOrigin='anonymous'
-                    src={images.avatar}
+                    src={getUserInfo?.data.avatar || images.avatar}
                     alt='avatar'
                   />
                 </figure>
@@ -113,7 +134,7 @@ const ModalPost = ({
                       (it) =>
                         it.key === audienceValue && (
                           <div className='flex items-center gap-2' key={it.key}>
-                            <span className='text-lg text-sm'>
+                            <span className='text-lg'>
                               <it.icon />
                             </span>
                             <h1 className='flex items-center gap-2 text-sm text-textPrimaryColor'>
@@ -156,30 +177,47 @@ const ModalPost = ({
                   </Tippy>
                 </div>
               </div>
-              <div className='mt-4 grid max-h-[300px] grid-cols-1 gap-2 overflow-y-scroll rounded-xl border p-2'>
-                <figure>
-                  <img
-                    className='h-auto w-full cursor-pointer rounded-lg'
-                    src='https://d1hjkbq40fs2x4.cloudfront.net/2017-08-21/files/landscape-photography_1645-t.jpg'
-                    alt='photo'
-                  />
-                </figure>
-                <figure>
-                  <img
-                    className='h-auto w-full cursor-pointer rounded-lg'
-                    src='https://d1hjkbq40fs2x4.cloudfront.net/2017-08-21/files/landscape-photography_1645-t.jpg'
-                    alt='photo'
-                  />
-                </figure>
+              <div
+                className={`mt-4  max-h-[300px] grid-cols-1 gap-2 overflow-y-scroll rounded-xl border p-2 ${
+                  photos && photos.length > 0 ? 'grid' : 'hidden'
+                }`}
+              >
+                {photos &&
+                  photos.map((it, i) => (
+                    <figure className='relative mb-3' key={it}>
+                      <span
+                        className='absolute right-1 top-1 cursor-pointer rounded-full bg-primaryColor p-1 text-2xl text-white hover:text-red-500'
+                        onClick={() => handleDeletePhoto(it)}
+                      >
+                        <AiOutlineClose />
+                      </span>
+                      <img
+                        className='h-auto w-full cursor-pointer rounded-lg'
+                        src={it}
+                        alt={`photo-${i}`}
+                      />
+                    </figure>
+                  ))}
               </div>
               <div className='mt-4 flex w-full items-center justify-between rounded-lg border p-2 shadow'>
                 <h1>Add to your post</h1>
                 <div className='flex items-center justify-center'>
-                  <div className='flex cursor-pointer items-center gap-2 rounded-md p-3 hover:bg-primaryColor/10'>
-                    <span className='text-2xl'>
+                  <label
+                    htmlFor='uploadFiles'
+                    className='flex cursor-pointer items-center gap-2 rounded-md p-3 hover:bg-primaryColor/10'
+                  >
+                    <div className='text-2xl'>
                       <FcAddImage />
-                    </span>
-                  </div>
+                      <input
+                        id='uploadFiles'
+                        type='file'
+                        onChange={handleUploadImage}
+                        accept='image/*'
+                        multiple
+                        hidden
+                      />
+                    </div>
+                  </label>
                   <div className='flex cursor-pointer items-center gap-2 rounded-md p-3 hover:bg-primaryColor/10'>
                     <span className='text-2xl text-orange-400'>
                       <BsEmojiSmile />

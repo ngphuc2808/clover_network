@@ -1,6 +1,6 @@
 import { FaUser, FaUserFriends } from 'react-icons/fa'
 import { FaEarthAsia } from 'react-icons/fa6'
-import { RiGroup2Fill } from 'react-icons/ri'
+import { RiGroup2Fill, RiGitRepositoryPrivateFill } from 'react-icons/ri'
 
 export const listAudience = [
   {
@@ -26,5 +26,20 @@ export const listAudience = [
     key: 'LIMITED_GROUP',
     value: 'Limited group',
     desc: '',
+  },
+]
+
+export const listAudienceGroup = [
+  {
+    icon: FaEarthAsia,
+    key: 'Public',
+    value: 'PUBLIC',
+    desc: 'Anyone can see',
+  },
+  {
+    icon: RiGitRepositoryPrivateFill,
+    key: 'Private',
+    value: 'PRIVATE',
+    desc: 'Only members can see',
   },
 ]
