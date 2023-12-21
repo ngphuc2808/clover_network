@@ -1,7 +1,9 @@
-export const BASE_URL =
-  'https://clover-network-service-fd0c2a440af1.herokuapp.com'
+// export const BASE_URL =
+//   'https://clover-network-service-fd0c2a440af1.herokuapp.com'
 
-const API_BASE = `${BASE_URL}/api`
+// const API_BASE = `${BASE_URL}/api`
+
+const API_BASE = `/api`
 
 export const API_URL = {
   //auth
