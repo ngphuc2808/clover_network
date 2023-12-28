@@ -1,9 +1,6 @@
-// export const BASE_URL =
-//   'https://clover-network-service-fd0c2a440af1.herokuapp.com'
+export const BASE_URL = 'https://clover-network-app-rok7a.ondigitalocean.app'
 
-// const API_BASE = `${BASE_URL}/api`
-
-const API_BASE = `/api`
+const API_BASE = `${BASE_URL}/api`
 
 export const API_URL = {
   //auth
@@ -22,7 +19,10 @@ export const API_URL = {
   postFeed: `${API_BASE}/feed/post`,
   listFeed: `${API_BASE}/feed/list-user-home`,
   postComment: `${API_BASE}/feed/comment`,
+  listFeedOfGroup: `${API_BASE}/feed/list-group-home`,
 
   //group
   createGroup: `${API_BASE}/group/create-new-group`,
+  getGroupInfo: `${API_BASE}/group/get-group-info`,
+  getListAllGroup: `${API_BASE}/group/list-all-group-of-user`,
 }

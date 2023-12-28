@@ -39,10 +39,10 @@ const ProfilePage = () => {
           <div className='round h-[480px] rounded-b-xl bg-gradient-to-b from-gray-100 to-gray-300'></div>
           <div className='grid grid-cols-9 gap-2 px-12'>
             <div className='col-span-full h-0 lg:col-span-2 lg:h-auto'>
-              <figure className='relative left-1/2 top-[-85px] w-[170px] -translate-x-1/2 lg:top-[-30px] lg:w-60'>
+              <figure className='relative left-1/2 top-[-85px] h-[170px] w-[170px] -translate-x-1/2 overflow-hidden rounded-full border-[6px] border-white lg:top-[-30px] lg:h-60 lg:w-60'>
                 <img
                   src={getUserInfo?.data.avatar || images.avatar}
-                  className='rounded-full border-[6px] border-white'
+                  className='h-full w-full object-cover'
                   alt='avatar'
                 />
               </figure>
@@ -57,7 +57,7 @@ const ProfilePage = () => {
                   <p className='opacity-50'>•</p>
                   <p>300 following</p>
                 </span>
-                <div className=' mt-2 flex justify-center -space-x-4 rtl:space-x-reverse lg:justify-normal'>
+                <div className=' mt-2 flex justify-center -space-x-4 lg:justify-normal rtl:space-x-reverse'>
                   <figure className='h-10 w-10'>
                     <img
                       className=' rounded-full border-2 border-white '

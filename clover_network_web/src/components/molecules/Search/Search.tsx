@@ -28,10 +28,10 @@ const Search = ({
   return (
     <div
       onClick={() => isMobile && setOpenSearch && setOpenSearch(true)}
-      className={`lg:basis-inherit flex h-[45px] w-[45px] items-center ${
-        isMobile && openSearch ? 'mr-3 w-auto' : ''
-      }
-      justify-between overflow-hidden rounded-full bg-bgPrimaryColor md:w-[275px] lg:mt-0 lg:w-auto`}
+      className={`lg:basis-inherit flex h-[45px] ${
+        isMobile ? 'mr-3 w-[45px]' : 'w-auto'
+      } items-center ${openSearch ? 'w-auto' : ''}
+      justify-between overflow-hidden rounded-full bg-bgPrimaryColor md:w-auto lg:mt-0 lg:w-auto`}
     >
       <span className='cursor-pointer p-3 text-2xl text-primaryColor hover:text-secondColor sm:px-3 sm:py-[5px]'>
         <HiOutlineMagnifyingGlass />

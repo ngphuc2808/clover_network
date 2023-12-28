@@ -98,40 +98,41 @@ const MainHeader = () => {
           searchTerm={searchTerm}
           loading={searchUserApi.isLoading}
         />
-        {!searchUserApi.isLoading ? (
-          <ul className='absolute mt-3 w-full rounded-md bg-white px-2 shadow-md [&>:last-child]:border-none '>
-            {searchUserApi.data?.data.users !== null ? (
-              searchUserApi.data?.data.users.map((it) => (
-                <li
-                  key={it.userId}
-                  className='flex cursor-pointer items-center justify-between gap-3 border-b p-4 hover:bg-gray-100 '
-                >
-                  <div className='flex items-center gap-3'>
-                    <figure className='w-10 overflow-hidden rounded-full'>
-                      <img src={it.avatar! || images.avatar} alt='avatar' />
-                    </figure>
-                    {it.firstname} {it.lastname}
-                  </div>
-                  <div>
-                    <Button className='rounded-md bg-primaryColor p-2 text-white'>
-                      Follow
-                    </Button>
-                  </div>
+        {searchTerm &&
+          (!searchUserApi.isLoading ? (
+            <ul className='absolute mt-3 w-full rounded-md bg-white px-2 shadow-md [&>:last-child]:border-none '>
+              {searchUserApi.data?.data.users !== null ? (
+                searchUserApi.data?.data.users.map((it) => (
+                  <li
+                    key={it.userId}
+                    className='flex cursor-pointer items-center justify-between gap-3 border-b p-4 hover:bg-gray-100 '
+                  >
+                    <div className='flex items-center gap-3'>
+                      <figure className='w-10 overflow-hidden rounded-full'>
+                        <img src={it.avatar! || images.avatar} alt='avatar' />
+                      </figure>
+                      {it.firstname} {it.lastname}
+                    </div>
+                    <div>
+                      <Button className='rounded-md bg-primaryColor p-2 text-white'>
+                        Follow
+                      </Button>
+                    </div>
+                  </li>
+                ))
+              ) : (
+                <li className='cursor-pointer border-b p-4 hover:bg-gray-100'>
+                  User not found!
                 </li>
-              ))
-            ) : (
+              )}
+            </ul>
+          ) : (
+            <ul className='absolute mt-3 w-full rounded-md bg-white px-2 shadow-md [&>:last-child]:border-none '>
               <li className='cursor-pointer border-b p-4 hover:bg-gray-100'>
-                User not found!
+                Loading...
               </li>
-            )}
-          </ul>
-        ) : (
-          <ul className='absolute mt-3 w-full rounded-md bg-white px-2 shadow-md [&>:last-child]:border-none '>
-            <li className='cursor-pointer border-b p-4 hover:bg-gray-100'>
-              Loading...
-            </li>
-          </ul>
-        )}
+            </ul>
+          ))}
       </div>
       <div className='flex flex-none items-center justify-end gap-3 sm:col-span-1'>
         <span
@@ -159,10 +160,10 @@ const MainHeader = () => {
               {...attrs}
             >
               <div className='flex w-full items-center justify-between'>
-                <figure className='h-[45px] w-[45px]'>
+                <figure className='h-[45px] w-[45px] overflow-hidden rounded-full'>
                   <img
                     src={(getUserInfo?.data.avatar as string) || images.avatar}
-                    className='rounded-full'
+                    className='h-full w-full object-cover'
                     alt='avatar'
                   />
                 </figure>
@@ -201,10 +202,10 @@ const MainHeader = () => {
             </div>
           )}
         >
-          <figure className='h-[45px] w-[45px] rounded-full hover:cursor-pointer sm:h-[49.79px] sm:w-[49.79px]'>
+          <figure className='h-[45px] w-[45px] overflow-hidden rounded-full hover:cursor-pointer sm:h-[48px] sm:w-[48px]'>
             <img
               src={(getUserInfo?.data.avatar as string) || images.avatar}
-              className='rounded-full'
+              className='h-full w-full object-cover'
               alt='avatar'
             />
           </figure>

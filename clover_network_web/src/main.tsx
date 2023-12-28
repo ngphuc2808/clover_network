@@ -19,6 +19,7 @@ import ProfilePage from './components/templates/ProfilePage'
 import UpdateProfilePage from './components/templates/UpdateProfilePage'
 import GroupsPage from './components/templates/GroupsPage'
 import CreateGroupPage from './components/templates/CreateGroupPage'
+import GroupsInfoPage from './components/templates/GroupsInfoPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -37,7 +38,9 @@ const router = createBrowserRouter([
       { index: true, element: <HomePage /> },
       { path: 'profile/:id', element: <ProfilePage /> },
       { path: 'update-profile', element: <UpdateProfilePage /> },
-      { path: 'groups', element: <GroupsPage /> },
+      { path: 'groups/feeds', element: <GroupsPage /> },
+      { path: 'groups/list-groups', element: <GroupsPage /> },
+      { path: 'groups/:id', element: <GroupsInfoPage /> },
       { path: 'groups/create', element: <CreateGroupPage /> },
     ],
   },

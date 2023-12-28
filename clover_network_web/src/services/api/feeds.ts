@@ -18,4 +18,10 @@ export const FeedsApi = {
       params: { limit: 4, offset },
       headers: authHeader(),
     }),
+
+  listFeedOfGroup: (page: number, groupId: string) =>
+    http.get<ResponseListFeedOfGroupType>(API_URL.listFeedOfGroup, {
+      params: { size: 4, page, groupId },
+      headers: authHeader(),
+    }),
 }

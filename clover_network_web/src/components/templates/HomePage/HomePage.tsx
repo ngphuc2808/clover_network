@@ -94,10 +94,10 @@ const HomePage = () => {
         <div className='col-span-0 mt-4 hidden lg:col-span-1 lg:block'>
           <ul>
             <li className='flex items-center gap-3'>
-              <figure className='h-[35px] w-[35px] rounded-full hover:cursor-pointer'>
+              <figure className='h-[35px] w-[35px] overflow-hidden rounded-full hover:cursor-pointer'>
                 <img
                   src={getUserInfo?.data.avatar || images.avatar}
-                  className='rounded-full'
+                  className='h-full w-full cursor-pointer'
                   alt='avatar'
                 />
               </figure>
@@ -246,11 +246,11 @@ const HomePage = () => {
               <h2 className='cursor-pointer text-primaryColor'>See all</h2>
             </div>
             <ul className='max-h-[200px] overflow-y-auto'>
-              <li className='flex items-center justify-between'>
+              <li className='flex items-center justify-between gap-6 '>
                 <div className='mt-3 flex items-center gap-2'>
                   <figure className='h-[40px] w-[40px] overflow-hidden rounded-full hover:cursor-pointer'>
                     <img
-                      crossOrigin='anonymous'
+                      className='h-full w-full object-cover'
                       src={images.avatar}
                       alt='avatar'
                     />

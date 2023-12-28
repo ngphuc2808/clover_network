@@ -7,4 +7,14 @@ export const GroupsApi = {
     http.post<ResponseCreateGroupType>(API_URL.createGroup, group, {
       headers: authHeader(),
     }),
+
+  getGroupInfo: (id: string) =>
+    http.get<ResponseGetGroupInfoType>(`${API_URL.getGroupInfo}/${id}`, {
+      headers: authHeader(),
+    }),
+
+  getListAllGroup: () =>
+    http.get<ResponseGetListGroupType>(API_URL.getListAllGroup, {
+      headers: authHeader(),
+    }),
 }

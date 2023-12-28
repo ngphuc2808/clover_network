@@ -219,6 +219,66 @@ type ResponseListFeedType = {
   nextPageToken?: string
 }
 
+type FeedGroupData = {
+  feedItem: {
+    postId: string
+    authorId: string
+    toUserId: string | null
+    authorRoleGroup: string | null
+    content: string
+    htmlContent: string
+    dynamicLink: string
+    privacyGroupId: string
+    privacyType: string
+    createdTime: string
+    updatedTime: string
+    lastActive: string
+    totalReaction: number | null
+    feedImages: string[] | null
+    currentUserReact: string | null
+    postToUserWall: boolean
+    delFlag: boolean
+    pin: boolean
+  }
+  authorProfile: {
+    userId: string
+    displayName: string
+    avatarImgUrl: string
+    phoneNo: string
+    email: string
+    userWallId: string
+    connected: boolean
+  }
+  groupItem: {
+    id: number
+    groupId: string
+    groupName: string
+    avatarImgUrl: string | null
+    bannerImgUrl: string | null
+    groupDesc: string
+    groupOwnerId: string
+    groupType: number
+    groupPrivacy: string
+    enableComment: boolean
+    enablePost: boolean
+    enableReaction: boolean
+    createdTime: string
+    updatedTime: string
+    delFlag: boolean
+  }
+  currentUserRole: null
+  totalReact: number
+  totalComment: number
+  currentUserReact: null
+}
+
+type ResponseListFeedOfGroupType = {
+  code: number
+  data: FeedGroupData[]
+  messageEN: string
+  messageVN: string
+}
+
 interface iGroup {
   id: number
   groupId: string
@@ -245,6 +305,41 @@ type CreateGroupType = Pick<
 
 type ResponseCreateGroupType = {
   data: Omit<iGroup, 'description'>
+  code: number
+  messageEN: string
+  messageVN: string
+}
+
+type ResponseGetListGroupType = {
+  data: Omit<iGroup, 'description'>[]
+  code: number
+  messageEN: string
+  messageVN: string
+}
+
+type ResponseGetGroupInfoType = {
+  data: {
+    group: {
+      groupId: string
+      groupName: string
+      avatarUrl: string | null
+      bannerUrl: string | null
+      groupDesc: string
+      groupOwnerId: string
+      groupType: 0
+      groupPrivacy: string
+      createdTime: string
+      updatedTime: string
+      delFlag: boolean
+    }
+    currentUserRole: {
+      roleId: string
+      status: string
+      enablePost: boolean
+      enableComment: boolean
+      enableShare: boolean
+    } | null
+  }
   code: number
   messageEN: string
   messageVN: string
