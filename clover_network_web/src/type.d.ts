@@ -97,6 +97,7 @@ interface iDataFeed {
   pin: false
   postId: string
   level: number
+  userWallId: string
 }
 
 type FeedsType = Omit<iDataFeed, 'pin' | 'postId'>
