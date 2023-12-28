@@ -21,6 +21,11 @@ export const UsersApi = {
       headers: authHeader(),
     }),
 
+  getUserProfile: (id: string) =>
+    http.get<ResponseUserProfileType>(`${API_URL.getUserProfile}/${id}`, {
+      headers: authHeader(),
+    }),
+
   updateProfile: (user: UpdateInfoType) =>
     http.post<ResponseUserType>(API_URL.updateProfile, null, {
       params: user,

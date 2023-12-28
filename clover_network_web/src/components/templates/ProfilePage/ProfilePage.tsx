@@ -1,28 +1,58 @@
-import { Fragment, useState } from 'react'
+import { ChangeEvent, Fragment, useEffect, useState } from 'react'
 
-import { AiOutlineLike } from 'react-icons/ai'
-import { FaPhoneAlt, FaRegCommentAlt, FaUser } from 'react-icons/fa'
+import { FaPhoneAlt, FaUser } from 'react-icons/fa'
 import { GoPencil } from 'react-icons/go'
-import { PiShareFat } from 'react-icons/pi'
-import { FaEarthAsia } from 'react-icons/fa6'
 import { FcAddImage } from 'react-icons/fc'
 import { BsEmojiSmile } from 'react-icons/bs'
 import { FaCakeCandles } from 'react-icons/fa6'
 
 import images from '@/assets/images'
-import { useGetFetchQuery } from '@/hook'
+import {
+  useGetFetchQuery,
+  useGetListFeedOfGroup,
+  useGetUserProfile,
+} from '@/hook'
 
 import ModalAudience from '@/components/molecules/ModalAudience'
 import ModalPost from '@/components/molecules/ModalPost'
 import Button from '@/components/atoms/Button'
 import { MdEmail } from 'react-icons/md'
+import { useParams } from 'react-router-dom'
+import { useInView } from 'react-intersection-observer'
+import FeedCard from '@/components/molecules/FeedCard'
+import { toast } from 'react-toastify'
+
+const imageMimeType = /image\/(png|jpg|jpeg)/i
 
 const ProfilePage = () => {
-  const getUserInfo = useGetFetchQuery<ResponseUserType>(['UserInfo'])
-
   const [modalPost, setModalPost] = useState<boolean>(false)
   const [modalAudience, setModalAudience] = useState<boolean>(false)
   const [audienceValue, setAudienceValue] = useState<string>('PUBLIC')
+  const [photos, setPhotos] = useState<string[]>([])
+
+  const [filePhotos, setFilePhotos] = useState<File[]>([])
+
+  const { id } = useParams()
+
+  const getUserProfileApi = useGetUserProfile(id!)
+
+  const getUserInfo = useGetFetchQuery<ResponseUserType>(['UserInfo'])
+
+  const { ref, inView } = useInView()
+
+  const getListFeedOfGroupApi = useGetListFeedOfGroup(
+    getUserProfileApi.data?.data.userInfo.userWallId!,
+  )
+
+  useEffect(() => {
+    if (inView && getListFeedOfGroupApi.hasNextPage) {
+      getListFeedOfGroupApi.fetchNextPage()
+    }
+  }, [
+    inView,
+    getListFeedOfGroupApi.hasNextPage,
+    getListFeedOfGroupApi.fetchNextPage,
+  ])
 
   const handleOpenModalAudience = () => {
     setModalAudience(true)
@@ -30,6 +60,39 @@ const ProfilePage = () => {
 
   const handleCloseModalAudience = () => {
     setModalAudience(false)
+  }
+
+  const fileListToArray = (fileList: FileList) => {
+    const filesArray = []
+    for (const file of fileList) {
+      filesArray.push(file)
+    }
+    return filesArray
+  }
+
+  const handleUploadImage = async (e: ChangeEvent<HTMLInputElement>) => {
+    let input = e.currentTarget
+    if (input.files?.length) {
+      setModalPost(true)
+      const files = fileListToArray(input.files)
+
+      setFilePhotos(files)
+
+      const photoArr = []
+
+      for (let i = 0; i < files.length; i++) {
+        if (!files[i].type.match(imageMimeType)) {
+          toast.error('Vui lòng chọn đúng định dạng hình ảnh!')
+          return
+        } else {
+          photoArr.push(URL.createObjectURL(files[i]))
+        }
+      }
+
+      setPhotos(photoArr)
+    }
+
+    e.currentTarget.value = ''
   }
 
   return (
@@ -41,7 +104,10 @@ const ProfilePage = () => {
             <div className='col-span-full h-0 lg:col-span-2 lg:h-auto'>
               <figure className='relative left-1/2 top-[-85px] h-[170px] w-[170px] -translate-x-1/2 overflow-hidden rounded-full border-[6px] border-white lg:top-[-30px] lg:h-60 lg:w-60'>
                 <img
-                  src={getUserInfo?.data.avatar || images.avatar}
+                  src={
+                    getUserProfileApi?.data?.data.userInfo.avatar ||
+                    images.avatar
+                  }
                   className='h-full w-full object-cover'
                   alt='avatar'
                 />
@@ -50,7 +116,8 @@ const ProfilePage = () => {
             <div className='col-span-full mt-[100px] flex flex-col items-start justify-between lg:col-span-7 lg:mt-[50px] lg:flex-row'>
               <div className='w-full lg:w-auto'>
                 <h1 className='text-center text-3xl font-bold text-textHeadingColor lg:text-left'>
-                  {getUserInfo?.data.firstname} {getUserInfo?.data.lastname}
+                  {getUserProfileApi?.data?.data.userInfo.firstname}{' '}
+                  {getUserProfileApi?.data?.data.userInfo.lastname}
                 </h1>
                 <span className='mt-2 flex items-center justify-center gap-2 text-lg text-textPrimaryColor'>
                   <p>200 followers</p>
@@ -128,163 +195,117 @@ const ProfilePage = () => {
                     <span className='text-xl '>
                       <MdEmail />
                     </span>
-                    <p>{getUserInfo?.data.email}</p>
+                    <p>{getUserProfileApi?.data?.data.userInfo.email}</p>
                   </li>
                   <li className='mt-2 flex items-center gap-3 py-3 hover:opacity-80'>
                     <span className='text-xl '>
                       <FaPhoneAlt />
                     </span>
-                    <p>{getUserInfo?.data.phoneNo}</p>
+                    <p>{getUserProfileApi?.data?.data.userInfo.phoneNo}</p>
                   </li>
                   <li className='mt-2 flex items-center gap-3 py-3 hover:opacity-80'>
                     <span className='text-xl '>
                       <FaUser />
                     </span>
-                    <p>{getUserInfo?.data.gender}</p>
+                    <p>{getUserProfileApi?.data?.data.userInfo.gender}</p>
                   </li>
                   <li className='mt-2 flex items-center gap-3 py-3 hover:opacity-80'>
                     <span className='text-xl '>
                       <FaCakeCandles />
                     </span>
-                    <p>{getUserInfo?.data.dayOfBirth}</p>
+                    <p>{getUserProfileApi?.data?.data.userInfo.dayOfBirth}</p>
                   </li>
                 </ul>
               </div>
             </div>
             <div className='col-span-full lg:col-span-6'>
-              <div className='rounded-lg border bg-white p-3'>
-                <div className='flex items-center gap-3'>
-                  <figure className='h-[40px] w-[40px] overflow-hidden rounded-full hover:cursor-pointer'>
-                    <img
-                      src={getUserInfo?.data.avatar || images.avatar}
-                      alt='avatar'
-                    />
-                  </figure>
-                  <Button
-                    className='flex-1 rounded-full bg-bgPrimaryColor p-3 text-left text-sm text-textPrimaryColor hover:bg-primaryColor/10'
-                    onClick={() => setModalPost(true)}
-                  >
-                    What's on your mind, {getUserInfo?.data.lastname} ?
-                  </Button>
-                </div>
-                <div className='my-3 flex items-center'>
-                  <span className='h-px w-full bg-secondColor opacity-30'></span>
-                </div>
-                <div className='flex items-center justify-center'>
-                  <div className='flex cursor-pointer items-center gap-2 p-3 hover:bg-primaryColor/10'>
-                    <span className='text-2xl'>
-                      <FcAddImage />
-                    </span>
-                    <p className='font-medium text-textPrimaryColor'>
-                      Photo/video
-                    </p>
+              {getUserProfileApi.data?.data.userInfo.userId ===
+                getUserInfo?.data.userId && (
+                <div className='rounded-lg border bg-white p-3'>
+                  <div className='flex items-center gap-3'>
+                    <figure className='h-[40px] w-[40px] overflow-hidden rounded-full hover:cursor-pointer'>
+                      <img
+                        src={
+                          getUserProfileApi?.data?.data.userInfo.avatar ||
+                          images.avatar
+                        }
+                        alt='avatar'
+                      />
+                    </figure>
+                    <Button
+                      className='flex-1 rounded-full bg-bgPrimaryColor p-3 text-left text-sm text-textPrimaryColor hover:bg-primaryColor/10'
+                      onClick={() => setModalPost(true)}
+                    >
+                      What's on your mind,{' '}
+                      {getUserProfileApi?.data?.data.userInfo.lastname} ?
+                    </Button>
                   </div>
-                  <div className='flex cursor-pointer items-center gap-2 p-3 hover:bg-primaryColor/10'>
-                    <span className='text-2xl text-orange-400'>
-                      <BsEmojiSmile />
-                    </span>
-                    <p className='font-medium text-textPrimaryColor'>
-                      Feeling/activity
-                    </p>
+                  <div className='my-3 flex items-center'>
+                    <span className='h-px w-full bg-secondColor opacity-30'></span>
                   </div>
-                </div>
-              </div>
-              <div className='mt-4 w-full rounded-lg border bg-white p-3'>
-                <div className='flex items-center gap-3'>
-                  <figure className='h-[40px] w-[40px] overflow-hidden rounded-full hover:cursor-pointer'>
-                    <img
-                      crossOrigin='anonymous'
-                      src={images.avatar}
-                      alt='avatar'
-                    />
-                  </figure>
-                  <div>
-                    <h1 className='text-textHeadingColor'>Test Nguyen</h1>
-                    <h1 className='flex items-center gap-2 text-sm text-textPrimaryColor'>
-                      <p>2h</p>
-                      <span>
-                        <FaEarthAsia />
+                  <div className='flex items-center justify-center'>
+                    <label
+                      htmlFor='uploadFilesHome'
+                      className='flex cursor-pointer items-center gap-2 p-3 hover:bg-primaryColor/10'
+                    >
+                      <span className='text-2xl'>
+                        <FcAddImage />
                       </span>
-                    </h1>
-                  </div>
-                </div>
-                <p className='mt-3 text-sm text-textPrimaryColor'>
-                  fdsffffffffffffffffffffffffffffffffffffffffffffffffffffffff
-                </p>
-                <div className='mt-3 grid gap-2'>
-                  <figure>
-                    <img
-                      className='h-auto w-full cursor-pointer rounded-lg'
-                      src='https://d1hjkbq40fs2x4.cloudfront.net/2017-08-21/files/landscape-photography_1645-t.jpg'
-                      alt='photo'
-                    />
-                  </figure>
-                  <div className='grid grid-cols-2 gap-2'>
-                    <figure>
-                      <img
-                        className='h-48 w-full cursor-pointer rounded-lg object-cover'
-                        src='https://camerabox.vn/uploads/news/2018_11/chup-anh-thien-nhien-theo-mua-2b.jpg'
-                        alt='photo'
+                      <p className='font-medium text-textPrimaryColor'>
+                        Photo/video
+                      </p>
+                      <input
+                        id='uploadFilesHome'
+                        type='file'
+                        onChange={handleUploadImage}
+                        accept='image/*'
+                        multiple
+                        hidden
                       />
-                    </figure>
-                    <figure>
-                      <img
-                        className='h-48 w-full cursor-pointer rounded-lg object-cover'
-                        src='https://camerabox.vn/uploads/news/2018_11/chup-anh-thien-nhien-theo-mua-2b.jpg'
-                        alt='photo'
+                    </label>
+                    <div className='flex cursor-pointer items-center gap-2 p-3 hover:bg-primaryColor/10'>
+                      <span className='text-2xl text-orange-400'>
+                        <BsEmojiSmile />
+                      </span>
+                      <p className='font-medium text-textPrimaryColor'>
+                        Feeling/activity
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {getListFeedOfGroupApi.data?.pages.map((data, index) =>
+                data.data ? (
+                  data.data.map((it, i) =>
+                    data.data.length === i + 1 ? (
+                      <FeedCard
+                        key={it.feedItem.postId}
+                        innerRef={ref}
+                        data={it}
                       />
-                    </figure>
-                  </div>
-                </div>
-                <div className='my-3 flex items-center'>
-                  <span className='h-px w-full bg-secondColor opacity-30'></span>
-                </div>
-                <div className='flex items-center justify-between'>
-                  <div className='flex items-center gap-1'>
-                    <span className=' text-textPrimaryColor'>
-                      <AiOutlineLike />
-                    </span>
-                    <p className='text-sm text-textPrimaryColor'>133</p>
-                  </div>
-                  <div className='flex items-center gap-2'>
-                    <p className='text-sm text-textPrimaryColor'>
-                      133 comments
-                    </p>
-                    <p className='text-sm text-textPrimaryColor'>9 shares</p>
-                  </div>
-                </div>
-                <div className='my-3 flex items-center'>
-                  <span className='h-px w-full bg-secondColor opacity-30'></span>
-                </div>
-                <div className='grid grid-cols-3'>
-                  <div className='flex cursor-pointer items-center justify-center gap-2 px-3 py-1 hover:bg-primaryColor/10'>
-                    <span className='text-2xl text-textPrimaryColor'>
-                      <AiOutlineLike />
-                    </span>
-                    <p className='font-medium text-textPrimaryColor'>Like</p>
-                  </div>
-                  <div className='flex cursor-pointer items-center justify-center gap-2 px-3 py-1 hover:bg-primaryColor/10'>
-                    <span className='text-2xl text-textPrimaryColor'>
-                      <FaRegCommentAlt />
-                    </span>
-                    <p className='font-medium text-textPrimaryColor'>Comment</p>
-                  </div>
-                  <div className='flex cursor-pointer items-center justify-center gap-2 px-3 py-1 hover:bg-primaryColor/10'>
-                    <span className='text-2xl text-textPrimaryColor'>
-                      <PiShareFat />
-                    </span>
-                    <p className='font-medium text-textPrimaryColor'>Share</p>
-                  </div>
-                </div>
-              </div>
+                    ) : (
+                      <FeedCard key={it.feedItem.postId} data={it} />
+                    ),
+                  )
+                ) : (
+                  <h1 key={index} className='mt-3 text-center'>
+                    End of article
+                  </h1>
+                ),
+              )}
             </div>
           </div>
         </div>
       </section>
       {modalPost && !modalAudience && (
         <ModalPost
+          setPhotos={setPhotos}
+          handleUploadImage={handleUploadImage}
+          photos={photos}
           audienceValue={audienceValue}
           setModalPost={setModalPost}
+          filePhotos={filePhotos}
+          setFilePhotos={setFilePhotos}
           handleOpenModalAudience={handleOpenModalAudience}
         />
       )}

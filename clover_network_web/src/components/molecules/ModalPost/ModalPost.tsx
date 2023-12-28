@@ -13,6 +13,7 @@ import { useAutosizeTextArea, useGetFetchQuery, usePostFeed } from '@/hook'
 import CustomEmoji from '@/components/atoms/CustomEmoji'
 import Button from '@/components/atoms/Button'
 import { useQueryClient } from '@tanstack/react-query'
+import { useParams } from 'react-router-dom'
 
 interface iProps {
   photos?: string[]
@@ -20,6 +21,8 @@ interface iProps {
   handleUploadImage?: (e: ChangeEvent<HTMLInputElement>) => void
   audienceValue: string
   setModalPost: (modalPost: boolean) => void
+  filePhotos?: File[]
+  setFilePhotos?: (file: File[]) => void
   handleOpenModalAudience: () => void
 }
 
@@ -29,6 +32,8 @@ const ModalPost = ({
   handleUploadImage,
   audienceValue,
   setModalPost,
+  filePhotos,
+  setFilePhotos,
   handleOpenModalAudience,
 }: iProps) => {
   const queryClient = useQueryClient()
@@ -37,12 +42,14 @@ const ModalPost = ({
 
   const postFeedApi = usePostFeed()
 
+  const { id } = useParams()
+
   const { register, watch, setValue, handleSubmit } = useForm<FeedsType>({
     defaultValues: {
       authorId: getUserInfo?.data.userId!,
       content: '',
       htmlContent: '',
-      privacyGroupId: getUserInfo?.data.userWallId!,
+      privacyGroupId: id || getUserInfo?.data.userWallId!,
       privacyType: audienceValue,
       toUserId: null,
       authorRoleGroup: null,
@@ -58,7 +65,7 @@ const ModalPost = ({
     },
   })
 
-  const { ref, ...rest } = register('content', { required: true })
+  const { ref, ...rest } = register('content')
 
   const textAreaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -72,23 +79,46 @@ const ModalPost = ({
   }
 
   const handlePostFeed = (data: FeedsType) => {
-    postFeedApi.mutate(data, {
-      onSuccess() {
+    const jsonData = JSON.stringify(data)
+    const blobData = new Blob([jsonData], {
+      type: 'application/json',
+    })
+
+    const formData = new FormData()
+    formData.append('feedItem', blobData)
+
+    if (filePhotos) {
+      for (let i = 0; i < filePhotos.length; i++) {
+        formData.append('images', filePhotos[i])
+      }
+    }
+
+    postFeedApi.mutate(formData, {
+      onSuccess(data) {
         setModalPost(false)
         setTimeout(() => {
-          toast.success('Posted successfully!')
+          if (data.data.messageEN === 'Input invalid') {
+            toast.error('Posted error!')
+          } else {
+            toast.success('Posted successfully!')
+          }
           queryClient.invalidateQueries({ queryKey: ['UserInfo'] })
+          queryClient.invalidateQueries({ queryKey: ['ListFeed'] })
+          queryClient.invalidateQueries({ queryKey: ['ListFeedOfGroup'] })
         }, 200)
       },
     })
   }
 
-  const handleDeletePhoto = (item: string) => {
+  const handleDeletePhoto = (item: string, index: number) => {
     if (setPhotos && photos) {
       URL.revokeObjectURL(item)
       const newPhotos = photos.filter((it) => it !== item)
       setPhotos(newPhotos)
     }
+
+    const newFiles = filePhotos?.filter((_, i) => i !== index)
+    setFilePhotos && setFilePhotos(newFiles!)
   }
 
   return (
@@ -187,7 +217,7 @@ const ModalPost = ({
                     <figure className='relative mb-3' key={it}>
                       <span
                         className='absolute right-1 top-1 cursor-pointer rounded-full bg-primaryColor p-1 text-2xl text-white hover:text-red-500'
-                        onClick={() => handleDeletePhoto(it)}
+                        onClick={() => handleDeletePhoto(it, i)}
                       >
                         <AiOutlineClose />
                       </span>
@@ -227,11 +257,16 @@ const ModalPost = ({
               </div>
               <Button
                 className={`mt-4 w-full rounded-lg p-3 outline-none hover:opacity-90 ${
-                  watch('content').length > 0
+                  watch('content').length > 0 || photos!.length > 0
                     ? 'bg-primaryColor text-white'
                     : 'bg-gray-300 text-textPrimaryColor'
                 }`}
                 onClick={handleSubmit(handlePostFeed)}
+                disable={
+                  watch('content').length > 0 || photos!.length > 0
+                    ? false
+                    : true
+                }
               >
                 Post
               </Button>

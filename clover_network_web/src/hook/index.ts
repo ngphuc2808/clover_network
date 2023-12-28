@@ -77,6 +77,11 @@ export const handleGetUserInfo = async () => {
   return data
 }
 
+export const handleGetUserProfile = async (id: string) => {
+  const { data } = await UsersApi.getUserProfile(id)
+  return data
+}
+
 export const handleSearchUserInfo = async (keyword: string) => {
   const { data } = await UsersApi.searchUser(keyword)
   return data
@@ -86,6 +91,19 @@ export const useGetUserInfo = (options?: UseQueryOptions<ResponseUserType>) => {
   return useQuery({
     queryKey: ['UserInfo'],
     queryFn: () => handleGetUserInfo(),
+    staleTime: 5000,
+    retry: 2,
+    ...options,
+  })
+}
+
+export const useGetUserProfile = (
+  id: string,
+  options?: UseQueryOptions<ResponseUserProfileType>,
+) => {
+  return useQuery({
+    queryKey: ['UserProfile', { id }],
+    queryFn: () => handleGetUserProfile(id),
     staleTime: 5000,
     retry: 2,
     ...options,
@@ -130,6 +148,15 @@ export const handleGetListFeed = async ({
   return data
 }
 
+export const handleGetListAllGroupHome = async ({
+  pageParam,
+}: {
+  pageParam: number
+}) => {
+  const { data } = await FeedsApi.listAllGroupHome(pageParam - 1)
+  return data
+}
+
 export const handleGetListFeedOfGroup = async (
   {
     pageParam,
@@ -144,8 +171,8 @@ export const handleGetListFeedOfGroup = async (
 
 export const usePostFeed = () => {
   return useMutation({
-    mutationFn: (body: FeedsType) => {
-      return FeedsApi.postFeed(body)
+    mutationFn: (data: FormData) => {
+      return FeedsApi.postFeed(data)
     },
   })
 }
@@ -170,6 +197,19 @@ export const useGetListFeed = () => {
   })
 }
 
+export const useGetListAllGroupHome = (enabled: boolean) => {
+  return useInfiniteQuery({
+    queryKey: ['ListAllGroupHome'],
+    initialPageParam: 1,
+    queryFn: handleGetListAllGroupHome,
+    getNextPageParam: (lastPage, allPages) => {
+      const nextPage = lastPage.data ? allPages.length + 1 : undefined
+      return nextPage
+    },
+    enabled: enabled,
+  })
+}
+
 export const useGetListFeedOfGroup = (groupId: string) => {
   return useInfiniteQuery({
     queryKey: ['ListFeedOfGroup', { groupId }],
@@ -191,6 +231,26 @@ export const handleGetAllListGroup = async () => {
 
 export const handleGetGroupInfo = async (id: string) => {
   const { data } = await GroupsApi.getGroupInfo(id)
+  return data
+}
+
+export const handleGetListMemberGroup = async ({
+  groupId,
+  roleId,
+  page,
+  size,
+}: {
+  groupId: string
+  roleId: string
+  page: string
+  size: string
+}) => {
+  const { data } = await GroupsApi.getListMemberGroup({
+    groupId,
+    roleId,
+    page,
+    size,
+  })
   return data
 }
 
@@ -221,6 +281,34 @@ export const useGetGroupInfo = (
   return useQuery({
     queryKey: ['GroupInfo', { id }],
     queryFn: () => handleGetGroupInfo(id),
+    retry: 2,
+    ...options,
+  })
+}
+
+export const useGetListMemberGroup = (
+  {
+    groupId,
+    roleId,
+    page,
+    size,
+  }: {
+    groupId: string
+    roleId: string
+    page: string
+    size: string
+  },
+  options?: UseQueryOptions<ResponseListMemberGroupType>,
+) => {
+  return useQuery({
+    queryKey: ['ListMemberGroup', { groupId, page, size }],
+    queryFn: () =>
+      handleGetListMemberGroup({
+        groupId,
+        roleId,
+        page,
+        size,
+      }),
     retry: 2,
     ...options,
   })

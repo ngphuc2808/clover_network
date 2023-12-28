@@ -3,9 +3,11 @@ import { API_URL } from '../urls'
 import { authHeader } from '@/functions'
 
 export const FeedsApi = {
-  postFeed: (feed: FeedsType) =>
-    http.post<ResponseFeedsType>(API_URL.postFeed, feed, {
-      headers: authHeader(),
+  postFeed: (data: FormData) =>
+    http.post<ResponseFeedsType>(API_URL.postFeed, data, {
+      headers: Object.assign(authHeader(), {
+        'content-type': 'multipart/form-data',
+      }),
     }),
 
   postComment: (comment: FeedCommentType) =>
@@ -13,15 +15,21 @@ export const FeedsApi = {
       headers: authHeader(),
     }),
 
-  listFeed: (offset: number) =>
-    http.get<ResponseListFeedType>(API_URL.listFeed, {
-      params: { limit: 4, offset },
+  listFeed: (page: number) =>
+    http.get<ResponseFeedCardType>(API_URL.listFeed, {
+      params: { size: 4, page },
       headers: authHeader(),
     }),
 
   listFeedOfGroup: (page: number, groupId: string) =>
-    http.get<ResponseListFeedOfGroupType>(API_URL.listFeedOfGroup, {
+    http.get<ResponseFeedCardType>(API_URL.listFeedOfGroup, {
       params: { size: 4, page, groupId },
+      headers: authHeader(),
+    }),
+
+  listAllGroupHome: (page: number) =>
+    http.get<ResponseFeedCardType>(API_URL.listAllGroupHome, {
+      params: { size: 4, page },
       headers: authHeader(),
     }),
 }

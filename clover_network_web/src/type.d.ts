@@ -50,6 +50,15 @@ type ResponseUserType = {
   messageVN: string
 }
 
+type ResponseUserProfileType = {
+  data: {
+    userInfo: Omit<iUserinfo, 'password'>
+  }
+  code: number
+  messageEN: string
+  messageVN: string
+}
+
 type ResponseUserType = {
   data: Omit<iUserinfo, 'password'>
   code: number
@@ -272,7 +281,7 @@ type FeedGroupData = {
   currentUserReact: null
 }
 
-type ResponseListFeedOfGroupType = {
+type ResponseFeedCardType = {
   code: number
   data: FeedGroupData[]
   messageEN: string
@@ -313,6 +322,24 @@ type ResponseCreateGroupType = {
 type ResponseGetListGroupType = {
   data: Omit<iGroup, 'description'>[]
   code: number
+  messageEN: string
+  messageVN: string
+}
+
+type ResponseListMemberGroupType = {
+  code: number
+  data: {
+    members: {
+      userId: string
+      displayName: string
+      avatarImgUrl: string
+      phoneNo: string
+      email: string
+      userWallId: string
+      connected: boolean
+    }[]
+    total: number
+  }
   messageEN: string
   messageVN: string
 }

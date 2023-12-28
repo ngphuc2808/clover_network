@@ -23,6 +23,7 @@ import ModalAudience from '@/components/molecules/ModalAudience'
 import Button from '@/components/atoms/Button'
 import LoadingPage from '@/components/pages/LoadingPage'
 import FeedCard from '@/components/molecules/FeedCard'
+import FeedCardGroup from '@/components/molecules/FeedCardGroup'
 
 const imageMimeType = /image\/(png|jpg|jpeg)/i
 
@@ -40,6 +41,9 @@ const HomePage = () => {
   }, [inView, getListFeedApi.hasNextPage, getListFeedApi.fetchNextPage])
 
   const [photos, setPhotos] = useState<string[]>([])
+
+  const [filePhotos, setFilePhotos] = useState<File[]>([])
+
   const [modalPost, setModalPost] = useState<boolean>(false)
   const [modalAudience, setModalAudience] = useState<boolean>(false)
   const [audienceValue, setAudienceValue] = useState<string>('PUBLIC')
@@ -70,9 +74,9 @@ const HomePage = () => {
       setModalPost(true)
       const files = fileListToArray(input.files)
 
-      const photoArr = []
+      setFilePhotos(files)
 
-      // const formData = new FormData()
+      const photoArr = []
 
       for (let i = 0; i < files.length; i++) {
         if (!files[i].type.match(imageMimeType)) {
@@ -80,12 +84,13 @@ const HomePage = () => {
           return
         } else {
           photoArr.push(URL.createObjectURL(files[i]))
-          // formData.append('images', files[i])
         }
       }
 
       setPhotos(photoArr)
     }
+
+    e.currentTarget.value = ''
   }
 
   return (
@@ -107,7 +112,10 @@ const HomePage = () => {
               </p>
             </li>
             <li className='mt-4 flex cursor-pointer items-center gap-3'>
-              <Button className='flex w-full items-center gap-3' to='/groups'>
+              <Button
+                className='flex w-full items-center gap-3'
+                to='/groups/feeds'
+              >
                 <span className='h-[35px] w-[35px]'>
                   <GroupFriendsIcon />
                 </span>
@@ -227,16 +235,34 @@ const HomePage = () => {
             </div>
           </div>
 
-          {getListFeedApi.data?.pages.map(
-            (feeds) =>
-              feeds.data &&
-              feeds.data.postIds.map((it, i) =>
-                feeds.data.postIds.length === i + 1 ? (
-                  <FeedCard key={it} innerRef={ref} feeds={feeds} it={it} />
+          {getListFeedApi.data?.pages.map((data, index) =>
+            data.data ? (
+              data.data.map((it, i) =>
+                data.data.length === i + 1 ? (
+                  it.feedItem.postToUserWall ? (
+                    <FeedCard
+                      key={it.feedItem.postId}
+                      innerRef={ref}
+                      data={it}
+                    />
+                  ) : (
+                    <FeedCardGroup
+                      key={it.feedItem.postId}
+                      innerRef={ref}
+                      data={it}
+                    />
+                  )
+                ) : it.feedItem.postToUserWall ? (
+                  <FeedCard key={it.feedItem.postId} data={it} />
                 ) : (
-                  <FeedCard key={it} feeds={feeds} it={it} />
+                  <FeedCardGroup key={it.feedItem.postId} data={it} />
                 ),
-              ),
+              )
+            ) : (
+              <h1 key={index} className='mt-3 text-center'>
+                End of article
+              </h1>
+            ),
           )}
         </div>
         <div className='col-span-0 ml-auto mt-4 hidden min-w-[60%] lg:col-span-1 lg:block'>
@@ -397,6 +423,8 @@ const HomePage = () => {
           photos={photos}
           audienceValue={audienceValue}
           setModalPost={setModalPost}
+          filePhotos={filePhotos}
+          setFilePhotos={setFilePhotos}
           handleOpenModalAudience={handleOpenModalAudience}
         />
       )}

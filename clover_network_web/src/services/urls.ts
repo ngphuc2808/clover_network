@@ -10,6 +10,7 @@ export const API_URL = {
 
   //user
   getUserInfo: `${API_BASE}/user/get-user-info`,
+  getUserProfile: `${API_BASE}/user/get-user-profile`,
   getListAllGroupOfUser: `${API_BASE}/group/list-all-group-of-user`,
   updateProfile: `${API_BASE}/user/edit-profile`,
   updateAvatar: `${API_BASE}/user/change-user-avatar`,
@@ -17,12 +18,14 @@ export const API_URL = {
 
   //feed
   postFeed: `${API_BASE}/feed/post`,
-  listFeed: `${API_BASE}/feed/list-user-home`,
+  listFeed: `${API_BASE}/feed/list-user-home-v2`,
   postComment: `${API_BASE}/feed/comment`,
   listFeedOfGroup: `${API_BASE}/feed/list-group-home`,
+  listAllGroupHome: `${API_BASE}/feed/list-all-group-home`,
 
   //group
   createGroup: `${API_BASE}/group/create-new-group`,
   getGroupInfo: `${API_BASE}/group/get-group-info`,
   getListAllGroup: `${API_BASE}/group/list-all-group-of-user`,
+  getListMemberGroup: `${API_BASE}/group/list-member-group`,
 }

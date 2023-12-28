@@ -29,7 +29,9 @@ const UpdateProfilePage = () => {
   const [info, setInfo] = useState<boolean>(true)
   const [cropImage, setCropImage] = useState<string | ArrayBuffer | null>(null)
   const [modalCrop, setModalCrop] = useState(false)
-  const [previewImg, setPreviewImg] = useState<string>('')
+  const [previewImg, setPreviewImg] = useState<string>(
+    getUserInfo?.data.avatar || '',
+  )
   const [fileImage, setFileImage] = useState<Blob>(new Blob())
   const [file, setFile] = useState<File>()
   const [countDown, setCountDown] = useState<boolean>(false)
@@ -141,38 +143,35 @@ const UpdateProfilePage = () => {
   }
 
   const uploadFile = async () => {
-    if (fileImage.size > 0) {
-      const fileAvt = new File(
-        [fileImage],
-        `imageFile-${Math.floor(Math.random() * 100000)}.${
-          fileImage.type.split('/')[1]
-        }`,
-        {
-          type: fileImage.type,
-        },
-      )
-      const formData = new FormData()
-      formData.append('imageFile', fileAvt)
+    const fileAvt = new File(
+      [fileImage],
+      `imageFile-${Math.floor(Math.random() * 100000)}.${
+        fileImage.type.split('/')[1]
+      }`,
+      {
+        type: fileImage.type,
+      },
+    )
+    const formData = new FormData()
+    formData.append('imageFile', fileAvt)
 
-      let upload
-      try {
-        upload = await uploadImageApi.mutateAsync(formData)
-      } catch (error) {
-        console.log(error)
-      }
-      return upload
+    let upload
+    try {
+      upload = await uploadImageApi.mutateAsync(formData)
+    } catch (error) {
+      console.log(error)
     }
+    return upload
   }
 
   const handleUpdateInfo = (data: UpdateInfoType) => {
     data.dayOfBirth = startDate.toLocaleDateString()
 
-    uploadFile()
+    if (fileImage.size > 0) uploadFile()
 
     updateProfileApi.mutate(data, {
-      onSuccess(data) {
+      onSuccess() {
         toast.success('Updated account information successfully!')
-        queryClient.setQueryData(['UserInfo'], data.data)
         queryClient.invalidateQueries({ queryKey: ['UserInfo'] })
       },
       onError() {

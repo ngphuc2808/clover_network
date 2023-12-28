@@ -44,7 +44,7 @@ const Search = ({
         value={searchTerm}
         onChange={handleSearchChange}
       />
-      <div className='flex items-center'>
+      <div className='mr-3 flex items-center'>
         <span className={`animate-spin ${loading ? 'block' : 'hidden'}`}>
           <AiOutlineLoading3Quarters />
         </span>

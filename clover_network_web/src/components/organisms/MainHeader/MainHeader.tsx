@@ -107,12 +107,15 @@ const MainHeader = () => {
                     key={it.userId}
                     className='flex cursor-pointer items-center justify-between gap-3 border-b p-4 hover:bg-gray-100 '
                   >
-                    <div className='flex items-center gap-3'>
+                    <Button
+                      to={`/profile/${it.userId}`}
+                      className='flex items-center gap-3'
+                    >
                       <figure className='w-10 overflow-hidden rounded-full'>
-                        <img src={it.avatar! || images.avatar} alt='avatar' />
+                        <img src={it.avatar || images.avatar} alt='avatar' />
                       </figure>
                       {it.firstname} {it.lastname}
-                    </div>
+                    </Button>
                     <div>
                       <Button className='rounded-md bg-primaryColor p-2 text-white'>
                         Follow

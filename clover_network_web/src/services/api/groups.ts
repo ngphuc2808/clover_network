@@ -17,4 +17,25 @@ export const GroupsApi = {
     http.get<ResponseGetListGroupType>(API_URL.getListAllGroup, {
       headers: authHeader(),
     }),
+
+  getListMemberGroup: ({
+    groupId,
+    roleId,
+    page,
+    size,
+  }: {
+    groupId: string
+    roleId: string
+    page: string
+    size: string
+  }) =>
+    http.get<ResponseListMemberGroupType>(API_URL.getListMemberGroup, {
+      headers: authHeader(),
+      params: {
+        groupId,
+        roleId,
+        page,
+        size,
+      },
+    }),
 }

@@ -45,7 +45,7 @@ const CreateGroupPage = () => {
       >
         <div className='mb-2 flex items-center gap-3'>
           <Button
-            to='/groups'
+            to='/groups/feeds'
             className='flex h-[30px] w-[30px] cursor-pointer items-center justify-center rounded-full bg-bgPrimaryColor text-xl text-textHeadingColor'
           >
             <IoChevronBack />
