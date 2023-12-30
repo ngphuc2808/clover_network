@@ -11,10 +11,13 @@ export const API_URL = {
   //user
   getUserInfo: `${API_BASE}/user/get-user-info`,
   getUserProfile: `${API_BASE}/user/get-user-profile`,
-  getListAllGroupOfUser: `${API_BASE}/group/list-all-group-of-user`,
   updateProfile: `${API_BASE}/user/edit-profile`,
   updateAvatar: `${API_BASE}/user/change-user-avatar`,
-  searchUser: `${API_BASE}/search/search-by`,
+  getListFollowers: `${API_BASE}/user/get-list-connector`,
+  getListFollowing: `${API_BASE}/user/get-list-connect`,
+
+  //search
+  searchKey: `${API_BASE}/search/search-by`,
 
   //feed
   postFeed: `${API_BASE}/feed/post`,
@@ -28,4 +31,9 @@ export const API_URL = {
   getGroupInfo: `${API_BASE}/group/get-group-info`,
   getListAllGroup: `${API_BASE}/group/list-all-group-of-user`,
   getListMemberGroup: `${API_BASE}/group/list-member-group`,
+  updateBanner: `${API_BASE}/group/change-group-banner`,
+  disableGroup: `${API_BASE}/group/disable-group`,
+
+  //connect
+  connectUser: `${API_BASE}/connection/connect-user`,
 }

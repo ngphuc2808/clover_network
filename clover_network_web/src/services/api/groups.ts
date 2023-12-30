@@ -8,6 +8,13 @@ export const GroupsApi = {
       headers: authHeader(),
     }),
 
+  uploadBanner: (formData: FormData) =>
+    http.post<ResponseUserType>(API_URL.updateBanner, formData, {
+      headers: Object.assign(authHeader(), {
+        'content-type': 'multipart/form-data',
+      }),
+    }),
+
   getGroupInfo: (id: string) =>
     http.get<ResponseGetGroupInfoType>(`${API_URL.getGroupInfo}/${id}`, {
       headers: authHeader(),
@@ -37,5 +44,14 @@ export const GroupsApi = {
         page,
         size,
       },
+    }),
+
+  disableGroup: (groupId: string) =>
+    http.post<ResponseDeleteGroupType>(API_URL.disableGroup, null, {
+      params: {
+        groupId,
+        confirm: 'true',
+      },
+      headers: authHeader(),
     }),
 }

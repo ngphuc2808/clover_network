@@ -137,7 +137,7 @@ const GroupsPage = () => {
                 <figure className='h-[48px] w-[48px] overflow-hidden rounded-md'>
                   <img
                     className='object-cover'
-                    src={it.bannerImgUrl || images.miniBanner}
+                    src={it.bannerUrl || images.miniBanner}
                     alt='avtGroup'
                   />
                 </figure>
@@ -176,7 +176,7 @@ const GroupsPage = () => {
                       <figure className='h-[80px] w-[80px] overflow-hidden rounded-lg'>
                         <img
                           className='h-full w-full object-cover'
-                          src={it.bannerImgUrl || images.miniBanner}
+                          src={it.bannerUrl || images.miniBanner}
                           alt='avtGroup'
                         />
                       </figure>
@@ -207,7 +207,7 @@ const GroupsPage = () => {
       {isFeeds && (
         <>
           <Col xl={12} lg={12} md={24} sm={24} xs={24} className='mb-5 px-3'>
-            {getListAllGroupHomeApi.data?.pages.map((data) =>
+            {getListAllGroupHomeApi.data?.pages.map((data, index) =>
               data.data ? (
                 data.data.map((it, i) =>
                   data.data.length === i + 1 ? (
@@ -221,7 +221,9 @@ const GroupsPage = () => {
                   ),
                 )
               ) : (
-                <h1 className='mt-3 text-center'>End of article</h1>
+                <h1 key={index} className='mt-3 text-center'>
+                  End of article
+                </h1>
               ),
             )}
           </Col>

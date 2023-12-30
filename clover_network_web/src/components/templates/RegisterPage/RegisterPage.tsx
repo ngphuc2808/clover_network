@@ -6,13 +6,13 @@ import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
-import { FcGoogle } from 'react-icons/fc'
 import { AiFillCalendar } from 'react-icons/ai'
 import { BiLoaderAlt } from 'react-icons/bi'
 
 import { usePostRegister } from '@/hook'
 
 import Button from '@/components/atoms/Button'
+import { FaRegEye, FaRegEyeSlash } from 'react-icons/fa'
 
 const RegisterPage = () => {
   const router = useNavigate()
@@ -20,6 +20,8 @@ const RegisterPage = () => {
   const isLogin = JSON.parse(localStorage.getItem('userLogin')!)
 
   const registerApi = usePostRegister()
+
+  const [eye, setEye] = useState<boolean>(false)
 
   useEffect(() => {
     if (isLogin) {
@@ -77,7 +79,7 @@ const RegisterPage = () => {
       <Helmet>
         <title>Register</title>
       </Helmet>
-      <div className='col-span-full flex flex-col justify-center p-8 sm:h-screen md:p-20 lg:col-span-6 lg:p-32'>
+      <div className='col-span-full flex h-full flex-col justify-center p-8 md:p-20 lg:col-span-6 lg:px-32 lg:py-8'>
         <div className='mb-5 flex items-center justify-center gap-3'>
           <figure className='h-20 w-20 rounded-full border border-secondColor p-3'>
             <img src='../../logo.png' alt='logo' />
@@ -166,29 +168,34 @@ const RegisterPage = () => {
             </p>
           </div>
           <div className='mb-5'>
-            <input
-              type='password'
-              id='password'
-              {...register('password', {
-                required: {
-                  value: true,
-                  message: 'Please enter password!',
-                },
-                pattern: {
-                  value:
-                    /^(?=.*[a-z])(?=.*[A-Z])[a-zA-Z0-9!@#\$%\^\&*\)\(+=._-]{8,}$/,
-                  message:
-                    'Mật khẩu phải bao gồm ít nhất 8 ký tự, 1 chữ cái viết thường, 1 chữ cái viết hoa và 1 chữ số!',
-                },
-              })}
-              autoComplete='on'
-              className={`w-full rounded-lg border border-thirdColor px-3 py-4 outline-none ${
+            <div
+              className={`flex items-center gap-1 rounded-lg border border-thirdColor px-3 outline-none ${
                 errors.password
                   ? 'border-warnColor bg-red-50 placeholder-lightWarnColor'
                   : 'bg-white'
               }`}
-              placeholder='New Password'
-            />
+            >
+              <input
+                type={eye ? 'text' : 'password'}
+                id='password'
+                {...register('password', {
+                  required: {
+                    value: true,
+                    message: 'Please enter password!',
+                  },
+                })}
+                autoComplete='on'
+                className='h-full flex-1 bg-transparent py-4 outline-none'
+                placeholder='Password'
+              />
+              <span className='cursor-pointer'>
+                {!eye ? (
+                  <FaRegEye onClick={() => setEye(true)} />
+                ) : (
+                  <FaRegEyeSlash onClick={() => setEye(false)} />
+                )}
+              </span>
+            </div>
             <p className='mt-2 text-sm text-warnColor'>
               {errors.password?.message}
             </p>
@@ -308,15 +315,6 @@ const RegisterPage = () => {
             Sign in
           </Button>
         </div>
-        <div className='my-5 flex items-center'>
-          <span className='h-px flex-1 bg-secondColor opacity-30'></span>
-          <p className='px-3 font-semibold text-secondColor opacity-30'>or</p>
-          <span className='h-px flex-1 bg-secondColor opacity-30'></span>
-        </div>
-        <Button className='flex w-full items-center justify-center gap-3 rounded-lg border px-3 py-4 font-semibold shadow'>
-          <FcGoogle className='text-3xl' />
-          <p>Continue with Google</p>
-        </Button>
       </div>
     </HelmetProvider>
   )

@@ -49,10 +49,16 @@ const ModalPost = ({
       authorId: getUserInfo?.data.userId!,
       content: '',
       htmlContent: '',
-      privacyGroupId: id ? id : getUserInfo?.data.userWallId!,
-      userWallId: id ? '' : getUserInfo?.data.userWallId!,
+      privacyGroupId:
+        id && id !== getUserInfo?.data.userId
+          ? id
+          : getUserInfo?.data.userWallId!,
+      userWallId:
+        id && id !== getUserInfo?.data.userId
+          ? id
+          : getUserInfo?.data.userWallId!,
       privacyType: audienceValue,
-      toUserId: null,
+      toUserId: id && id !== getUserInfo?.data.userId ? id : '',
       authorRoleGroup: null,
       dynamicLink: null,
       createdTime: null,
@@ -60,7 +66,7 @@ const ModalPost = ({
       lastActive: null,
       totalReaction: null,
       currentUserReact: null,
-      postToUserWall: false,
+      postToUserWall: id && id !== getUserInfo?.data.userId ? true : false,
       delFlag: false,
       isPin: false,
     },

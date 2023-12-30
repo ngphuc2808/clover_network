@@ -7,7 +7,7 @@ import 'react-toastify/dist/ReactToastify.css'
 import { AiFillCalendar } from 'react-icons/ai'
 
 import images from '@/assets/images'
-import { useGetFetchQuery, usePostImage, usePostUpdateProfile } from '@/hook'
+import { useGetFetchQuery, usePostUpdateProfile } from '@/hook'
 
 import Button from '@/components/atoms/Button'
 import Footer from '@/components/organisms/Footer'
@@ -22,8 +22,6 @@ const UpdateProfilePage = () => {
 
   const updateProfileApi = usePostUpdateProfile()
 
-  const uploadImageApi = usePostImage()
-
   const getUserInfo = useGetFetchQuery<ResponseUserType>(['UserInfo'])
 
   const [info, setInfo] = useState<boolean>(true)
@@ -32,7 +30,6 @@ const UpdateProfilePage = () => {
   const [previewImg, setPreviewImg] = useState<string>(
     getUserInfo?.data.avatar || '',
   )
-  const [fileImage, setFileImage] = useState<Blob>(new Blob())
   const [file, setFile] = useState<File>()
   const [countDown, setCountDown] = useState<boolean>(false)
 
@@ -91,7 +88,7 @@ const UpdateProfilePage = () => {
     if (input.files?.length) {
       const file = input.files[0]
       if (!file.type.match(imageMimeType)) {
-        toast.error('Vui lòng chọn đúng định dạng hình ảnh!')
+        toast.error('Please choose the correct image format!')
         return
       }
       setFile(file)
@@ -142,33 +139,8 @@ const UpdateProfilePage = () => {
     }
   }
 
-  const uploadFile = async () => {
-    const fileAvt = new File(
-      [fileImage],
-      `imageFile-${Math.floor(Math.random() * 100000)}.${
-        fileImage.type.split('/')[1]
-      }`,
-      {
-        type: fileImage.type,
-      },
-    )
-    const formData = new FormData()
-    formData.append('imageFile', fileAvt)
-
-    let upload
-    try {
-      upload = await uploadImageApi.mutateAsync(formData)
-    } catch (error) {
-      console.log(error)
-    }
-    return upload
-  }
-
   const handleUpdateInfo = (data: UpdateInfoType) => {
     data.dayOfBirth = startDate.toLocaleDateString()
-
-    if (fileImage.size > 0) uploadFile()
-
     updateProfileApi.mutate(data, {
       onSuccess() {
         toast.success('Updated account information successfully!')
@@ -207,7 +179,7 @@ const UpdateProfilePage = () => {
             />
           </div>
           <h1 className='mt-5 text-center text-2xl text-primaryColor'>
-            Phúc Nguyễn
+            {getUserInfo?.data.firstname} {getUserInfo?.data.lastname}
           </h1>
           <div className='mt-8'>
             <ul className='flex items-center'>
@@ -516,7 +488,6 @@ const UpdateProfilePage = () => {
         <CropImage
           image={cropImage}
           setModalCrop={setModalCrop}
-          setFileImage={setFileImage}
           setPreviewImg={setPreviewImg}
         />
       )}

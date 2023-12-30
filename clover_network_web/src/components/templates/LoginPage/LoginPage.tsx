@@ -1,12 +1,13 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { Helmet, HelmetProvider } from 'react-helmet-async'
 import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
-import { FcGoogle } from 'react-icons/fc'
 import { BiLoaderAlt } from 'react-icons/bi'
+import { FaRegEye } from 'react-icons/fa'
+import { FaRegEyeSlash } from 'react-icons/fa'
 
 import { usePostLogin } from '@/hook'
 
@@ -16,6 +17,8 @@ const LoginPage = () => {
   const router = useNavigate()
 
   const isLogin = JSON.parse(localStorage.getItem('userLogin')!)
+
+  const [eye, setEye] = useState<boolean>(false)
 
   const loginApi = usePostLogin()
 
@@ -95,23 +98,34 @@ const LoginPage = () => {
             </p>
           </div>
           <div className='mb-16'>
-            <input
-              type='password'
-              id='password'
-              {...register('password', {
-                required: {
-                  value: true,
-                  message: 'Please enter password!',
-                },
-              })}
-              autoComplete='on'
-              className={`w-full rounded-lg border border-thirdColor px-3 py-4 outline-none ${
+            <div
+              className={`flex items-center gap-1 rounded-lg border border-thirdColor px-3 outline-none ${
                 errors.password
                   ? 'border-warnColor bg-red-50 placeholder-lightWarnColor'
                   : 'bg-white'
               }`}
-              placeholder='Password'
-            />
+            >
+              <input
+                type={eye ? 'text' : 'password'}
+                id='password'
+                {...register('password', {
+                  required: {
+                    value: true,
+                    message: 'Please enter password!',
+                  },
+                })}
+                autoComplete='on'
+                className='h-full flex-1 bg-transparent py-4 outline-none'
+                placeholder='Password'
+              />
+              <span className='cursor-pointer'>
+                {!eye ? (
+                  <FaRegEye onClick={() => setEye(true)} />
+                ) : (
+                  <FaRegEyeSlash onClick={() => setEye(false)} />
+                )}
+              </span>
+            </div>
             <p className='mt-2 text-sm text-warnColor'>
               {errors.password?.message}
             </p>
@@ -127,7 +141,7 @@ const LoginPage = () => {
             )}
           </Button>
         </form>
-        <div className='flex w-full items-center justify-between'>
+        <div className='flex w-full items-center justify-between lg:block xl:flex'>
           <div className='flex items-center'>
             <span>Don't have account ?</span>
             <Button
@@ -140,21 +154,12 @@ const LoginPage = () => {
           <div className='flex items-center'>
             <Button
               to={'/identify'}
-              className='ml-2 font-semibold hover:opacity-80'
+              className='mt-0 font-semibold hover:opacity-80 lg:mt-3 xl:mt-0'
             >
               Forgotten password?
             </Button>
           </div>
         </div>
-        <div className='my-5 flex items-center'>
-          <span className='h-px flex-1 bg-secondColor opacity-30'></span>
-          <p className='px-3 font-semibold text-secondColor opacity-30'>or</p>
-          <span className='h-px flex-1 bg-secondColor opacity-30'></span>
-        </div>
-        <Button className='flex w-full items-center justify-center gap-3 rounded-lg border px-3 py-4 font-semibold shadow'>
-          <FcGoogle className='text-3xl' />
-          <p>Continue with Google</p>
-        </Button>
       </div>
     </HelmetProvider>
   )

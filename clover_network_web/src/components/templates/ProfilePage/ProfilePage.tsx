@@ -1,30 +1,41 @@
 import { ChangeEvent, Fragment, useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
+import { useInView } from 'react-intersection-observer'
+import { toast } from 'react-toastify'
 
 import { FaPhoneAlt, FaUser } from 'react-icons/fa'
 import { GoPencil } from 'react-icons/go'
+import { MdEmail } from 'react-icons/md'
 import { FcAddImage } from 'react-icons/fc'
 import { BsEmojiSmile } from 'react-icons/bs'
 import { FaCakeCandles } from 'react-icons/fa6'
+import { CiCamera } from 'react-icons/ci'
 
 import images from '@/assets/images'
 import {
   useGetFetchQuery,
   useGetListFeedOfGroup,
+  useGetListFollowers,
+  // useGetListFollowing,
   useGetUserProfile,
+  usePostConnectUser,
+  usePostUploadBanner,
 } from '@/hook'
 
 import ModalAudience from '@/components/molecules/ModalAudience'
 import ModalPost from '@/components/molecules/ModalPost'
 import Button from '@/components/atoms/Button'
-import { MdEmail } from 'react-icons/md'
-import { useParams } from 'react-router-dom'
-import { useInView } from 'react-intersection-observer'
 import FeedCard from '@/components/molecules/FeedCard'
-import { toast } from 'react-toastify'
+import LoadingPage from '@/components/pages/LoadingPage'
+import { Tooltip } from 'antd'
+import { useQueryClient } from '@tanstack/react-query'
 
 const imageMimeType = /image\/(png|jpg|jpeg)/i
 
 const ProfilePage = () => {
+  const queryClient = useQueryClient()
+
+  const [previewBanner, setPreviewBanner] = useState<string>('')
   const [modalPost, setModalPost] = useState<boolean>(false)
   const [modalAudience, setModalAudience] = useState<boolean>(false)
   const [audienceValue, setAudienceValue] = useState<string>('PUBLIC')
@@ -34,15 +45,33 @@ const ProfilePage = () => {
 
   const { id } = useParams()
 
-  const getUserProfileApi = useGetUserProfile(id!)
-
-  const getUserInfo = useGetFetchQuery<ResponseUserType>(['UserInfo'])
+  const uploadBannerApi = usePostUploadBanner()
 
   const { ref, inView } = useInView()
+
+  const getUserProfileApi = useGetUserProfile(id!)
 
   const getListFeedOfGroupApi = useGetListFeedOfGroup(
     getUserProfileApi.data?.data.userInfo.userWallId!,
   )
+
+  const getUserInfo = useGetFetchQuery<ResponseUserType>(['UserInfo'])
+
+  const getListFollowersApi = useGetListFollowers({
+    userId: id!,
+    page: '0',
+    size: '20',
+  })
+
+  // const getListFollowingApi = useGetListFollowing({
+  //   userId: id!,
+  //   page: '0',
+  //   size: '20',
+  // })
+
+  const connectApi = usePostConnectUser()
+
+  const checkOwner = JSON.parse(localStorage.getItem('userLogin')!)
 
   useEffect(() => {
     if (inView && getListFeedOfGroupApi.hasNextPage) {
@@ -53,6 +82,12 @@ const ProfilePage = () => {
     getListFeedOfGroupApi.hasNextPage,
     getListFeedOfGroupApi.fetchNextPage,
   ])
+
+  useEffect(() => {
+    return () => {
+      URL.revokeObjectURL(previewBanner)
+    }
+  }, [previewBanner])
 
   const handleOpenModalAudience = () => {
     setModalAudience(true)
@@ -95,11 +130,100 @@ const ProfilePage = () => {
     e.currentTarget.value = ''
   }
 
+  const handleChangeBanner = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const formData = new FormData()
+      formData.append(
+        'groupId',
+        getUserProfileApi.data?.data.userInfo.userWallId!,
+      )
+      formData.append('bannerFile', e.target.files[0])
+      uploadBannerApi.mutate(formData, {
+        onSuccess() {
+          toast.success('Change banner successful!')
+        },
+      })
+      setPreviewBanner(URL.createObjectURL(e.target.files[0]))
+    }
+
+    e.currentTarget.value = ''
+  }
+
+  const handleConnect = () => {
+    if (getUserProfileApi.data?.data.userInfo.connected) {
+      connectApi.mutate(
+        {
+          targetUserId: getUserProfileApi.data?.data.userInfo.userId,
+          status: 0,
+        },
+        {
+          onSuccess() {
+            toast.success(
+              `You have unfollowed ${getUserProfileApi.data.data.userInfo.lastname}`,
+            )
+            queryClient.invalidateQueries({ queryKey: ['UserProfile'] })
+          },
+        },
+      )
+    } else {
+      connectApi.mutate(
+        {
+          targetUserId: getUserProfileApi.data?.data.userInfo.userId!,
+          status: 1,
+        },
+        {
+          onSuccess() {
+            toast.success(
+              `Already follow ${getUserProfileApi.data?.data.userInfo.lastname}`,
+            )
+            queryClient.invalidateQueries({ queryKey: ['UserProfile'] })
+          },
+        },
+      )
+    }
+  }
+
+  if (getUserProfileApi.isLoading || getListFeedOfGroupApi.isLoading) {
+    return <LoadingPage />
+  }
+
   return (
     <Fragment>
       <section className='bg-white'>
         <div className='m-auto mt-[61px] max-w-screen-xl'>
-          <div className='round h-[480px] rounded-b-xl bg-gradient-to-b from-gray-100 to-gray-300'></div>
+          <div className='relative h-[480px] overflow-hidden rounded-b-xl'>
+            <figure className='h-full w-full'>
+              <img
+                src={
+                  previewBanner ||
+                  getUserProfileApi.data?.data.userInfo.bannerUrl ||
+                  images.banner
+                }
+                className='h-full w-full object-cover'
+              />
+            </figure>
+            {checkOwner.userId ===
+              getUserProfileApi.data?.data.userInfo.userId && (
+              <>
+                <label
+                  htmlFor='banner'
+                  className='absolute bottom-8 right-8 flex cursor-pointer items-center gap-2 rounded-md border border-primaryColor px-3 py-2 text-primaryColor'
+                >
+                  <span className='text-2xl'>
+                    <CiCamera />
+                  </span>
+                  Change banner
+                </label>
+                <input
+                  id='banner'
+                  type='file'
+                  onChange={handleChangeBanner}
+                  accept='image/*'
+                  hidden
+                />
+              </>
+            )}
+          </div>
           <div className='grid grid-cols-9 gap-2 px-12'>
             <div className='col-span-full h-0 lg:col-span-2 lg:h-auto'>
               <figure className='relative left-1/2 top-[-85px] h-[170px] w-[170px] -translate-x-1/2 overflow-hidden rounded-full border-[6px] border-white lg:top-[-30px] lg:h-60 lg:w-60'>
@@ -120,51 +244,78 @@ const ProfilePage = () => {
                   {getUserProfileApi?.data?.data.userInfo.lastname}
                 </h1>
                 <span className='mt-2 flex items-center justify-center gap-2 text-lg text-textPrimaryColor'>
-                  <p>200 followers</p>
+                  <p>{getUserProfileApi.data?.data.totalConnector} followers</p>
                   <p className='opacity-50'>•</p>
-                  <p>300 following</p>
+                  <p>{getUserProfileApi.data?.data.totalConnect} following</p>
                 </span>
                 <div className=' mt-2 flex justify-center -space-x-4 lg:justify-normal rtl:space-x-reverse'>
-                  <figure className='h-10 w-10'>
-                    <img
-                      className=' rounded-full border-2 border-white '
-                      src={images.avatar}
-                      alt='avatar'
-                    />
-                  </figure>
-                  <figure className='h-10 w-10'>
-                    <img
-                      className=' rounded-full border-2 border-white '
-                      src={images.avatar}
-                      alt='avatar'
-                    />
-                  </figure>
-                  <figure className='h-10 w-10'>
-                    <img
-                      className=' rounded-full border-2 border-white '
-                      src={images.avatar}
-                      alt='avatar'
-                    />
-                  </figure>
-                  <Button
-                    className='flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-gray-500 text-xs font-medium text-white hover:bg-gray-600'
-                    to={'#'}
-                  >
-                    ...
-                  </Button>
+                  {getListFollowersApi.data?.pages.map(
+                    (data) =>
+                      data.data &&
+                      data.data.userProfiles.map(
+                        (it, i) =>
+                          i < 6 && (
+                            <Button to={`/profile/${it.userId}`}>
+                              <Tooltip title={it.displayName}>
+                                <figure key={it.userId} className='h-10 w-10'>
+                                  <img
+                                    className=' rounded-full border-2 border-white '
+                                    src={it.avatarImgUrl || images.avatar}
+                                    alt='avatar'
+                                  />
+                                </figure>
+                              </Tooltip>
+                            </Button>
+                          ),
+                      ),
+                  )}
+                  {getListFollowersApi.data?.pages.map(
+                    (data) =>
+                      data.data &&
+                      data.data.userProfiles.length >= 6 && (
+                        <Button
+                          className='flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-gray-500 text-xs font-medium text-white hover:bg-gray-600'
+                          to={'#'}
+                        >
+                          ...
+                        </Button>
+                      ),
+                  )}
                 </div>
               </div>
-              <div className='mt-6 flex w-full justify-center lg:mt-0 lg:w-auto'>
-                <Button
-                  to={'/update-profile'}
-                  className='flex items-center gap-2 rounded-lg border-2 border-primaryColor bg-white px-5 py-4 text-primaryColor hover:bg-primaryColor/5'
-                >
-                  <span className='text-2xl'>
-                    <GoPencil />
-                  </span>
-                  <p>Edit information</p>
-                </Button>
-              </div>
+              {checkOwner.userId ===
+                getUserProfileApi.data?.data.userInfo.userId && (
+                <div className='mt-6 flex w-full justify-center lg:mt-0 lg:w-auto'>
+                  <Button
+                    to={'/update-profile'}
+                    className='flex items-center gap-2 rounded-lg border-2 border-primaryColor bg-white px-4 py-2 text-primaryColor hover:bg-primaryColor/5'
+                  >
+                    <span className='text-2xl'>
+                      <GoPencil />
+                    </span>
+                    <p>Edit information</p>
+                  </Button>
+                </div>
+              )}
+              {checkOwner.userId !==
+                getUserProfileApi.data?.data.userInfo.userId && (
+                <div className='mt-6 flex w-full justify-center lg:mt-0 lg:w-auto'>
+                  <Button
+                    className={`flex items-center gap-2 rounded-lg  px-4 py-2 hover:opacity-80 ${
+                      getUserProfileApi.data?.data.userInfo.connected
+                        ? 'border border-primaryColor text-primaryColor'
+                        : 'bg-primaryColor  text-white'
+                    }`}
+                    onClick={handleConnect}
+                  >
+                    <p>
+                      {getUserProfileApi.data?.data.userInfo.connected
+                        ? 'Unfollow'
+                        : 'Follow'}
+                    </p>
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
           <div className='my-3 flex items-center px-12'>
@@ -179,6 +330,9 @@ const ProfilePage = () => {
             </li>
             <li className='cursor-pointer border-b border-transparent p-3 text-textPrimaryColor hover:border-primaryColor'>
               <h1>Photos</h1>
+            </li>
+            <li className='cursor-pointer border-b border-transparent p-3 text-textPrimaryColor hover:border-primaryColor'>
+              <h1>Followers</h1>
             </li>
             <li className='cursor-pointer border-b border-transparent p-3 text-textPrimaryColor hover:border-primaryColor'>
               <h1>Following</h1>
@@ -219,11 +373,16 @@ const ProfilePage = () => {
               </div>
             </div>
             <div className='col-span-full lg:col-span-6'>
-              {getUserProfileApi.data?.data.userInfo.userId ===
-                getUserInfo?.data.userId && (
-                <div className='rounded-lg border bg-white p-3'>
-                  <div className='flex items-center gap-3'>
-                    <figure className='h-[40px] w-[40px] overflow-hidden rounded-full hover:cursor-pointer'>
+              <div className='rounded-lg border bg-white p-3'>
+                <div className='flex items-center gap-3'>
+                  <figure className='h-[40px] w-[40px] overflow-hidden rounded-full hover:cursor-pointer'>
+                    {checkOwner.userId !==
+                    getUserProfileApi.data?.data.userInfo.userId ? (
+                      <img
+                        src={getUserInfo?.data.avatar || images.avatar}
+                        alt='avatar'
+                      />
+                    ) : (
                       <img
                         src={
                           getUserProfileApi?.data?.data.userInfo.avatar ||
@@ -231,49 +390,59 @@ const ProfilePage = () => {
                         }
                         alt='avatar'
                       />
-                    </figure>
+                    )}
+                  </figure>
+                  {checkOwner.userId !==
+                  getUserProfileApi.data?.data.userInfo.userId ? (
                     <Button
                       className='flex-1 rounded-full bg-bgPrimaryColor p-3 text-left text-sm text-textPrimaryColor hover:bg-primaryColor/10'
                       onClick={() => setModalPost(true)}
                     >
-                      What's on your mind,{' '}
+                      Write something to{' '}
                       {getUserProfileApi?.data?.data.userInfo.lastname} ?
                     </Button>
-                  </div>
-                  <div className='my-3 flex items-center'>
-                    <span className='h-px w-full bg-secondColor opacity-30'></span>
-                  </div>
-                  <div className='flex items-center justify-center'>
-                    <label
-                      htmlFor='uploadFilesHome'
-                      className='flex cursor-pointer items-center gap-2 p-3 hover:bg-primaryColor/10'
+                  ) : (
+                    <Button
+                      className='flex-1 rounded-full bg-bgPrimaryColor p-3 text-left text-sm text-textPrimaryColor hover:bg-primaryColor/10'
+                      onClick={() => setModalPost(true)}
                     >
-                      <span className='text-2xl'>
-                        <FcAddImage />
-                      </span>
-                      <p className='font-medium text-textPrimaryColor'>
-                        Photo/video
-                      </p>
-                      <input
-                        id='uploadFilesHome'
-                        type='file'
-                        onChange={handleUploadImage}
-                        accept='image/*'
-                        multiple
-                        hidden
-                      />
-                    </label>
-                    <div className='flex cursor-pointer items-center gap-2 p-3 hover:bg-primaryColor/10'>
-                      <span className='text-2xl text-orange-400'>
-                        <BsEmojiSmile />
-                      </span>
-                      <p className='font-medium text-textPrimaryColor'>
-                        Feeling/activity
-                      </p>
-                    </div>
+                      What's on your mind, {getUserInfo?.data.lastname} ?
+                    </Button>
+                  )}
+                </div>
+                <div className='my-3 flex items-center'>
+                  <span className='h-px w-full bg-secondColor opacity-30'></span>
+                </div>
+                <div className='flex items-center justify-center'>
+                  <label
+                    htmlFor='uploadFilesHome'
+                    className='flex cursor-pointer items-center gap-2 p-3 hover:bg-primaryColor/10'
+                  >
+                    <span className='text-2xl'>
+                      <FcAddImage />
+                    </span>
+                    <p className='font-medium text-textPrimaryColor'>
+                      Photo/video
+                    </p>
+                    <input
+                      id='uploadFilesHome'
+                      type='file'
+                      onChange={handleUploadImage}
+                      accept='image/*'
+                      multiple
+                      hidden
+                    />
+                  </label>
+                  <div className='flex cursor-pointer items-center gap-2 p-3 hover:bg-primaryColor/10'>
+                    <span className='text-2xl text-orange-400'>
+                      <BsEmojiSmile />
+                    </span>
+                    <p className='font-medium text-textPrimaryColor'>
+                      Feeling/activity
+                    </p>
                   </div>
                 </div>
-              )}
+              </div>
               {getListFeedOfGroupApi.data?.pages.map((data, index) =>
                 data.data ? (
                   data.data.map((it, i) =>

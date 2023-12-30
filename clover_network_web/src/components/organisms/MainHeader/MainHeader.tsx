@@ -13,10 +13,13 @@ import {
   useDeleteLogout,
   useGetFetchQuery,
   useGetSearchUserInfo,
+  usePostConnectUser,
 } from '@/hook'
 
 import Button from '@/components/atoms/Button'
 import Search from '@/components/molecules/Search'
+import { toast } from 'react-toastify'
+import { useQueryClient } from '@tanstack/react-query'
 
 const MainHeader = () => {
   const router = useNavigate()
@@ -24,6 +27,8 @@ const MainHeader = () => {
   const getUserInfo = useGetFetchQuery<ResponseUserType>(['UserInfo'])
 
   const lougoutApi = useDeleteLogout()
+
+  const queryClient = useQueryClient()
 
   useEffect(() => {
     const handleResize = () => {
@@ -45,6 +50,8 @@ const MainHeader = () => {
 
   const searchUserApi = useGetSearchUserInfo(debouncedSearchTerm.trim())
 
+  const connectApi = usePostConnectUser()
+
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value)
   }
@@ -64,6 +71,41 @@ const MainHeader = () => {
     })
   }
 
+  const handleMoveToTop = () => {
+    window.scroll(0, 0)
+  }
+
+  const handleConnect = (connected: boolean, id: string, lastName: string) => {
+    console.log(connected)
+    if (connected) {
+      connectApi.mutate(
+        {
+          targetUserId: id,
+          status: 0,
+        },
+        {
+          onSuccess() {
+            toast.success(`You have unfollowed ${lastName}`)
+            queryClient.invalidateQueries({ queryKey: ['SearchUserInfo'] })
+          },
+        },
+      )
+    } else {
+      connectApi.mutate(
+        {
+          targetUserId: id,
+          status: 1,
+        },
+        {
+          onSuccess() {
+            toast.success(`Already follow ${lastName}`)
+            queryClient.invalidateQueries({ queryKey: ['SearchUserInfo'] })
+          },
+        },
+      )
+    }
+  }
+
   return (
     <header className='fixed left-0 right-0 top-0 z-50 flex h-[61px] items-center bg-white px-3 shadow-md sm:grid sm:grid-cols-3 sm:grid-rows-1'>
       <div className='sm:col-span-1'>
@@ -71,7 +113,10 @@ const MainHeader = () => {
           className={`mr-3 ${
             isMobile && openSearch ? 'flex' : 'hidden'
           }  h-[45px] w-[45px] cursor-pointer items-center justify-center rounded-full bg-bgPrimaryColor text-2xl text-primaryColor`}
-          onClick={() => setOpenSearch(false)}
+          onClick={() => {
+            setSearchTerm('')
+            setOpenSearch(false)
+          }}
         >
           <MdOutlineKeyboardBackspace />
         </span>
@@ -80,6 +125,7 @@ const MainHeader = () => {
           className={`mr-2 items-center gap-1 sm:mr-0 ${
             isMobile && openSearch ? 'hidden' : 'inline-flex'
           }`}
+          onClick={handleMoveToTop}
         >
           <figure className='w-12'>
             <img src='../../logo.png' />
@@ -117,8 +163,17 @@ const MainHeader = () => {
                       {it.firstname} {it.lastname}
                     </Button>
                     <div>
-                      <Button className='rounded-md bg-primaryColor p-2 text-white'>
-                        Follow
+                      <Button
+                        className={`flex items-center gap-2 rounded-lg  px-4 py-2 hover:opacity-80 ${
+                          it.connected
+                            ? 'border border-primaryColor text-primaryColor'
+                            : 'bg-primaryColor  text-white'
+                        }`}
+                        onClick={() =>
+                          handleConnect(it.connected, it.userId, it.lastname!)
+                        }
+                      >
+                        <p>{it.connected ? 'Unfollow' : 'Follow'}</p>
                       </Button>
                     </div>
                   </li>

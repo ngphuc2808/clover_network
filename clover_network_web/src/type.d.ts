@@ -2,6 +2,7 @@ interface iUserinfo {
   userId: string
   userWallId: string
   avatar: string | null
+  bannerUrl: string
   firstname?: string
   lastname?: string
   email: string
@@ -11,6 +12,7 @@ interface iUserinfo {
   phoneNo?: null | string | number
   status: string
   userRole: string
+  connected: boolean
 }
 
 type LoginType = Pick<iUserinfo, 'email' | 'password'>
@@ -50,9 +52,36 @@ type ResponseUserType = {
   messageVN: string
 }
 
+type ResponseListFollowType = {
+  code: number
+  data: {
+    userProfiles: {
+      userId: string
+      displayName: string
+      avatarImgUrl: string
+      phoneNo: string
+      email: string
+      userWallId: string
+      connected: true
+    }[]
+    total: number
+  }
+  messageEN: string
+  messageVN: string
+}
+
+type ResponseConnectUserType = {
+  code: number
+  data: string
+  messageEN: string
+  messageVN: string
+}
+
 type ResponseUserProfileType = {
   data: {
     userInfo: Omit<iUserinfo, 'password'>
+    totalConnect: number
+    totalConnector: number
   }
   code: number
   messageEN: string
@@ -83,7 +112,7 @@ interface iDataFeed {
   htmlContent: string
   privacyGroupId: string
   privacyType: string
-  toUserId: null
+  toUserId: string | null
   authorRoleGroup: null
   dynamicLink: null
   createdTime: null
@@ -91,7 +120,7 @@ interface iDataFeed {
   lastActive: null
   totalReaction: null
   currentUserReact: null
-  postToUserWall: false
+  postToUserWall: boolean
   delFlag: false
   isPin: false
   pin: false
@@ -263,8 +292,8 @@ type FeedGroupData = {
     id: number
     groupId: string
     groupName: string
-    avatarImgUrl: string | null
-    bannerImgUrl: string | null
+    avatarUrl: string | null
+    bannerUrl: string | null
     groupDesc: string
     groupOwnerId: string
     groupType: number
@@ -290,22 +319,23 @@ type ResponseFeedCardType = {
 }
 
 interface iGroup {
-  id: number
-  groupId: string
-  groupName: string
-  avatarImgUrl: null | string
-  bannerImgUrl: null | string
+  groupId: string //
+  groupName: string //
+  avatarUrl: null | string //
+  bannerUrl: null | string //
   description: string
-  groupDesc: string
-  groupOwnerId: string
-  groupType: number
-  groupPrivacy: string
+  groupDesc: string //
+  groupOwnerId: string //
+  groupType: number //
+  groupPrivacy: string //
   enableComment: boolean
   enablePost: boolean
   enableReaction: boolean
-  createdTime: string
-  updatedTime: string
-  delFlag: boolean
+  createdTime: string //
+  updatedTime: string //
+  lastActive: string //
+  delFlag: boolean //
+  totalMember: number
 }
 
 type CreateGroupType = Pick<
@@ -316,6 +346,29 @@ type CreateGroupType = Pick<
 type ResponseCreateGroupType = {
   data: Omit<iGroup, 'description'>
   code: number
+  messageEN: string
+  messageVN: string
+}
+
+type ResponseDeleteGroupType = {
+  code: number
+  data: {
+    group: Omit<
+      iGroup,
+      | 'description'
+      | 'enableComment'
+      | 'enablePost'
+      | 'enableReaction'
+      | 'totalMember'
+    >
+    currentUserRole: {
+      roleId: string
+      status: string
+      enablePost: boolean
+      enableComment: boolean
+      enableShare: boolean
+    }
+  }
   messageEN: string
   messageVN: string
 }

@@ -23,13 +23,17 @@ const MainPage = () => {
 
   const isLogin = JSON.parse(localStorage.getItem('userLogin')!)
 
-  const getUserInfoApi = useGetUserInfo()
+  const getUserInfoApi = useGetUserInfo(isLogin !== null)
 
   useEffect(() => {
     if (!isLogin) {
       router('/login')
       return
     }
+  }, [])
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
   }, [])
 
   if (getUserInfoApi.isLoading) {

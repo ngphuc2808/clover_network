@@ -7,6 +7,7 @@ import TimeAgo from '../TimeAgo'
 import { Fragment, useState } from 'react'
 import { Modal } from 'antd'
 import { toast } from 'react-toastify'
+import Button from '@/components/atoms/Button'
 
 interface iProps {
   data: FeedGroupData
@@ -34,16 +35,21 @@ const FeedCard = ({ data, innerRef }: iProps) => {
         ref={innerRef}
       >
         <div className='flex items-center gap-3'>
-          <figure className='h-[40px] w-[40px] overflow-hidden rounded-full hover:cursor-pointer'>
-            <img
-              src={data.authorProfile.avatarImgUrl || images.avatar}
-              alt='avatar'
-            />
-          </figure>
+          <Button to={`/profile/${data.authorProfile.userId}`}>
+            <figure className='h-[40px] w-[40px] overflow-hidden rounded-full hover:cursor-pointer'>
+              <img
+                src={data.authorProfile.avatarImgUrl || images.avatar}
+                alt='avatar'
+              />
+            </figure>
+          </Button>
           <div>
-            <h1 className='text-textHeadingColor'>
+            <Button
+              to={`/profile/${data.authorProfile.userId}`}
+              className='text-textHeadingColor'
+            >
               {data.authorProfile.displayName}
-            </h1>
+            </Button>
             <h1 className='flex items-center gap-2 text-sm text-textPrimaryColor'>
               <TimeAgo timestamp={data.feedItem.createdTime} />
               {listAudienceGroup.map(

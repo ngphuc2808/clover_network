@@ -24,18 +24,24 @@ const FeedCardGroup = ({ data, innerRef }: iProps) => {
       >
         <div className='flex items-center gap-3'>
           <div className='relative'>
-            <figure className='h-[45px] w-[45px] overflow-hidden rounded-md hover:cursor-pointer'>
-              <img
-                src={data.groupItem.bannerImgUrl || images.miniBanner}
-                alt='avatar'
-              />
-            </figure>
-            <figure className='border-1 absolute -bottom-1 -right-1 h-[26px] w-[26px] overflow-hidden rounded-full border border-white hover:cursor-pointer'>
-              <img
-                src={data.authorProfile.avatarImgUrl || images.avatar}
-                alt='avatar'
-              />
-            </figure>
+            <Button to={`/groups/${data.groupItem.groupId}`}>
+              <figure className='h-[45px] w-[45px] overflow-hidden rounded-md hover:cursor-pointer'>
+                <img
+                  src={data.groupItem.bannerUrl || images.miniBanner}
+                  alt='avatar'
+                  className='h-full w-full object-cover'
+                />
+              </figure>
+            </Button>
+            <Button to={`/profile/${data.authorProfile.userId}`}>
+              <figure className='border-1 absolute -bottom-1 -right-1 h-[26px] w-[26px] overflow-hidden rounded-full border border-white hover:cursor-pointer'>
+                <img
+                  src={data.authorProfile.avatarImgUrl || images.avatar}
+                  alt='avatar'
+                  className='h-full w-full object-cover'
+                />
+              </figure>
+            </Button>
           </div>
           <div>
             <Button
@@ -46,7 +52,7 @@ const FeedCardGroup = ({ data, innerRef }: iProps) => {
             </Button>
             <h1 className='flex items-center gap-2 text-sm text-textPrimaryColor'>
               <Button
-                to={`/profile/${data.authorProfile.userWallId}`}
+                to={`/profile/${data.authorProfile.userId}`}
                 className='text-sm text-textPrimaryColor'
               >
                 {data.authorProfile.displayName}

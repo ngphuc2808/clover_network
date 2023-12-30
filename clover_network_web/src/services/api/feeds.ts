@@ -17,19 +17,19 @@ export const FeedsApi = {
 
   listFeed: (page: number) =>
     http.get<ResponseFeedCardType>(API_URL.listFeed, {
-      params: { size: 4, page },
+      params: { size: 5, page },
       headers: authHeader(),
     }),
 
   listFeedOfGroup: (page: number, groupId: string) =>
     http.get<ResponseFeedCardType>(API_URL.listFeedOfGroup, {
-      params: { size: 4, page, groupId },
+      params: { size: 5, page, groupId },
       headers: authHeader(),
     }),
 
   listAllGroupHome: (page: number) =>
     http.get<ResponseFeedCardType>(API_URL.listAllGroupHome, {
-      params: { size: 4, page },
+      params: { size: 5, page },
       headers: authHeader(),
     }),
 }

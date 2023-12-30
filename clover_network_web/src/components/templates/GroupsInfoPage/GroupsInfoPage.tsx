@@ -1,6 +1,7 @@
 import { ChangeEvent, Fragment, useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
-import { Col, Row } from 'antd'
+import { useQueryClient } from '@tanstack/react-query'
+import { useNavigate, useParams } from 'react-router-dom'
+import { Col, Modal, Row } from 'antd'
 import { useInView } from 'react-intersection-observer'
 import { IoIosSettings } from 'react-icons/io'
 import { MdFeed, MdGroups } from 'react-icons/md'
@@ -11,13 +12,17 @@ import { TbDoorExit } from 'react-icons/tb'
 import { toast } from 'react-toastify'
 import { FcAddImage } from 'react-icons/fc'
 import { BsEmojiSmile } from 'react-icons/bs'
+import { RiDeleteBin5Line } from 'react-icons/ri'
+import { CiCamera } from 'react-icons/ci'
 
 import {
+  useDisableGroup,
   useGetFetchQuery,
   useGetGroupInfo,
   useGetListAllGroup,
   useGetListFeedOfGroup,
   useGetListMemberGroup,
+  usePostUploadBanner,
 } from '@/hook'
 
 import Button from '@/components/atoms/Button'
@@ -35,6 +40,10 @@ const GroupsInfoPage = () => {
 
   const { id } = useParams()
 
+  const navigate = useNavigate()
+
+  const queryClient = useQueryClient()
+
   const getGroupInfoApi = useGetGroupInfo(id!)
 
   const getListFeedOfGroupApi = useGetListFeedOfGroup(id!)
@@ -46,6 +55,8 @@ const GroupsInfoPage = () => {
     size: '10',
   })
 
+  const [openModalDelete, setOpenModalDelete] = useState<boolean>(false)
+  const [previewBanner, setPreviewBanner] = useState<string>('')
   const [photos, setPhotos] = useState<string[]>([])
   const [modalPost, setModalPost] = useState<boolean>(false)
   const [modalAudience, setModalAudience] = useState<boolean>(false)
@@ -67,6 +78,10 @@ const GroupsInfoPage = () => {
   const getUserInfo = useGetFetchQuery<ResponseUserType>(['UserInfo'])
 
   const getAllGroupApi = useGetListAllGroup()
+
+  const uploadBannerApi = usePostUploadBanner()
+
+  const deleteGroupApi = useDisableGroup()
 
   const fileListToArray = (fileList: FileList) => {
     const filesArray = []
@@ -114,6 +129,37 @@ const GroupsInfoPage = () => {
 
   const handleClearChange = () => {
     setSearchTerm('')
+  }
+
+  const handleChangeBanner = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const formData = new FormData()
+      formData.append('groupId', id!)
+      formData.append('bannerFile', e.target.files[0])
+      uploadBannerApi.mutate(formData, {
+        onSuccess() {
+          toast.success('Change banner successful!')
+          queryClient.invalidateQueries({ queryKey: ['ListAllGroup'] })
+        },
+      })
+      setPreviewBanner(URL.createObjectURL(e.target.files[0]))
+    }
+
+    e.currentTarget.value = ''
+  }
+
+  const handleDeleteGroup = () => {
+    deleteGroupApi.mutate(id!, {
+      onSuccess() {
+        toast.success('Successfully deleted group!')
+        setOpenModalDelete(false)
+        queryClient.invalidateQueries({ queryKey: ['ListAllGroup'] })
+        navigate('/groups/list-groups')
+      },
+      onError(error) {
+        console.log(error)
+      },
+    })
   }
 
   return (
@@ -196,7 +242,7 @@ const GroupsInfoPage = () => {
                     <figure className='h-[48px] w-[48px] overflow-hidden rounded-md'>
                       <img
                         className='object-cover'
-                        src={it.bannerImgUrl || images.miniBanner}
+                        src={it.bannerUrl || images.miniBanner}
                         alt='avtGroup'
                       />
                     </figure>
@@ -224,15 +270,39 @@ const GroupsInfoPage = () => {
           <div className='overflow-auto rounded-md'>
             <div className='bg-white p-4 shadow-md'>
               <div>
-                <figure className='h-[350px] w-full overflow-hidden rounded-md border border-gray-200'>
-                  <img
-                    className='h-full w-full object-cover'
-                    src={
-                      getGroupInfoApi.data?.data.group.bannerUrl ||
-                      images.banner
-                    }
-                  />
-                </figure>
+                <div className='relative h-[350px] w-full overflow-hidden rounded-lg border border-gray-200'>
+                  <figure className='h-full w-full '>
+                    <img
+                      className='h-full w-full object-cover'
+                      src={
+                        previewBanner ||
+                        getGroupInfoApi.data?.data.group.bannerUrl ||
+                        images.banner
+                      }
+                    />
+                  </figure>
+                  {getGroupInfoApi.data?.data.group.groupOwnerId ===
+                    getUserInfo?.data.userId && (
+                    <>
+                      <label
+                        htmlFor='banner'
+                        className='absolute bottom-8 right-8 flex cursor-pointer items-center gap-2 rounded-md border border-primaryColor px-3 py-2 text-primaryColor'
+                      >
+                        <span className='text-2xl'>
+                          <CiCamera />
+                        </span>
+                        Change banner
+                      </label>
+                      <input
+                        id='banner'
+                        type='file'
+                        onChange={handleChangeBanner}
+                        accept='image/*'
+                        hidden
+                      />
+                    </>
+                  )}
+                </div>
                 <div className='mt-3 flex justify-between'>
                   <div>
                     <h1 className='text-2xl font-bold text-textHeadingColor'>
@@ -289,12 +359,27 @@ const GroupsInfoPage = () => {
                       </span>
                       Invite
                     </Button>
-                    <Button className='flex items-center gap-2 rounded-md border border-gray-300 px-3 py-2 text-textHeadingColor hover:opacity-80 '>
-                      <span>
-                        <TbDoorExit />
-                      </span>
-                      Leave group
-                    </Button>
+                    {getGroupInfoApi.data?.data.group.groupOwnerId !==
+                      getUserInfo?.data.userId && (
+                      <Button className='flex items-center gap-2 rounded-md border border-gray-300 px-3 py-2 text-textHeadingColor hover:opacity-80 '>
+                        <span>
+                          <TbDoorExit />
+                        </span>
+                        Leave group
+                      </Button>
+                    )}
+                    {getGroupInfoApi.data?.data.group.groupOwnerId ===
+                      getUserInfo?.data.userId && (
+                      <Button
+                        onClick={() => setOpenModalDelete(true)}
+                        className='flex items-center gap-2 rounded-md border border-gray-300 px-3 py-2 text-textHeadingColor hover:border-red-500 hover:text-red-500 hover:opacity-80'
+                      >
+                        <span>
+                          <RiDeleteBin5Line />
+                        </span>
+                        Delete group
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -458,6 +543,31 @@ const GroupsInfoPage = () => {
           </div>
         </Col>
       </Row>
+      <Modal
+        title='Delete group'
+        open={openModalDelete}
+        onCancel={() => setOpenModalDelete(false)}
+        footer={[
+          <Button
+            key='cancel'
+            className='mr-3 rounded-md border px-3 py-2 text-textHeadingColor'
+            onClick={() => setOpenModalDelete(false)}
+          >
+            Cancel
+          </Button>,
+          <Button
+            key='submit'
+            className='rounded-md border bg-primaryColor px-3 py-2 text-white hover:bg-red-500'
+            onClick={handleDeleteGroup}
+          >
+            Submit
+          </Button>,
+        ]}
+      >
+        <p className='text-center text-textPrimaryColor'>
+          Do you want to delete this group? Actions cannot be undone!
+        </p>
+      </Modal>
       {modalPost && !modalAudience && (
         <ModalPost
           setPhotos={setPhotos}

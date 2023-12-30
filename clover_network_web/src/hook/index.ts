@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
   UseQueryOptions,
+  keepPreviousData,
   useInfiniteQuery,
   useMutation,
   useQuery,
@@ -83,16 +84,54 @@ export const handleGetUserProfile = async (id: string) => {
 }
 
 export const handleSearchUserInfo = async (keyword: string) => {
-  const { data } = await UsersApi.searchUser(keyword)
+  const { data } = await UsersApi.searchKey(keyword)
   return data
 }
 
-export const useGetUserInfo = (options?: UseQueryOptions<ResponseUserType>) => {
+export const handleGetListFollowers = async ({
+  userId,
+  page,
+  size,
+}: {
+  userId: string
+  page: string
+  size: string
+}) => {
+  const { data } = await UsersApi.getListFollowers({
+    userId,
+    page,
+    size,
+  })
+  return data
+}
+
+export const handleGetListFollowing = async ({
+  userId,
+  page,
+  size,
+}: {
+  userId: string
+  page: string
+  size: string
+}) => {
+  const { data } = await UsersApi.getListFollowing({
+    userId,
+    page,
+    size,
+  })
+  return data
+}
+
+export const useGetUserInfo = (
+  enabled: boolean,
+  options?: UseQueryOptions<ResponseUserType>,
+) => {
   return useQuery({
     queryKey: ['UserInfo'],
     queryFn: () => handleGetUserInfo(),
     staleTime: 5000,
     retry: 2,
+    enabled: enabled,
     ...options,
   })
 }
@@ -104,8 +143,9 @@ export const useGetUserProfile = (
   return useQuery({
     queryKey: ['UserProfile', { id }],
     queryFn: () => handleGetUserProfile(id),
-    staleTime: 5000,
+    staleTime: 10000,
     retry: 2,
+    placeholderData: keepPreviousData,
     ...options,
   })
 }
@@ -118,10 +158,18 @@ export const usePostUpdateProfile = () => {
   })
 }
 
-export const usePostImage = () => {
+export const usePostUploadAvatar = () => {
   return useMutation({
     mutationFn: (file: FormData) => {
-      return UsersApi.uploadImage(file)
+      return UsersApi.uploadAvatar(file)
+    },
+  })
+}
+
+export const usePostUploadBanner = () => {
+  return useMutation({
+    mutationFn: (file: FormData) => {
+      return GroupsApi.uploadBanner(file)
     },
   })
 }
@@ -135,6 +183,64 @@ export const useGetSearchUserInfo = (
     queryFn: () => handleSearchUserInfo(keyword),
     enabled: Boolean(keyword),
     ...options,
+  })
+}
+
+export const usePostConnectUser = () => {
+  return useMutation({
+    mutationFn: (data: { targetUserId: string; status: number }) => {
+      return UsersApi.connectUser(data)
+    },
+  })
+}
+
+export const useGetListFollowers = ({
+  userId,
+  page,
+  size,
+}: {
+  userId: string
+  page: string
+  size: string
+}) => {
+  return useInfiniteQuery({
+    queryKey: ['ListFollowers', { userId, page, size }],
+    initialPageParam: 1,
+    queryFn: () =>
+      handleGetListFollowers({
+        userId,
+        page,
+        size,
+      }),
+    getNextPageParam: (lastPage, allPages) => {
+      const nextPage = lastPage.data ? allPages.length + 1 : undefined
+      return nextPage
+    },
+  })
+}
+
+export const useGetListFollowing = ({
+  userId,
+  page,
+  size,
+}: {
+  userId: string
+  page: string
+  size: string
+}) => {
+  return useInfiniteQuery({
+    queryKey: ['ListFollowing', { userId, page, size }],
+    initialPageParam: 1,
+    queryFn: () =>
+      handleGetListFollowing({
+        userId,
+        page,
+        size,
+      }),
+    getNextPageParam: (lastPage, allPages) => {
+      const nextPage = lastPage.data ? allPages.length + 1 : undefined
+      return nextPage
+    },
   })
 }
 
@@ -194,6 +300,7 @@ export const useGetListFeed = () => {
       const nextPage = lastPage.data ? allPages.length + 1 : undefined
       return nextPage
     },
+    gcTime: 0,
   })
 }
 
@@ -207,6 +314,7 @@ export const useGetListAllGroupHome = (enabled: boolean) => {
       return nextPage
     },
     enabled: enabled,
+    gcTime: 0,
   })
 }
 
@@ -220,6 +328,8 @@ export const useGetListFeedOfGroup = (groupId: string) => {
       const nextPage = lastPage.data ? allPages.length + 1 : undefined
       return nextPage
     },
+    gcTime: 0,
+    enabled: !!groupId,
   })
 }
 
@@ -258,6 +368,14 @@ export const usePostCreateGroup = () => {
   return useMutation({
     mutationFn: (body: CreateGroupType) => {
       return GroupsApi.createGroup(body)
+    },
+  })
+}
+
+export const useDisableGroup = () => {
+  return useMutation({
+    mutationFn: (groupId: string) => {
+      return GroupsApi.disableGroup(groupId)
     },
   })
 }

@@ -32,24 +32,59 @@ export const UsersApi = {
       headers: authHeader(),
     }),
 
-  uploadImage: (formData: FormData) =>
+  uploadAvatar: (formData: FormData) =>
     http.post<ResponseUserType>(API_URL.updateAvatar, formData, {
       headers: Object.assign(authHeader(), {
         'content-type': 'multipart/form-data',
       }),
     }),
 
-  searchUser: (keyword: string) =>
-    http.get<ResponseSearchUserType>(API_URL.searchUser, {
+  searchKey: (keyword: string) =>
+    http.get<ResponseSearchUserType>(API_URL.searchKey, {
       params: {
         keyword,
       },
       headers: authHeader(),
     }),
 
-  // getListAllGroupOfUser: async () => {
-  //   return await http.get(API_URL.getListAllGroupOfUser, {
-  //     headers: authHeader(),
-  //   });
-  // },
+  getListFollowers: ({
+    userId,
+    page,
+    size,
+  }: {
+    userId: string
+    page: string
+    size: string
+  }) =>
+    http.get<ResponseListFollowType>(API_URL.getListFollowers, {
+      headers: authHeader(),
+      params: {
+        userId,
+        page,
+        size,
+      },
+    }),
+
+  getListFollowing: ({
+    userId,
+    page,
+    size,
+  }: {
+    userId: string
+    page: string
+    size: string
+  }) =>
+    http.get<ResponseListFollowType>(API_URL.getListFollowing, {
+      headers: authHeader(),
+      params: {
+        userId,
+        page,
+        size,
+      },
+    }),
+
+  connectUser: (data: { targetUserId: string; status: number }) =>
+    http.post<ResponseConnectUserType>(API_URL.connectUser, data, {
+      headers: authHeader(),
+    }),
 }
