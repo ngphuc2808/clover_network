@@ -1,5 +1,8 @@
-import { ChangeEvent, useEffect, useState } from 'react'
+import { ChangeEvent, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
+import { useQueryClient } from '@tanstack/react-query'
+import type { MenuProps } from 'antd'
 import Tippy from '@tippyjs/react/headless'
 import { BiBell, BiMessageRounded } from 'react-icons/bi'
 import { IoLogOutOutline } from 'react-icons/io5'
@@ -13,13 +16,13 @@ import {
   useDeleteLogout,
   useGetFetchQuery,
   useGetSearchUserInfo,
+  useJoinGroup,
+  useOutsideClick,
   usePostConnectUser,
 } from '@/hook'
 
 import Button from '@/components/atoms/Button'
 import Search from '@/components/molecules/Search'
-import { toast } from 'react-toastify'
-import { useQueryClient } from '@tanstack/react-query'
 
 const MainHeader = () => {
   const router = useNavigate()
@@ -46,11 +49,15 @@ const MainHeader = () => {
   const [openSearch, setOpenSearch] = useState<boolean>(false)
   const [searchTerm, setSearchTerm] = useState<string>('')
 
+  const [searchMode, setSearchMode] = useState(0)
+
   const debouncedSearchTerm = useDebounce(searchTerm, 500)
 
   const searchUserApi = useGetSearchUserInfo(debouncedSearchTerm.trim())
 
   const connectApi = usePostConnectUser()
+
+  const joinGroupApi = useJoinGroup()
 
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value)
@@ -87,6 +94,7 @@ const MainHeader = () => {
           onSuccess() {
             toast.success(`You have unfollowed ${lastName}`)
             queryClient.invalidateQueries({ queryKey: ['SearchUserInfo'] })
+            queryClient.invalidateQueries({ queryKey: ['UserProfile'] })
           },
         },
       )
@@ -100,12 +108,58 @@ const MainHeader = () => {
           onSuccess() {
             toast.success(`Already follow ${lastName}`)
             queryClient.invalidateQueries({ queryKey: ['SearchUserInfo'] })
+            queryClient.invalidateQueries({ queryKey: ['UserProfile'] })
           },
         },
       )
     }
   }
 
+  const handleJoinGroup = (id: string) => {
+    joinGroupApi.mutate(id, {
+      onSuccess(data) {
+        console.log(data)
+        toast.success('Joined the group successfully')
+        queryClient.invalidateQueries({ queryKey: ['SearchUserInfo'] })
+        queryClient.invalidateQueries({ queryKey: ['GroupInfo'] })
+      },
+    })
+  }
+
+  const wrapperRef = useRef<HTMLDivElement>(null)
+
+  useOutsideClick(wrapperRef, () => {
+    setSearchTerm('')
+  })
+
+  const items: MenuProps['items'] = [
+    {
+      key: '0',
+      label: (
+        <p
+          className={`${
+            searchMode === 0 && 'bg-primaryColor/70 text-white'
+          } rounded-md p-1`}
+          onClick={() => setSearchMode(0)}
+        >
+          Users
+        </p>
+      ),
+    },
+    {
+      key: '1',
+      label: (
+        <p
+          className={`${
+            searchMode === 1 && 'bg-primaryColor/70 text-white'
+          } rounded-md p-1`}
+          onClick={() => setSearchMode(1)}
+        >
+          Groups
+        </p>
+      ),
+    },
+  ]
   return (
     <header className='fixed left-0 right-0 top-0 z-50 flex h-[61px] items-center bg-white px-3 shadow-md sm:grid sm:grid-cols-3 sm:grid-rows-1'>
       <div className='sm:col-span-1'>
@@ -133,7 +187,7 @@ const MainHeader = () => {
           <h1 className='hidden text-4xl text-primaryColor sm:block'>Clover</h1>
         </Button>
       </div>
-      <div className='relative flex-1 sm:col-span-1'>
+      <div ref={wrapperRef} className='relative flex-1 sm:col-span-1'>
         <Search
           isMobile={isMobile}
           openSearch={openSearch}
@@ -143,44 +197,89 @@ const MainHeader = () => {
           handleSearchChange={handleSearchChange}
           searchTerm={searchTerm}
           loading={searchUserApi.isLoading}
+          items={items}
         />
         {searchTerm &&
           (!searchUserApi.isLoading ? (
-            <ul className='absolute mt-3 w-full rounded-md bg-white px-2 shadow-md [&>:last-child]:border-none '>
-              {searchUserApi.data?.data.users !== null ? (
-                searchUserApi.data?.data.users.map((it) => (
+            <ul className='absolute mt-3 max-h-[600px] w-full overflow-y-auto rounded-md bg-white px-2 shadow-md [&>:last-child]:border-none '>
+              {searchMode === 0 ? (
+                searchUserApi.data?.data.users !== null ? (
+                  searchUserApi.data?.data.users.map((it) => (
+                    <li
+                      key={it.userId}
+                      className='block cursor-pointer items-center justify-between gap-3 border-b p-4 hover:bg-gray-100 lg:flex '
+                    >
+                      <Button
+                        to={`/profile/${it.userId}`}
+                        className='lg:justify-none flex items-center justify-center gap-3'
+                      >
+                        <figure className='w-10 overflow-hidden rounded-full'>
+                          <img src={it.avatar || images.avatar} alt='avatar' />
+                        </figure>
+                        {it.firstname} {it.lastname}
+                      </Button>
+                      <div>
+                        <Button
+                          className={`mt-3 flex w-full items-center items-center justify-center gap-2 rounded-lg px-4 py-2  hover:opacity-80 lg:mt-0 lg:w-auto ${
+                            it.connected
+                              ? 'border border-primaryColor text-primaryColor'
+                              : 'bg-primaryColor  text-white'
+                          }`}
+                          onClick={() =>
+                            handleConnect(it.connected, it.userId, it.lastname!)
+                          }
+                        >
+                          <p>{it.connected ? 'Unfollow' : 'Follow'}</p>
+                        </Button>
+                      </div>
+                    </li>
+                  ))
+                ) : (
+                  <li className='cursor-pointer border-b p-4 hover:bg-gray-100'>
+                    User not found!
+                  </li>
+                )
+              ) : searchUserApi.data?.data.groups !== null ? (
+                searchUserApi.data?.data.groups.map((it) => (
                   <li
-                    key={it.userId}
-                    className='flex cursor-pointer items-center justify-between gap-3 border-b p-4 hover:bg-gray-100 '
+                    key={it.group.groupId}
+                    className='block cursor-pointer items-center justify-between gap-3 border-b p-4 hover:bg-gray-100 lg:flex '
                   >
                     <Button
-                      to={`/profile/${it.userId}`}
-                      className='flex items-center gap-3'
+                      to={`/groups/${it.group.groupId}`}
+                      className='lg:justify-none flex items-center justify-center gap-3'
                     >
                       <figure className='w-10 overflow-hidden rounded-full'>
-                        <img src={it.avatar || images.avatar} alt='avatar' />
+                        <img
+                          src={it.group.bannerUrl || images.miniBanner}
+                          alt='avatar'
+                        />
                       </figure>
-                      {it.firstname} {it.lastname}
+                      {it.group.groupName}
                     </Button>
                     <div>
                       <Button
-                        className={`flex items-center gap-2 rounded-lg  px-4 py-2 hover:opacity-80 ${
-                          it.connected
+                        className={`mt-3 flex w-full items-center items-center justify-center gap-2 rounded-lg px-4 py-2  hover:opacity-80 lg:mt-0 lg:w-auto ${
+                          it.currentUserRole !== null &&
+                          it.currentUserRole.status === 'APPROVED'
                             ? 'border border-primaryColor text-primaryColor'
                             : 'bg-primaryColor  text-white'
                         }`}
-                        onClick={() =>
-                          handleConnect(it.connected, it.userId, it.lastname!)
-                        }
+                        onClick={() => handleJoinGroup(it.group.groupId)}
                       >
-                        <p>{it.connected ? 'Unfollow' : 'Follow'}</p>
+                        <p>
+                          {it.currentUserRole !== null &&
+                          it.currentUserRole.status === 'APPROVED'
+                            ? 'Leave'
+                            : 'Join'}
+                        </p>
                       </Button>
                     </div>
                   </li>
                 ))
               ) : (
                 <li className='cursor-pointer border-b p-4 hover:bg-gray-100'>
-                  User not found!
+                  Group not found!
                 </li>
               )}
             </ul>

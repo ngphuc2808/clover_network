@@ -1,14 +1,14 @@
 import { ChangeEvent, Fragment, useEffect, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Col, Modal, Row } from 'antd'
+import { Col, MenuProps, Modal, Row } from 'antd'
 import { useInView } from 'react-intersection-observer'
 import { IoIosSettings } from 'react-icons/io'
 import { MdFeed, MdGroups } from 'react-icons/md'
 import { FaPlus } from 'react-icons/fa6'
 import { IoChevronDown } from 'react-icons/io5'
 import { FaUserPlus } from 'react-icons/fa'
-import { TbDoorExit } from 'react-icons/tb'
+import { TbDoorEnter, TbDoorExit } from 'react-icons/tb'
 import { toast } from 'react-toastify'
 import { FcAddImage } from 'react-icons/fc'
 import { BsEmojiSmile } from 'react-icons/bs'
@@ -46,7 +46,10 @@ const GroupsInfoPage = () => {
 
   const getGroupInfoApi = useGetGroupInfo(id!)
 
-  const getListFeedOfGroupApi = useGetListFeedOfGroup(id!)
+  const getListFeedOfGroupApi = useGetListFeedOfGroup(
+    id!,
+    getGroupInfoApi.data?.data.currentUserRole === null ? false : true,
+  )
 
   const getListMemberApi = useGetListMemberGroup({
     groupId: id!,
@@ -162,6 +165,17 @@ const GroupsInfoPage = () => {
     })
   }
 
+  const items: MenuProps['items'] = [
+    {
+      key: '1',
+      label: <p>Feeds</p>,
+    },
+    {
+      key: '2',
+      label: <p>Groups</p>,
+    },
+  ]
+
   return (
     <Fragment>
       <Row className='mt-[61px]' gutter={15}>
@@ -187,6 +201,7 @@ const GroupsInfoPage = () => {
               handleClearChange={handleClearChange}
               handleSearchChange={handleSearchChange}
               searchTerm={searchTerm}
+              items={items}
             />
             <ul className='mt-3'>
               <li className='cursor-pointer rounded-md p-2 text-lg hover:bg-bgPrimaryColor'>
@@ -326,9 +341,11 @@ const GroupsInfoPage = () => {
                             </div>
                           ),
                       )}
-                      <p className='text-textPrimaryColor'>
-                        {getListMemberApi.data?.data.total} member
-                      </p>
+                      {getGroupInfoApi.data?.data.currentUserRole !== null && (
+                        <p className='text-textPrimaryColor'>
+                          {getListMemberApi.data?.data.total} member
+                        </p>
+                      )}
                     </span>
                     <div className='mt-5 flex -space-x-4 rtl:space-x-reverse'>
                       {getListMemberApi.data?.data.members &&
@@ -352,35 +369,46 @@ const GroupsInfoPage = () => {
                       )}
                     </div>
                   </div>
-                  <div className='flex items-center gap-3'>
-                    <Button className='flex items-center gap-2 rounded-md bg-primaryColor px-3 py-2 text-white hover:opacity-80'>
-                      <span>
-                        <FaUserPlus />
-                      </span>
-                      Invite
-                    </Button>
-                    {getGroupInfoApi.data?.data.group.groupOwnerId !==
-                      getUserInfo?.data.userId && (
-                      <Button className='flex items-center gap-2 rounded-md border border-gray-300 px-3 py-2 text-textHeadingColor hover:opacity-80 '>
+                  {getGroupInfoApi.data?.data.currentUserRole !== null ? (
+                    <div className='flex items-center gap-3'>
+                      <Button className='flex items-center gap-2 rounded-md bg-primaryColor px-3 py-2 text-white hover:opacity-80'>
                         <span>
-                          <TbDoorExit />
+                          <FaUserPlus />
                         </span>
-                        Leave group
+                        Invite
                       </Button>
-                    )}
-                    {getGroupInfoApi.data?.data.group.groupOwnerId ===
-                      getUserInfo?.data.userId && (
-                      <Button
-                        onClick={() => setOpenModalDelete(true)}
-                        className='flex items-center gap-2 rounded-md border border-gray-300 px-3 py-2 text-textHeadingColor hover:border-red-500 hover:text-red-500 hover:opacity-80'
-                      >
+                      {getGroupInfoApi.data?.data.group.groupOwnerId !==
+                        getUserInfo?.data.userId && (
+                        <Button className='flex items-center gap-2 rounded-md border border-gray-300 px-3 py-2 text-textHeadingColor hover:opacity-80 '>
+                          <span>
+                            <TbDoorExit />
+                          </span>
+                          Leave group
+                        </Button>
+                      )}
+                      {getGroupInfoApi.data?.data.group.groupOwnerId ===
+                        getUserInfo?.data.userId && (
+                        <Button
+                          onClick={() => setOpenModalDelete(true)}
+                          className='flex items-center gap-2 rounded-md border border-gray-300 px-3 py-2 text-textHeadingColor hover:border-red-500 hover:text-red-500 hover:opacity-80'
+                        >
+                          <span>
+                            <RiDeleteBin5Line />
+                          </span>
+                          Delete group
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className='flex items-center gap-3'>
+                      <Button className='flex items-center gap-2 rounded-md bg-primaryColor px-3 py-2 text-white hover:opacity-80'>
                         <span>
-                          <RiDeleteBin5Line />
+                          <TbDoorEnter />
                         </span>
-                        Delete group
+                        Join
                       </Button>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className='my-3 flex items-center'>
@@ -432,8 +460,16 @@ const GroupsInfoPage = () => {
                       />
                     </figure>
                     <Button
-                      className='flex-1 cursor-pointer rounded-full bg-bgPrimaryColor p-3 text-left text-sm text-textPrimaryColor hover:bg-primaryColor/10'
-                      onClick={() => setModalPost(true)}
+                      className={`flex-1 ${
+                        getGroupInfoApi.data?.data.currentUserRole === null
+                          ? 'cursor-not-allowed'
+                          : 'cursor-pointer'
+                      } rounded-full bg-bgPrimaryColor p-3 text-left text-sm text-textPrimaryColor hover:bg-primaryColor/10`}
+                      onClick={() =>
+                        getGroupInfoApi.data?.data.currentUserRole === null
+                          ? {}
+                          : setModalPost(true)
+                      }
                     >
                       What's on your mind, {getUserInfo?.data.lastname} ?
                     </Button>
@@ -444,7 +480,11 @@ const GroupsInfoPage = () => {
                   <div className='flex items-center justify-center'>
                     <label
                       htmlFor='uploadFilesHome'
-                      className='flex cursor-pointer items-center gap-2 p-3 hover:bg-primaryColor/10'
+                      className={`flex ${
+                        getGroupInfoApi.data?.data.currentUserRole === null
+                          ? 'cursor-not-allowed'
+                          : 'cursor-pointer'
+                      } items-center gap-2 p-3 hover:bg-primaryColor/10`}
                     >
                       <span className='text-2xl'>
                         <FcAddImage />
@@ -459,9 +499,20 @@ const GroupsInfoPage = () => {
                         accept='image/*'
                         multiple
                         hidden
+                        disabled={
+                          getGroupInfoApi.data?.data.currentUserRole === null
+                            ? true
+                            : false
+                        }
                       />
                     </label>
-                    <div className='flex cursor-pointer items-center gap-2 p-3 hover:bg-primaryColor/10'>
+                    <div
+                      className={`flex ${
+                        getGroupInfoApi.data?.data.currentUserRole === null
+                          ? 'cursor-not-allowed'
+                          : 'cursor-pointer'
+                      } items-center gap-2 p-3 hover:bg-primaryColor/10`}
+                    >
                       <span className='text-2xl text-orange-400'>
                         <BsEmojiSmile />
                       </span>
@@ -471,25 +522,26 @@ const GroupsInfoPage = () => {
                     </div>
                   </div>
                 </div>
-                {getListFeedOfGroupApi.data?.pages.map((data, index) =>
-                  data.data ? (
-                    data.data.map((it, i) =>
-                      data.data.length === i + 1 ? (
-                        <FeedCard
-                          key={it.feedItem.postId}
-                          innerRef={ref}
-                          data={it}
-                        />
-                      ) : (
-                        <FeedCard key={it.feedItem.postId} data={it} />
-                      ),
-                    )
-                  ) : (
-                    <h1 key={index} className='mt-3 text-center'>
-                      End of article
-                    </h1>
-                  ),
-                )}
+                {getGroupInfoApi.data?.data.currentUserRole !== null &&
+                  getListFeedOfGroupApi.data?.pages.map((data, index) =>
+                    data.data ? (
+                      data.data.map((it, i) =>
+                        data.data.length === i + 1 ? (
+                          <FeedCard
+                            key={it.feedItem.postId}
+                            innerRef={ref}
+                            data={it}
+                          />
+                        ) : (
+                          <FeedCard key={it.feedItem.postId} data={it} />
+                        ),
+                      )
+                    ) : (
+                      <h1 key={index} className='mt-3 text-center'>
+                        End of article
+                      </h1>
+                    ),
+                  )}
               </Col>
               <Col
                 xl={{

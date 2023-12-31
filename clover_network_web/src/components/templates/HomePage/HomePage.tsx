@@ -24,6 +24,7 @@ import Button from '@/components/atoms/Button'
 import LoadingPage from '@/components/pages/LoadingPage'
 import FeedCard from '@/components/molecules/FeedCard'
 import FeedCardGroup from '@/components/molecules/FeedCardGroup'
+import FeedCardUser from '@/components/molecules/FeedCardUser'
 
 const imageMimeType = /image\/(png|jpg|jpeg)/i
 
@@ -239,11 +240,20 @@ const HomePage = () => {
             data.data ? (
               data.data.map((it, i) =>
                 data.data.length === i + 1 ? (
+                  it.feedItem.toUserId === it.feedItem.authorId &&
                   it.feedItem.postToUserWall ? (
                     <FeedCard
                       key={it.feedItem.postId}
                       innerRef={ref}
                       data={it}
+                    />
+                  ) : it.feedItem.toUserId !== it.feedItem.authorId &&
+                    it.feedItem.postToUserWall ? (
+                    <FeedCardUser
+                      key={it.feedItem.postId}
+                      innerRef={ref}
+                      data={it}
+                      userLastName={it.groupItem.groupName}
                     />
                   ) : (
                     <FeedCardGroup
@@ -252,8 +262,16 @@ const HomePage = () => {
                       data={it}
                     />
                   )
-                ) : it.feedItem.postToUserWall ? (
+                ) : it.feedItem.toUserId === it.feedItem.authorId &&
+                  it.feedItem.postToUserWall ? (
                   <FeedCard key={it.feedItem.postId} data={it} />
+                ) : it.feedItem.toUserId !== it.feedItem.authorId &&
+                  it.feedItem.postToUserWall ? (
+                  <FeedCardUser
+                    key={it.feedItem.postId}
+                    data={it}
+                    userLastName={it.groupItem.groupName}
+                  />
                 ) : (
                   <FeedCardGroup key={it.feedItem.postId} data={it} />
                 ),

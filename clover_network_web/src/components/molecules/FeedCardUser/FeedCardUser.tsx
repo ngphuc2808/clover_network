@@ -1,13 +1,13 @@
 import { Fragment, useState } from 'react'
-import { Modal } from 'antd'
 import { useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
+import { toast } from 'react-toastify'
+import { Modal } from 'antd'
 import { GoCommentDiscussion } from 'react-icons/go'
 import { PiShareFat } from 'react-icons/pi'
 import { IoMdSend } from 'react-icons/io'
-import { toast } from 'react-toastify'
+import { MdArrowRight } from 'react-icons/md'
 
-import { listAudienceGroup } from '@/utils/data'
 import {
   useGetFeedDetail,
   useGetFeedLink,
@@ -15,17 +15,19 @@ import {
   usePostComment,
 } from '@/hook'
 import images from '@/assets/images'
-import FeedCardGroupDetail from './FeedCardGroupDetail'
-import Button from '@/components/atoms/Button'
+import { listAudienceGroup } from '@/utils/data'
 import { CloverOutlineIcon } from '@/components/atoms/Icons'
+import Button from '@/components/atoms/Button'
 import TimeAgo from '../TimeAgo'
+import FeedCardUserDetail from './FeedCardUserDetail'
 
 interface iProps {
   data: FeedGroupData
+  userLastName: string
   innerRef?: React.Ref<HTMLParagraphElement>
 }
 
-const FeedCardGroup = ({ data, innerRef }: iProps) => {
+const FeedCardUser = ({ data, userLastName, innerRef }: iProps) => {
   const queryClient = useQueryClient()
   const getUserInfo = useGetFetchQuery<ResponseUserType>(['UserInfo'])
 
@@ -86,40 +88,33 @@ const FeedCardGroup = ({ data, innerRef }: iProps) => {
         ref={innerRef}
       >
         <div className='flex items-center gap-3'>
-          <div className='relative'>
-            <Button to={`/groups/${data.groupItem.groupId}`}>
-              <figure className='h-[45px] w-[45px] overflow-hidden rounded-md hover:cursor-pointer'>
-                <img
-                  src={data.groupItem.bannerUrl || images.miniBanner}
-                  alt='avatar'
-                  className='h-full w-full object-cover'
-                />
-              </figure>
-            </Button>
-            <Button to={`/profile/${data.authorProfile.userId}`}>
-              <figure className='border-1 absolute -bottom-1 -right-1 h-[26px] w-[26px] overflow-hidden rounded-full border border-white hover:cursor-pointer'>
-                <img
-                  src={data.authorProfile.avatarImgUrl || images.avatar}
-                  alt='avatar'
-                  className='h-full w-full object-cover'
-                />
-              </figure>
-            </Button>
-          </div>
+          <Button to={`/profile/${data.authorProfile.userId}`}>
+            <figure className='h-[40px] w-[40px] overflow-hidden rounded-full hover:cursor-pointer'>
+              <img
+                src={data.authorProfile.avatarImgUrl || images.avatar}
+                alt='avatar'
+              />
+            </figure>
+          </Button>
           <div>
-            <Button
-              to={`/groups/${data.groupItem.groupId}`}
-              className='text-textHeadingColor'
-            >
-              {data.groupItem.groupName}
-            </Button>
-            <h1 className='flex items-center gap-2 text-sm text-textPrimaryColor'>
+            <div className='flex items-center gap-1'>
               <Button
                 to={`/profile/${data.authorProfile.userId}`}
-                className='text-sm text-textPrimaryColor'
+                className='text-textHeadingColor'
               >
                 {data.authorProfile.displayName}
               </Button>
+              <span className='text-2xl'>
+                <MdArrowRight />
+              </span>
+              <Button
+                to={`/profile/${data.feedItem.toUserId}`}
+                className='text-textHeadingColor'
+              >
+                {userLastName}
+              </Button>
+            </div>
+            <h1 className='flex items-center gap-2 text-sm text-textPrimaryColor'>
               <TimeAgo timestamp={data.feedItem.createdTime} />
               {listAudienceGroup.map(
                 (it) =>
@@ -285,10 +280,10 @@ const FeedCardGroup = ({ data, innerRef }: iProps) => {
           </div>
         }
       >
-        <FeedCardGroupDetail data={getFeedDetailApi.data?.data.data!} />
+        <FeedCardUserDetail data={getFeedDetailApi.data?.data.data!} />
       </Modal>
     </Fragment>
   )
 }
 
-export default FeedCardGroup
+export default FeedCardUser

@@ -1,7 +1,7 @@
 import { ChangeEvent, useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useInView } from 'react-intersection-observer'
-import { Col, Row } from 'antd'
+import { Col, MenuProps, Row } from 'antd'
 import { IoIosSettings, IoIosMore } from 'react-icons/io'
 import { MdFeed, MdGroups } from 'react-icons/md'
 import { FaPlus } from 'react-icons/fa6'
@@ -46,6 +46,17 @@ const GroupsPage = () => {
     setSearchTerm('')
   }
 
+  const items: MenuProps['items'] = [
+    {
+      key: '1',
+      label: <p>Feeds</p>,
+    },
+    {
+      key: '2',
+      label: <p>Groups</p>,
+    },
+  ]
+
   return (
     <Row className='mt-[61px]' justify='space-between'>
       <Col
@@ -69,6 +80,7 @@ const GroupsPage = () => {
           handleClearChange={handleClearChange}
           handleSearchChange={handleSearchChange}
           searchTerm={searchTerm}
+          items={items}
         />
         <ul className='mt-3'>
           <li

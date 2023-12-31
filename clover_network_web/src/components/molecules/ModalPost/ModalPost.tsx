@@ -8,7 +8,13 @@ import { FcAddImage } from 'react-icons/fc'
 
 import { listAudience } from '@/utils/data'
 import images from '@/assets/images'
-import { useAutosizeTextArea, useGetFetchQuery, usePostFeed } from '@/hook'
+import {
+  useAutosizeTextArea,
+  useGetFetchQuery,
+  useGetGroupInfo,
+  useGetUserProfile,
+  usePostFeed,
+} from '@/hook'
 
 import CustomEmoji from '@/components/atoms/CustomEmoji'
 import Button from '@/components/atoms/Button'
@@ -40,9 +46,13 @@ const ModalPost = ({
 
   const getUserInfo = useGetFetchQuery<ResponseUserType>(['UserInfo'])
 
+  const { id } = useParams()
+
   const postFeedApi = usePostFeed()
 
-  const { id } = useParams()
+  const getGroupInfoApi = useGetGroupInfo(id!)
+
+  const getUserProfileApi = useGetUserProfile(id!)
 
   const { register, watch, setValue, handleSubmit } = useForm<FeedsType>({
     defaultValues: {
@@ -50,25 +60,17 @@ const ModalPost = ({
       content: '',
       htmlContent: '',
       privacyGroupId:
-        id && id !== getUserInfo?.data.userId
+        id && typeof getGroupInfoApi.data?.data === 'object'
           ? id
-          : getUserInfo?.data.userWallId!,
-      userWallId:
-        id && id !== getUserInfo?.data.userId
+          : getUserProfileApi.data?.data.userInfo.userWallId,
+      toUserId:
+        id &&
+        id !== getUserInfo?.data.userId &&
+        typeof getGroupInfoApi.data?.data !== 'object'
           ? id
-          : getUserInfo?.data.userWallId!,
+          : '',
       privacyType: audienceValue,
-      toUserId: id && id !== getUserInfo?.data.userId ? id : '',
-      authorRoleGroup: null,
-      dynamicLink: null,
-      createdTime: null,
-      updatedTime: null,
-      lastActive: null,
-      totalReaction: null,
-      currentUserReact: null,
       postToUserWall: id && id !== getUserInfo?.data.userId ? true : false,
-      delFlag: false,
-      isPin: false,
     },
   })
 
@@ -164,8 +166,20 @@ const ModalPost = ({
                     {getUserInfo?.data.lastname}
                   </h1>
                   <div
-                    className='mt-1 flex cursor-pointer items-center gap-3 rounded-md bg-bgPrimaryColor px-2 py-1'
-                    onClick={() => handleOpenModalAudience()}
+                    className={`mt-1 flex ${
+                      id &&
+                      id !== getUserInfo?.data.userId &&
+                      typeof getGroupInfoApi.data?.data !== 'object'
+                        ? 'cursor-not-allowed'
+                        : 'cursor-pointer'
+                    } items-center gap-3 rounded-md bg-bgPrimaryColor px-2 py-1`}
+                    onClick={() =>
+                      id &&
+                      id !== getUserInfo?.data.userId &&
+                      typeof getGroupInfoApi.data?.data !== 'object'
+                        ? {}
+                        : handleOpenModalAudience()
+                    }
                   >
                     {listAudience.map(
                       (it) =>

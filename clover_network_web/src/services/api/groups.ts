@@ -46,6 +46,14 @@ export const GroupsApi = {
       },
     }),
 
+  joinGroup: (groupId: string) =>
+    http.post<ResponseJoinGroupType>(API_URL.joinGroup, null, {
+      params: {
+        groupId,
+      },
+      headers: authHeader(),
+    }),
+
   disableGroup: (groupId: string) =>
     http.post<ResponseDeleteGroupType>(API_URL.disableGroup, null, {
       params: {

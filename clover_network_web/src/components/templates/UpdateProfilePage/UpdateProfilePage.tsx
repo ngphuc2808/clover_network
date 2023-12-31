@@ -31,28 +31,6 @@ const UpdateProfilePage = () => {
     getUserInfo?.data.avatar || '',
   )
   const [file, setFile] = useState<File>()
-  const [countDown, setCountDown] = useState<boolean>(false)
-
-  const initialTime = 300
-  const [remainingTime, setRemainingTime] = useState(initialTime)
-
-  useEffect(() => {
-    let timer: NodeJS.Timeout
-    if (countDown) {
-      timer = setInterval(() => {
-        setRemainingTime((prevTime) => {
-          if (prevTime === 0) {
-            clearInterval(timer)
-            setCountDown(false)
-            return initialTime
-          }
-          return prevTime - 1
-        })
-      }, 1000)
-    }
-
-    return () => clearInterval(timer)
-  }, [countDown, initialTime])
 
   useEffect(() => {
     return () => {
@@ -95,9 +73,6 @@ const UpdateProfilePage = () => {
     }
     e.currentTarget.value = ''
   }
-
-  const displayMinutes = Math.floor(remainingTime / 60)
-  const displaySeconds = remainingTime % 60
 
   const formatDate = () => {
     let dateString = getUserInfo?.data.dayOfBirth
@@ -442,34 +417,7 @@ const UpdateProfilePage = () => {
                     </p>
                   </div>
                 </div>
-                <div className='mb-5 flex items-center gap-5'>
-                  <div className='flex-1'>
-                    <input
-                      type='text'
-                      id='oldPassword'
-                      className='w-full rounded-lg border border-thirdColor bg-white px-3 py-4 outline-none'
-                      placeholder='OTP'
-                    />
-                  </div>
-                  {!countDown ? (
-                    <Button
-                      className='w-auto rounded-lg border border-primaryColor px-3 py-4 text-primaryColor hover:hover:bg-primaryColor/10'
-                      onClick={() => setCountDown(true)}
-                    >
-                      Receive Otp
-                    </Button>
-                  ) : (
-                    <div className='float-right w-[50px] text-textPrimaryColor'>
-                      {displayMinutes < 10
-                        ? `0${displayMinutes}`
-                        : displayMinutes}
-                      :
-                      {displaySeconds < 10
-                        ? `0${displaySeconds}`
-                        : displaySeconds}
-                    </div>
-                  )}
-                </div>
+
                 <Button className='flex min-h-[58px] w-full items-center justify-center rounded-lg bg-primaryColor px-3 py-4 font-semibold text-white shadow-formButton hover:opacity-80'>
                   {/* {registerApi.isLoading ? (
                     <BiLoaderAlt className='animate-spin text-3xl' />

@@ -29,6 +29,7 @@ import FeedCard from '@/components/molecules/FeedCard'
 import LoadingPage from '@/components/pages/LoadingPage'
 import { Tooltip } from 'antd'
 import { useQueryClient } from '@tanstack/react-query'
+import FeedCardUser from '@/components/molecules/FeedCardUser'
 
 const imageMimeType = /image\/(png|jpg|jpeg)/i
 
@@ -226,7 +227,7 @@ const ProfilePage = () => {
           </div>
           <div className='grid grid-cols-9 gap-2 px-12'>
             <div className='col-span-full h-0 lg:col-span-2 lg:h-auto'>
-              <figure className='relative left-1/2 top-[-85px] h-[170px] w-[170px] -translate-x-1/2 overflow-hidden rounded-full border-[6px] border-white lg:top-[-30px] lg:h-60 lg:w-60'>
+              <figure className='relative left-1/2 top-[-85px] h-[170px] w-[170px] -translate-x-1/2 overflow-hidden rounded-full border-[6px] border-white lg:top-[-30px] lg:h-[210px] lg:w-[210px]'>
                 <img
                   src={
                     getUserProfileApi?.data?.data.userInfo.avatar ||
@@ -255,7 +256,10 @@ const ProfilePage = () => {
                       data.data.userProfiles.map(
                         (it, i) =>
                           i < 6 && (
-                            <Button to={`/profile/${it.userId}`}>
+                            <Button
+                              to={`/profile/${it.userId}`}
+                              key={it.userId}
+                            >
                               <Tooltip title={it.displayName}>
                                 <figure key={it.userId} className='h-10 w-10'>
                                   <img
@@ -321,7 +325,7 @@ const ProfilePage = () => {
           <div className='my-3 flex items-center px-12'>
             <span className='h-px w-full bg-secondColor opacity-30'></span>
           </div>
-          <ul className='flex items-center justify-center gap-5 py-3 text-lg'>
+          <ul className='flex flex-wrap items-center justify-center gap-5 py-3 text-lg'>
             <li className='cursor-pointer border-b border-transparent p-3 text-textPrimaryColor hover:border-primaryColor'>
               <h1>Posts</h1>
             </li>
@@ -447,10 +451,31 @@ const ProfilePage = () => {
                 data.data ? (
                   data.data.map((it, i) =>
                     data.data.length === i + 1 ? (
-                      <FeedCard
+                      it.feedItem.toUserId !== it.feedItem.authorId &&
+                      it.feedItem.postToUserWall ? (
+                        <FeedCardUser
+                          key={it.feedItem.postId}
+                          innerRef={ref}
+                          data={it}
+                          userLastName={`${getUserProfileApi.data?.data.userInfo
+                            .firstname!} ${getUserProfileApi.data?.data.userInfo
+                            .lastname!}`}
+                        />
+                      ) : (
+                        <FeedCard
+                          key={it.feedItem.postId}
+                          innerRef={ref}
+                          data={it}
+                        />
+                      )
+                    ) : it.feedItem.toUserId !== it.feedItem.authorId &&
+                      it.feedItem.postToUserWall ? (
+                      <FeedCardUser
                         key={it.feedItem.postId}
-                        innerRef={ref}
                         data={it}
+                        userLastName={`${getUserProfileApi.data?.data.userInfo
+                          .firstname!} ${getUserProfileApi.data?.data.userInfo
+                          .lastname!}`}
                       />
                     ) : (
                       <FeedCard key={it.feedItem.postId} data={it} />

@@ -16,6 +16,16 @@ export const UsersApi = {
   register: (user: RegisterType) =>
     http.post<ResponseUserType>(API_URL.register, user),
 
+  forgotPassword: (email: string) =>
+    http.get<ResponseForgotPasswordType>(API_URL.forgotPassword, {
+      params: {
+        email,
+      },
+    }),
+
+  resetPassword: (data: ResetPasswordType) =>
+    http.post<ResponseForgotPasswordType>(API_URL.resetPassword, data),
+
   getUserInfo: () =>
     http.get<ResponseUserType>(API_URL.getUserInfo, {
       headers: authHeader(),

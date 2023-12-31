@@ -7,6 +7,8 @@ export const API_URL = {
   login: `${API_BASE}/authenticate/login-by-email`,
   register: `${API_BASE}/authenticate/signup-by-email`,
   logout: `${API_BASE}/authenticate/logout`,
+  forgotPassword: `${API_BASE}/authenticate/forgot-password`,
+  resetPassword: `${API_BASE}/authenticate/reset-password`,
 
   //user
   getUserInfo: `${API_BASE}/user/get-user-info`,
@@ -25,6 +27,9 @@ export const API_URL = {
   postComment: `${API_BASE}/feed/comment`,
   listFeedOfGroup: `${API_BASE}/feed/list-group-home`,
   listAllGroupHome: `${API_BASE}/feed/list-all-group-home`,
+  getFeedDetail: `${API_BASE}/feed/detail`,
+  getFeedLink: `${API_BASE}/feed/get-link-detail-feed`,
+  getListComment: `${API_BASE}/feed/get-list-comment`,
 
   //group
   createGroup: `${API_BASE}/group/create-new-group`,
@@ -33,6 +38,7 @@ export const API_URL = {
   getListMemberGroup: `${API_BASE}/group/list-member-group`,
   updateBanner: `${API_BASE}/group/change-group-banner`,
   disableGroup: `${API_BASE}/group/disable-group`,
+  joinGroup: `${API_BASE}/group/join`,
 
   //connect
   connectUser: `${API_BASE}/connection/connect-user`,

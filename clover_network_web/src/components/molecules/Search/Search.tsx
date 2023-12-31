@@ -2,6 +2,7 @@ import { useRef, ChangeEvent } from 'react'
 
 import { AiOutlineClose, AiOutlineLoading3Quarters } from 'react-icons/ai'
 import { HiOutlineMagnifyingGlass } from 'react-icons/hi2'
+import { Dropdown, type MenuProps } from 'antd'
 
 interface iProps {
   title: string
@@ -12,6 +13,7 @@ interface iProps {
   handleSearchChange: (e: ChangeEvent<HTMLInputElement>) => void
   handleClearChange: () => void
   loading?: boolean
+  items?: MenuProps['items']
 }
 
 const Search = ({
@@ -23,19 +25,24 @@ const Search = ({
   handleSearchChange,
   handleClearChange,
   loading,
+  items,
 }: iProps) => {
   const inputRef = useRef() as React.MutableRefObject<HTMLInputElement>
+
   return (
     <div
       onClick={() => isMobile && setOpenSearch && setOpenSearch(true)}
       className={`lg:basis-inherit flex h-[45px] ${
         isMobile ? 'mr-3 w-[45px]' : 'w-auto'
       } items-center ${openSearch ? 'w-auto' : ''}
-      justify-between overflow-hidden rounded-full bg-bgPrimaryColor md:w-auto lg:mt-0 lg:w-auto`}
+      relative justify-between overflow-hidden rounded-full bg-bgPrimaryColor md:w-auto lg:mt-0 lg:w-auto`}
     >
-      <span className='cursor-pointer p-3 text-2xl text-primaryColor hover:text-secondColor sm:px-3 sm:py-[5px]'>
-        <HiOutlineMagnifyingGlass />
-      </span>
+      <Dropdown menu={{ items }} placement='bottom'>
+        <span className='cursor-pointer p-3 text-2xl text-primaryColor hover:text-secondColor sm:px-3 sm:py-[5px]'>
+          <HiOutlineMagnifyingGlass />
+        </span>
+      </Dropdown>
+
       <input
         className='h-full flex-1 bg-transparent text-textPrimaryColor outline-none'
         ref={inputRef}
@@ -44,7 +51,11 @@ const Search = ({
         value={searchTerm}
         onChange={handleSearchChange}
       />
-      <div className='mr-3 flex items-center'>
+      <div
+        className={`absolute right-0 mr-3 flex items-center ${
+          !openSearch && isMobile && 'hidden'
+        }`}
+      >
         <span className={`animate-spin ${loading ? 'block' : 'hidden'}`}>
           <AiOutlineLoading3Quarters />
         </span>

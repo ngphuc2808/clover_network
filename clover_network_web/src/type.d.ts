@@ -26,6 +26,20 @@ type UpdateInfoType = Pick<
 
 type ForgotPasswordType = Pick<iUserinfo, 'email'>
 
+type ResetPasswordType = {
+  email: string
+  newPassword: string
+  repeatNewPassword: string
+  otp: string
+}
+
+type ResponseForgotPasswordType = {
+  code: number
+  data: string
+  messageEN: string
+  messageVN: string
+}
+
 type ResponseLoginType = {
   data: {
     expireTime: string
@@ -99,8 +113,50 @@ type ResponseSearchUserType = {
   code: number
   data: {
     users: Omit<iUserinfo, 'password'>[]
-    groups: null
-    feeds: null
+    groups: {
+      group: {
+        groupId: string
+        groupName: string
+        avatarUrl: string | null
+        bannerUrl: string | null
+        groupDesc: string
+        groupOwnerId: string
+        groupType: number
+        groupPrivacy: string
+        totalMember: number
+        createdTime: string
+        updatedTime: string
+        lastActive: string
+        delFlag: boolean
+      }
+      currentUserRole: {
+        roleId: string
+        status: string
+        enablePost: boolean
+        enableComment: boolean
+        enableShare: boolean
+      } | null
+    }[]
+    feeds: {
+      postId: string
+      authorId: string
+      toUserId: string | null
+      authorRoleGroup: string | null
+      content: string
+      htmlContent: string
+      dynamicLink: string
+      privacyGroupId: string
+      privacyType: string
+      createdTime: string
+      updatedTime: string
+      lastActive: string
+      totalReaction: number | null
+      feedImages: string[] | null
+      currentUserReact: null
+      postToUserWall: string
+      delFlag: string
+      pin: string
+    }
   }
   messageEN: string
   messageVN: string
@@ -311,9 +367,48 @@ type FeedGroupData = {
   currentUserReact: null
 }
 
+type ResponseListCommentType = {
+  code: number
+  data: {
+    commentId: string
+    postId: string
+    authorProfile: {
+      userId: string
+      displayName: string
+      avatarImgUrl: string
+      phoneNo: string
+      email: string
+      userWallId: string
+      connected: boolean
+    }
+    content: string
+    createdTime: string
+    updatedTime: string
+    parentCommentId: null
+    level: number
+    author: boolean
+  }[]
+  messageEN: string
+  messageVN: string
+}
+
 type ResponseFeedCardType = {
   code: number
   data: FeedGroupData[]
+  messageEN: string
+  messageVN: string
+}
+
+type ResponseFeedDetail = {
+  code: number
+  data: FeedGroupData
+  messageEN: string
+  messageVN: string
+}
+
+type ResponseGetLinkFeed = {
+  code: number
+  data: string
   messageEN: string
   messageVN: string
 }
@@ -369,6 +464,13 @@ type ResponseDeleteGroupType = {
       enableShare: boolean
     }
   }
+  messageEN: string
+  messageVN: string
+}
+
+type ResponseJoinGroupType = {
+  code: number
+  data: string
   messageEN: string
   messageVN: string
 }

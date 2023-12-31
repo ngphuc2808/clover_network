@@ -185,7 +185,9 @@ const RegisterPage = () => {
                   },
                 })}
                 autoComplete='on'
-                className='h-full flex-1 bg-transparent py-4 outline-none'
+                className={`h-full flex-1 bg-transparent py-4 outline-none ${
+                  errors.password && 'placeholder-lightWarnColor'
+                }`}
                 placeholder='Password'
               />
               <span className='cursor-pointer'>
@@ -299,7 +301,7 @@ const RegisterPage = () => {
             </div>
           </div>
           <Button
-            className='flex min-h-[58px] w-full items-center justify-center rounded-lg bg-primaryColor px-3 py-4 font-semibold text-white shadow-formButton hover:opacity-80'
+            className='flex max-h-[56px] w-full items-center justify-center rounded-lg bg-primaryColor px-3 py-4 font-semibold text-white shadow-formButton hover:opacity-80'
             onClick={handleSubmit(handleRegister)}
           >
             {registerApi.isPending ? (

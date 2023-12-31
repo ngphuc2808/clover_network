@@ -7,6 +7,7 @@ import getCroppedImg from '@/functions'
 import { usePostUploadAvatar } from '@/hook'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
+import { BiLoaderAlt } from 'react-icons/bi'
 
 interface Props {
   image: string | ArrayBuffer | null
@@ -122,16 +123,20 @@ const CropImage = ({ image, setModalCrop, setPreviewImg }: Props) => {
             </div>
             <div className='flex items-center justify-center'>
               <Button
-                className='mx-2 mt-6 w-[125px] rounded bg-primaryColor px-0 py-1.5 tracking-[1px] text-white hover:bg-secondColor'
+                className='mx-2 mt-6 flex max-h-[36px] w-[125px] items-center justify-center rounded bg-primaryColor px-0 py-1.5 tracking-[1px] text-white hover:bg-secondColor'
                 onClick={onCrop}
               >
-                Lưu
+                {uploadAvatarApi.isPending ? (
+                  <BiLoaderAlt className='animate-spin text-2xl' />
+                ) : (
+                  'Save'
+                )}
               </Button>
               <Button
-                className='mx-2 mt-6 w-[125px] rounded bg-primaryColor px-0 py-1.5 tracking-[1px] text-white hover:bg-secondColor'
+                className='mx-2 mt-6 w-[125px] rounded border bg-white px-0 py-1.5 tracking-[1px] text-textPrimaryColor'
                 onClick={() => setModalCrop(false)}
               >
-                Hủy
+                Cancel
               </Button>
             </div>
           </div>

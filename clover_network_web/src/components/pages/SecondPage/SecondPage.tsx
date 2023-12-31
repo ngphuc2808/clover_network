@@ -5,7 +5,7 @@ import SecondHeader from '@/components/organisms/SecondHeader'
 
 const SecondLayout = () => {
   return (
-    <section className='flex h-screen flex-col justify-between'>
+    <section className='flex flex-col justify-between'>
       <SecondHeader />
       <Outlet />
       <Footer />

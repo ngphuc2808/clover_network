@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { RefObject, useEffect, useState } from 'react'
 import {
   UseQueryOptions,
   keepPreviousData,
@@ -12,6 +12,31 @@ import type { QueryKey } from '@tanstack/react-query'
 import { UsersApi } from '@/services/api/users'
 import { FeedsApi } from '@/services/api/feeds'
 import { GroupsApi } from '@/services/api/groups'
+
+export const useOutsideClick = (
+  ref: RefObject<HTMLElement>,
+  callback: () => void,
+) => {
+  const handleClick = (e: MouseEvent | TouchEvent) => {
+    if (ref.current && !ref.current.contains(e.target as Node)) {
+      callback()
+    }
+  }
+
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent | TouchEvent) => {
+      handleClick(e)
+    }
+
+    document.addEventListener('mousedown', handleOutsideClick)
+    document.addEventListener('touchstart', handleOutsideClick)
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick)
+      document.removeEventListener('touchstart', handleOutsideClick)
+    }
+  }, [ref, callback])
+}
 
 export const useAutosizeTextArea = (
   textAreaRef: HTMLTextAreaElement | null,
@@ -133,6 +158,22 @@ export const useGetUserInfo = (
     retry: 2,
     enabled: enabled,
     ...options,
+  })
+}
+
+export const useGetOtp = () => {
+  return useMutation({
+    mutationFn: (body: string) => {
+      return UsersApi.forgotPassword(body)
+    },
+  })
+}
+
+export const useResetPassword = () => {
+  return useMutation({
+    mutationFn: (body: ResetPasswordType) => {
+      return UsersApi.resetPassword(body)
+    },
   })
 }
 
@@ -275,11 +316,53 @@ export const handleGetListFeedOfGroup = async (
   return data
 }
 
+export const handleGetListComment = async (
+  {
+    pageParam,
+  }: {
+    pageParam: number
+  },
+  feedId: string,
+) => {
+  const { data } = await FeedsApi.getListComment(pageParam - 1, feedId)
+  return data
+}
+
 export const usePostFeed = () => {
   return useMutation({
     mutationFn: (data: FormData) => {
       return FeedsApi.postFeed(data)
     },
+  })
+}
+
+export const useGetFeedDetail = () => {
+  return useMutation({
+    mutationFn: (id: string) => {
+      return FeedsApi.getFeedDetail(id)
+    },
+  })
+}
+
+export const useGetFeedLink = () => {
+  return useMutation({
+    mutationFn: (feedId: string) => {
+      return FeedsApi.getFeedLink(feedId)
+    },
+  })
+}
+
+export const useGetListComment = (feedId: string) => {
+  return useInfiniteQuery({
+    queryKey: ['ListComment', { feedId }],
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) => handleGetListComment({ pageParam }, feedId),
+    getNextPageParam: (lastPage, allPages) => {
+      const nextPage = lastPage.data ? allPages.length + 1 : undefined
+      return nextPage
+    },
+    gcTime: 0,
+    enabled: !!feedId,
   })
 }
 
@@ -318,7 +401,7 @@ export const useGetListAllGroupHome = (enabled: boolean) => {
   })
 }
 
-export const useGetListFeedOfGroup = (groupId: string) => {
+export const useGetListFeedOfGroup = (groupId: string, enabled?: boolean) => {
   return useInfiniteQuery({
     queryKey: ['ListFeedOfGroup', { groupId }],
     initialPageParam: 1,
@@ -329,7 +412,7 @@ export const useGetListFeedOfGroup = (groupId: string) => {
       return nextPage
     },
     gcTime: 0,
-    enabled: !!groupId,
+    enabled: !!groupId && enabled,
   })
 }
 
@@ -368,6 +451,14 @@ export const usePostCreateGroup = () => {
   return useMutation({
     mutationFn: (body: CreateGroupType) => {
       return GroupsApi.createGroup(body)
+    },
+  })
+}
+
+export const useJoinGroup = () => {
+  return useMutation({
+    mutationFn: (groupId: string) => {
+      return GroupsApi.joinGroup(groupId)
     },
   })
 }
