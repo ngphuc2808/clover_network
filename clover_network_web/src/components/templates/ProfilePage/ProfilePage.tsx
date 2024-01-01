@@ -425,7 +425,11 @@ const ProfilePage = () => {
                     <span className='text-xl '>
                       <FaUser />
                     </span>
-                    <p>{getUserProfileApi?.data?.data.userInfo.gender}</p>
+                    <p className='normal-case'>
+                      {getUserProfileApi?.data?.data.userInfo.gender === 'MALE'
+                        ? 'Male'
+                        : 'Female'}
+                    </p>
                   </li>
                   <li className='mt-2 flex items-center gap-3 py-3 hover:opacity-80'>
                     <span className='text-xl '>
@@ -590,6 +594,7 @@ const ProfilePage = () => {
                   getListFollowersApi.data?.pages.length - 1
                 ].data.userProfiles.length! > 0
               ) {
+                console.log(getListFollowersApi.data)
                 getListFollowersApi.fetchNextPage()
                 return
               }
@@ -599,6 +604,8 @@ const ProfilePage = () => {
                   getListFollowingApi.data?.pages.length - 1
                 ].data.userProfiles.length! > 0
               ) {
+                console.log(getListFollowingApi.data?.pages)
+
                 getListFollowingApi.fetchNextPage()
                 return
               }

@@ -319,7 +319,6 @@ const FeedCardGroup = ({ data, innerRef }: iProps) => {
       <Modal
         open={openModalComment}
         onCancel={() => setOpenModalComment(false)}
-        width='50%'
         footer={
           <div className='flex items-center gap-3'>
             <figure className='h-[40px] w-[40px] overflow-hidden rounded-full hover:cursor-pointer'>

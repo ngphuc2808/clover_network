@@ -9,6 +9,7 @@ export const API_URL = {
   logout: `${API_BASE}/authenticate/logout`,
   forgotPassword: `${API_BASE}/authenticate/forgot-password`,
   resetPassword: `${API_BASE}/authenticate/reset-password`,
+  changePassword: `${API_BASE}/authenticate/change-password`,
 
   //user
   getUserInfo: `${API_BASE}/user/get-user-info`,

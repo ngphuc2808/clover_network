@@ -139,7 +139,7 @@ const GroupsPage = () => {
         <ul className='mt-3 max-h-[800px] overflow-y-auto'>
           {getAllGroupApi.data?.data.map((it) => (
             <li
-              className='mt-3  cursor-pointer  rounded-md p-2 hover:bg-bgPrimaryColor'
+              className='mt-3 cursor-pointer  rounded-md p-2 hover:bg-bgPrimaryColor'
               key={it.groupId}
             >
               <Button
@@ -148,7 +148,7 @@ const GroupsPage = () => {
               >
                 <figure className='h-[48px] w-[48px] overflow-hidden rounded-md'>
                   <img
-                    className='object-cover'
+                    className='h-full w-full object-cover'
                     src={it.bannerUrl || images.miniBanner}
                     alt='avtGroup'
                   />

@@ -177,6 +177,14 @@ export const useResetPassword = () => {
   })
 }
 
+export const useChangePassword = () => {
+  return useMutation({
+    mutationFn: (body: ChangePasswordType) => {
+      return UsersApi.changePassword(body)
+    },
+  })
+}
+
 export const useGetUserProfile = (
   id: string,
   options?: UseQueryOptions<ResponseUserProfileType>,
@@ -254,7 +262,9 @@ export const useGetListFollowers = ({
         size,
       }),
     getNextPageParam: (lastPage, allPages) => {
-      const nextPage = lastPage.data ? allPages.length + 1 : undefined
+      const nextPage = lastPage.data.userProfiles
+        ? allPages.length + 1
+        : undefined
       return nextPage
     },
   })
@@ -279,7 +289,9 @@ export const useGetListFollowing = ({
         size,
       }),
     getNextPageParam: (lastPage, allPages) => {
-      const nextPage = lastPage.data ? allPages.length + 1 : undefined
+      const nextPage = lastPage.data.userProfiles
+        ? allPages.length + 1
+        : undefined
       return nextPage
     },
   })

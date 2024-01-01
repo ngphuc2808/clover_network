@@ -33,9 +33,26 @@ type ResetPasswordType = {
   otp: string
 }
 
+type ChangePasswordType = {
+  email: string
+  oldPassword: string
+  newPassword: string
+  repeatNewPassword: string
+}
 type ResponseForgotPasswordType = {
   code: number
   data: string
+  messageEN: string
+  messageVN: string
+}
+
+type ResponseChangePasswordType = {
+  code: number
+  data: {
+    oldPassword: string
+    newPassword: string
+    repeatNewPassword: string
+  }
   messageEN: string
   messageVN: string
 }

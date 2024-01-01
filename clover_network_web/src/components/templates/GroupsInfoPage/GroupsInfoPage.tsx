@@ -256,7 +256,7 @@ const GroupsInfoPage = () => {
                   >
                     <figure className='h-[48px] w-[48px] overflow-hidden rounded-md'>
                       <img
-                        className='object-cover'
+                        className='h-full w-full object-cover'
                         src={it.bannerUrl || images.miniBanner}
                         alt='avtGroup'
                       />
@@ -353,6 +353,7 @@ const GroupsInfoPage = () => {
                           .slice(0, 5)
                           .map((it) => (
                             <img
+                              key={it.userId}
                               className='h-10 w-10 rounded-full border-2 border-white'
                               src={it.avatarImgUrl || images.avatar}
                             />

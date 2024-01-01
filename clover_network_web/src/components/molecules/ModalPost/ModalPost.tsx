@@ -62,7 +62,7 @@ const ModalPost = ({
       privacyGroupId:
         id && typeof getGroupInfoApi.data?.data === 'object'
           ? id
-          : getUserProfileApi.data?.data.userInfo.userWallId,
+          : getUserProfileApi.data?.data?.userInfo.userWallId,
       toUserId:
         id &&
         id !== getUserInfo?.data.userId &&

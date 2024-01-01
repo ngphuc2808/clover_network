@@ -2,12 +2,16 @@ import { ChangeEvent, Fragment, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'react-toastify'
 import DatePicker from 'react-datepicker'
-import { FaCamera } from 'react-icons/fa'
+import { FaCamera, FaRegEye, FaRegEyeSlash } from 'react-icons/fa'
 import 'react-toastify/dist/ReactToastify.css'
 import { AiFillCalendar } from 'react-icons/ai'
 
 import images from '@/assets/images'
-import { useGetFetchQuery, usePostUpdateProfile } from '@/hook'
+import {
+  useChangePassword,
+  useGetFetchQuery,
+  usePostUpdateProfile,
+} from '@/hook'
 
 import Button from '@/components/atoms/Button'
 import Footer from '@/components/organisms/Footer'
@@ -24,6 +28,9 @@ const UpdateProfilePage = () => {
 
   const getUserInfo = useGetFetchQuery<ResponseUserType>(['UserInfo'])
 
+  const changePassApi = useChangePassword()
+
+  const [eye, setEye] = useState<boolean>(false)
   const [info, setInfo] = useState<boolean>(true)
   const [cropImage, setCropImage] = useState<string | ArrayBuffer | null>(null)
   const [modalCrop, setModalCrop] = useState(false)
@@ -106,6 +113,15 @@ const UpdateProfilePage = () => {
     },
   })
 
+  const changePassForm = useForm<ChangePasswordType>({
+    defaultValues: {
+      email: '',
+      oldPassword: '',
+      newPassword: '',
+      repeatNewPassword: '',
+    },
+  })
+
   const handleSetDate = (date: Date) => {
     if (date < new Date()) {
       setStartDate(date)
@@ -123,6 +139,19 @@ const UpdateProfilePage = () => {
       },
       onError() {
         toast.success('Update information failed, please check again!')
+      },
+    })
+  }
+
+  const handleChangePassword = (value: ChangePasswordType) => {
+    changePassApi.mutate(value, {
+      onSuccess(data) {
+        if (data.data.messageEN === 'Invalid password') {
+          toast.error('Invalid password!')
+        } else {
+          toast.success('Password changed successfully!')
+          changePassForm.reset()
+        }
       },
     })
   }
@@ -370,61 +399,153 @@ const UpdateProfilePage = () => {
                   <div className='w-full'>
                     <input
                       type='text'
-                      id='oldPassword'
+                      id='email'
+                      {...changePassForm.register('email', {
+                        required: {
+                          value: true,
+                          message: 'Please enter email!',
+                        },
+                        pattern: {
+                          value: /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/,
+                          message: 'Please enter the correct email format!',
+                        },
+                      })}
                       className={`w-full rounded-lg border border-thirdColor px-3 py-4 outline-none ${
-                        errors.firstname
+                        changePassForm.formState.errors.email
                           ? 'border-warnColor bg-red-50 placeholder-lightWarnColor'
                           : 'bg-white'
                       }`}
-                      placeholder='Old Password'
+                      placeholder='Email'
                     />
                     <p className='mt-2 text-sm text-warnColor'>
-                      {errors.firstname?.message}
+                      {changePassForm.formState.errors.email?.message}
                     </p>
                   </div>
                 </div>
                 <div className='mb-5 flex gap-5'>
                   <div className='w-full'>
-                    <input
-                      type='text'
-                      id='oldPassword'
-                      className={`w-full rounded-lg border border-thirdColor px-3 py-4 outline-none ${
-                        errors.firstname
+                    <div
+                      className={`flex items-center gap-1 rounded-lg border border-thirdColor px-3 outline-none ${
+                        changePassForm.formState.errors.oldPassword
                           ? 'border-warnColor bg-red-50 placeholder-lightWarnColor'
                           : 'bg-white'
                       }`}
-                      placeholder='New Password'
-                    />
+                    >
+                      <input
+                        type={eye ? 'text' : 'password'}
+                        {...changePassForm.register('oldPassword', {
+                          required: {
+                            value: true,
+                            message: 'Please enter password!',
+                          },
+                        })}
+                        autoComplete='on'
+                        className={`h-full flex-1 bg-transparent py-4 outline-none ${
+                          changePassForm.formState.errors.oldPassword &&
+                          'placeholder-lightWarnColor'
+                        }`}
+                        placeholder='Old Password'
+                      />
+                      <span className='cursor-pointer'>
+                        {!eye ? (
+                          <FaRegEye onClick={() => setEye(true)} />
+                        ) : (
+                          <FaRegEyeSlash onClick={() => setEye(false)} />
+                        )}
+                      </span>
+                    </div>
                     <p className='mt-2 text-sm text-warnColor'>
-                      {errors.firstname?.message}
+                      {changePassForm.formState.errors.oldPassword?.message}
                     </p>
                   </div>
                 </div>
                 <div className='mb-5 flex gap-5'>
                   <div className='w-full'>
-                    <input
-                      type='text'
-                      id='oldPassword'
-                      className={`w-full rounded-lg border border-thirdColor px-3 py-4 outline-none ${
-                        errors.firstname
+                    <div
+                      className={`flex items-center gap-1 rounded-lg border border-thirdColor px-3 outline-none ${
+                        changePassForm.formState.errors.newPassword
                           ? 'border-warnColor bg-red-50 placeholder-lightWarnColor'
                           : 'bg-white'
                       }`}
-                      placeholder='Confirm New Password'
-                    />
+                    >
+                      <input
+                        type={eye ? 'text' : 'password'}
+                        {...changePassForm.register('newPassword', {
+                          required: {
+                            value: true,
+                            message: 'Please enter password!',
+                          },
+                        })}
+                        autoComplete='on'
+                        className={`h-full flex-1 bg-transparent py-4 outline-none ${
+                          changePassForm.formState.errors.newPassword &&
+                          'placeholder-lightWarnColor'
+                        }`}
+                        placeholder='New Password'
+                      />
+                      <span className='cursor-pointer'>
+                        {!eye ? (
+                          <FaRegEye onClick={() => setEye(true)} />
+                        ) : (
+                          <FaRegEyeSlash onClick={() => setEye(false)} />
+                        )}
+                      </span>
+                    </div>
                     <p className='mt-2 text-sm text-warnColor'>
-                      {errors.firstname?.message}
+                      {changePassForm.formState.errors.newPassword?.message}
+                    </p>
+                  </div>
+                </div>
+                <div className='mb-5 flex gap-5'>
+                  <div className='w-full'>
+                    <div
+                      className={`flex items-center gap-1 rounded-lg border border-thirdColor px-3 outline-none ${
+                        changePassForm.formState.errors.repeatNewPassword
+                          ? 'border-warnColor bg-red-50 placeholder-lightWarnColor'
+                          : 'bg-white'
+                      }`}
+                    >
+                      <input
+                        type={eye ? 'text' : 'password'}
+                        {...changePassForm.register('repeatNewPassword', {
+                          required: {
+                            value: true,
+                            message: 'Please enter password!',
+                          },
+                        })}
+                        autoComplete='on'
+                        className={`h-full flex-1 bg-transparent py-4 outline-none ${
+                          changePassForm.formState.errors.repeatNewPassword &&
+                          'placeholder-lightWarnColor'
+                        }`}
+                        placeholder='Confirm New Password'
+                      />
+                      <span className='cursor-pointer'>
+                        {!eye ? (
+                          <FaRegEye onClick={() => setEye(true)} />
+                        ) : (
+                          <FaRegEyeSlash onClick={() => setEye(false)} />
+                        )}
+                      </span>
+                    </div>
+                    <p className='mt-2 text-sm text-warnColor'>
+                      {
+                        changePassForm.formState.errors.repeatNewPassword
+                          ?.message
+                      }
                     </p>
                   </div>
                 </div>
 
-                <Button className='flex min-h-[58px] w-full items-center justify-center rounded-lg bg-primaryColor px-3 py-4 font-semibold text-white shadow-formButton hover:opacity-80'>
-                  {/* {registerApi.isLoading ? (
+                <Button
+                  onClick={changePassForm.handleSubmit(handleChangePassword)}
+                  className='flex h-[58px] w-full items-center justify-center rounded-lg bg-primaryColor px-3 py-4 font-semibold text-white shadow-formButton hover:opacity-80'
+                >
+                  {changePassApi.isPending ? (
                     <BiLoaderAlt className='animate-spin text-3xl' />
                   ) : (
                     'Sign up'
-                  )} */}
-                  Update
+                  )}
                 </Button>
               </form>
             )}

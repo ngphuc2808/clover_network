@@ -26,6 +26,11 @@ export const UsersApi = {
   resetPassword: (data: ResetPasswordType) =>
     http.post<ResponseForgotPasswordType>(API_URL.resetPassword, data),
 
+  changePassword: (data: ChangePasswordType) =>
+    http.post<ResponseChangePasswordType>(API_URL.changePassword, data, {
+      headers: authHeader(),
+    }),
+
   getUserInfo: () =>
     http.get<ResponseUserType>(API_URL.getUserInfo, {
       headers: authHeader(),

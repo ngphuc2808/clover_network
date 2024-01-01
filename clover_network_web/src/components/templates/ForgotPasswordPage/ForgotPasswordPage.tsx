@@ -68,7 +68,7 @@ const ForgotPasswordPage = () => {
               <span className='h-px flex-1 bg-secondColor opacity-30'></span>
             </div>
             <div className='p-5 text-lg text-textHeadingColor'>
-              <h3>
+              <h3 className='text-textHeadingColor'>
                 Please enter your email address to identify for your account.
               </h3>
               <form>
@@ -172,7 +172,7 @@ const ForgotPasswordPage = () => {
                         resetPassForm.formState.errors.newPassword &&
                         'placeholder-lightWarnColor'
                       }`}
-                      placeholder='New password'
+                      placeholder='New Password'
                     />
                     <span className='cursor-pointer'>
                       {!eye ? (
@@ -208,7 +208,7 @@ const ForgotPasswordPage = () => {
                         resetPassForm.formState.errors.repeatNewPassword &&
                         'placeholder-lightWarnColor'
                       }`}
-                      placeholder='Confirm password'
+                      placeholder='Confirm New Password'
                     />
                     <span className='cursor-pointer'>
                       {!eye ? (
