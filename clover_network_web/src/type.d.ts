@@ -314,6 +314,24 @@ type ResponseListFeedType = {
   nextPageToken?: string
 }
 
+type ResponseCheckUserLikeType = {
+  code: number
+  data: {
+    feedId: string
+    totalLike: number
+    currentUserLike: boolean
+  }
+  messageEN: string
+  messageVN: string
+}
+
+type ResponseLikeType = {
+  code: number
+  data: number
+  messageEN: string
+  messageVN: string
+}
+
 type FeedGroupData = {
   feedItem: {
     postId: string
@@ -364,7 +382,7 @@ type FeedGroupData = {
   currentUserRole: null
   totalReact: number
   totalComment: number
-  currentUserReact: null
+  currentUserReact: string | null
 }
 
 type ResponseListCommentType = {
@@ -388,6 +406,31 @@ type ResponseListCommentType = {
     level: number
     author: boolean
   }[]
+  messageEN: string
+  messageVN: string
+}
+
+type ResponseListCommentType = {
+  code: number
+  data: {
+    commentId: string
+    postId: string
+    authorProfile: {
+      userId: string
+      displayName: string
+      avatarImgUrl: string
+      phoneNo: string
+      email: string
+      userWallId: string
+      connected: boolean
+    }
+    content: string
+    createdTime: string
+    updatedTime: string
+    parentCommentId: null
+    level: number
+    author: boolean
+  }
   messageEN: string
   messageVN: string
 }

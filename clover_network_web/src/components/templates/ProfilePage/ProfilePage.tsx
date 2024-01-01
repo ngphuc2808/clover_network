@@ -16,7 +16,7 @@ import {
   useGetFetchQuery,
   useGetListFeedOfGroup,
   useGetListFollowers,
-  // useGetListFollowing,
+  useGetListFollowing,
   useGetUserProfile,
   usePostConnectUser,
   usePostUploadBanner,
@@ -27,7 +27,7 @@ import ModalPost from '@/components/molecules/ModalPost'
 import Button from '@/components/atoms/Button'
 import FeedCard from '@/components/molecules/FeedCard'
 import LoadingPage from '@/components/pages/LoadingPage'
-import { Tooltip } from 'antd'
+import { Col, Modal, Row, Tooltip } from 'antd'
 import { useQueryClient } from '@tanstack/react-query'
 import FeedCardUser from '@/components/molecules/FeedCardUser'
 
@@ -41,6 +41,8 @@ const ProfilePage = () => {
   const [modalAudience, setModalAudience] = useState<boolean>(false)
   const [audienceValue, setAudienceValue] = useState<string>('PUBLIC')
   const [photos, setPhotos] = useState<string[]>([])
+
+  const [modalFollow, setModalFollow] = useState<number>(0)
 
   const [filePhotos, setFilePhotos] = useState<File[]>([])
 
@@ -64,11 +66,11 @@ const ProfilePage = () => {
     size: '20',
   })
 
-  // const getListFollowingApi = useGetListFollowing({
-  //   userId: id!,
-  //   page: '0',
-  //   size: '20',
-  // })
+  const getListFollowingApi = useGetListFollowing({
+    userId: id!,
+    page: '0',
+    size: '20',
+  })
 
   const connectApi = usePostConnectUser()
 
@@ -163,6 +165,8 @@ const ProfilePage = () => {
               `You have unfollowed ${getUserProfileApi.data.data.userInfo.lastname}`,
             )
             queryClient.invalidateQueries({ queryKey: ['UserProfile'] })
+            queryClient.invalidateQueries({ queryKey: ['ListFollowers'] })
+            queryClient.invalidateQueries({ queryKey: ['ListFollowing'] })
           },
         },
       )
@@ -178,6 +182,46 @@ const ProfilePage = () => {
               `Already follow ${getUserProfileApi.data?.data.userInfo.lastname}`,
             )
             queryClient.invalidateQueries({ queryKey: ['UserProfile'] })
+            queryClient.invalidateQueries({ queryKey: ['ListFollowers'] })
+            queryClient.invalidateQueries({ queryKey: ['ListFollowing'] })
+          },
+        },
+      )
+    }
+  }
+
+  const handleConnectInList = (
+    connected: boolean,
+    displayName: string,
+    userId: string,
+  ) => {
+    if (connected) {
+      connectApi.mutate(
+        {
+          targetUserId: userId,
+          status: 0,
+        },
+        {
+          onSuccess() {
+            toast.success(`You have unfollowed ${displayName}`)
+            queryClient.invalidateQueries({ queryKey: ['UserProfile'] })
+            queryClient.invalidateQueries({ queryKey: ['ListFollowers'] })
+            queryClient.invalidateQueries({ queryKey: ['ListFollowing'] })
+          },
+        },
+      )
+    } else {
+      connectApi.mutate(
+        {
+          targetUserId: userId,
+          status: 1,
+        },
+        {
+          onSuccess() {
+            toast.success(`Already follow ${displayName}`)
+            queryClient.invalidateQueries({ queryKey: ['UserProfile'] })
+            queryClient.invalidateQueries({ queryKey: ['ListFollowers'] })
+            queryClient.invalidateQueries({ queryKey: ['ListFollowing'] })
           },
         },
       )
@@ -245,9 +289,19 @@ const ProfilePage = () => {
                   {getUserProfileApi?.data?.data.userInfo.lastname}
                 </h1>
                 <span className='mt-2 flex items-center justify-center gap-2 text-lg text-textPrimaryColor'>
-                  <p>{getUserProfileApi.data?.data.totalConnector} followers</p>
+                  <p
+                    className='cursor-pointer text-textPrimaryColor'
+                    onClick={() => setModalFollow(1)}
+                  >
+                    {getUserProfileApi.data?.data.totalConnector} followers
+                  </p>
                   <p className='opacity-50'>•</p>
-                  <p>{getUserProfileApi.data?.data.totalConnect} following</p>
+                  <p
+                    className='cursor-pointer text-textPrimaryColor'
+                    onClick={() => setModalFollow(2)}
+                  >
+                    {getUserProfileApi.data?.data.totalConnect} following
+                  </p>
                 </span>
                 <div className=' mt-2 flex justify-center -space-x-4 lg:justify-normal rtl:space-x-reverse'>
                   {getListFollowersApi.data?.pages.map(
@@ -335,10 +389,16 @@ const ProfilePage = () => {
             <li className='cursor-pointer border-b border-transparent p-3 text-textPrimaryColor hover:border-primaryColor'>
               <h1>Photos</h1>
             </li>
-            <li className='cursor-pointer border-b border-transparent p-3 text-textPrimaryColor hover:border-primaryColor'>
+            <li
+              className='cursor-pointer border-b border-transparent p-3 text-textPrimaryColor hover:border-primaryColor'
+              onClick={() => setModalFollow(1)}
+            >
               <h1>Followers</h1>
             </li>
-            <li className='cursor-pointer border-b border-transparent p-3 text-textPrimaryColor hover:border-primaryColor'>
+            <li
+              className='cursor-pointer border-b border-transparent p-3 text-textPrimaryColor hover:border-primaryColor'
+              onClick={() => setModalFollow(2)}
+            >
               <h1>Following</h1>
             </li>
           </ul>
@@ -510,6 +570,184 @@ const ProfilePage = () => {
           handleCloseModalAudience={handleCloseModalAudience}
         />
       )}
+      <Modal
+        title={`${
+          modalFollow === 1
+            ? 'List Followers'
+            : modalFollow === 2 && 'List Following'
+        }`}
+        width='70%'
+        open={modalFollow === 1 || modalFollow === 2}
+        onCancel={() => setModalFollow(0)}
+        footer={[
+          <p
+            className='cursor-pointer text-lg text-primaryColor'
+            key='seemore'
+            onClick={() => {
+              if (
+                modalFollow === 1 &&
+                getListFollowersApi.data?.pages[
+                  getListFollowersApi.data?.pages.length - 1
+                ].data.userProfiles.length! > 0
+              ) {
+                getListFollowersApi.fetchNextPage()
+                return
+              }
+              if (
+                modalFollow === 2 &&
+                getListFollowingApi.data?.pages[
+                  getListFollowingApi.data?.pages.length - 1
+                ].data.userProfiles.length! > 0
+              ) {
+                getListFollowingApi.fetchNextPage()
+                return
+              }
+            }}
+          >
+            See more
+          </p>,
+        ]}
+      >
+        <Row gutter={15}>
+          {modalFollow === 1
+            ? getListFollowersApi.data?.pages.map((data, index) =>
+                data.data ? (
+                  data.data.userProfiles.map(
+                    (it) =>
+                      it.userId !== getUserInfo?.data.userId && (
+                        <Col
+                          xl={6}
+                          lg={8}
+                          md={12}
+                          sm={24}
+                          xs={24}
+                          key={it.userId}
+                        >
+                          <div className='mt-4 rounded-md bg-white p-3 shadow-lg'>
+                            <Row gutter={15} className='justify-between'>
+                              <Col span={6}>
+                                <figure className='h-[48px] w-[48px] overflow-hidden rounded-lg'>
+                                  <img
+                                    className='h-full w-full object-cover'
+                                    src={it.avatarImgUrl || images.avatar}
+                                    alt='avtGroup'
+                                  />
+                                </figure>
+                              </Col>
+                              <Col span={18}>
+                                <h1 className='line-clamp-1 font-semibold text-textHeadingColor'>
+                                  {it.displayName}
+                                </h1>
+                                <p className='line-clamp-1 text-textPrimaryColor'>
+                                  {it.email}
+                                </p>
+                              </Col>
+                            </Row>
+                            <div className='mt-3 flex items-center gap-2'>
+                              <Button
+                                to={`/profile/${it.userId}`}
+                                onClick={() => setModalFollow(0)}
+                                className='flex flex-1 items-center justify-center rounded-md bg-primaryColor/20 px-3 py-2 text-primaryColor hover:opacity-80'
+                              >
+                                View
+                              </Button>
+                              <Button
+                                onClick={() =>
+                                  handleConnectInList(
+                                    it.connected,
+                                    it.displayName,
+                                    it.userId,
+                                  )
+                                }
+                                className={`flex max-h-[38px] flex-1 items-center justify-center rounded-md px-3 py-2 ${
+                                  !it.connected
+                                    ? 'bg-primaryColor/20 text-primaryColor'
+                                    : 'border border-primaryColor bg-white  text-primaryColor'
+                                } hover:opacity-80`}
+                              >
+                                {!it.connected ? 'Follow' : 'Unfollow'}
+                              </Button>
+                            </div>
+                          </div>
+                        </Col>
+                      ),
+                  )
+                ) : (
+                  <h1 key={index} className='mt-3 text-center'>
+                    There are currently no followers
+                  </h1>
+                ),
+              )
+            : getListFollowingApi.data?.pages.map((data, index) =>
+                data.data ? (
+                  data.data.userProfiles.map(
+                    (it) =>
+                      it.userId !== getUserInfo?.data.userId && (
+                        <Col
+                          xl={6}
+                          lg={8}
+                          md={12}
+                          sm={24}
+                          xs={24}
+                          key={it.userId}
+                        >
+                          <div className='mt-4 rounded-md bg-white p-3 shadow-lg'>
+                            <Row gutter={15} className='justify-between'>
+                              <Col span={6}>
+                                <figure className='h-[48px] w-[48px] overflow-hidden rounded-lg'>
+                                  <img
+                                    className='h-full w-full object-cover'
+                                    src={it.avatarImgUrl || images.avatar}
+                                    alt='avtGroup'
+                                  />
+                                </figure>
+                              </Col>
+                              <Col span={18}>
+                                <h1 className='line-clamp-1 font-semibold text-textHeadingColor'>
+                                  {it.displayName}
+                                </h1>
+                                <p className='line-clamp-1 text-textPrimaryColor'>
+                                  {it.email}
+                                </p>
+                              </Col>
+                            </Row>
+                            <div className='mt-3 flex items-center gap-2'>
+                              <Button
+                                to={`/profile/${it.userId}`}
+                                onClick={() => setModalFollow(0)}
+                                className='flex flex-1 items-center justify-center rounded-md bg-primaryColor/20 px-3 py-2 text-primaryColor hover:opacity-80'
+                              >
+                                View
+                              </Button>
+                              <Button
+                                onClick={() =>
+                                  handleConnectInList(
+                                    it.connected,
+                                    it.displayName,
+                                    it.userId,
+                                  )
+                                }
+                                className={`flex max-h-[38px] flex-1 items-center justify-center rounded-md px-3 py-2 ${
+                                  !it.connected
+                                    ? 'bg-primaryColor/20 text-primaryColor'
+                                    : 'border border-primaryColor bg-white  text-primaryColor'
+                                } hover:opacity-80`}
+                              >
+                                {!it.connected ? 'Follow' : 'Unfollow'}
+                              </Button>
+                            </div>
+                          </div>
+                        </Col>
+                      ),
+                  )
+                ) : (
+                  <h1 key={index} className='mt-3 text-center'>
+                    There are currently no followers
+                  </h1>
+                ),
+              )}
+        </Row>
+      </Modal>
     </Fragment>
   )
 }

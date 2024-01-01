@@ -30,7 +30,7 @@ export const FeedsApi = {
     }),
 
   postComment: (comment: FeedCommentType) =>
-    http.post<any>(API_URL.postComment, comment, {
+    http.post<ResponseListCommentType>(API_URL.postComment, comment, {
       headers: authHeader(),
     }),
 
@@ -49,6 +49,21 @@ export const FeedsApi = {
   listAllGroupHome: (page: number) =>
     http.get<ResponseFeedCardType>(API_URL.listAllGroupHome, {
       params: { size: 5, page },
+      headers: authHeader(),
+    }),
+
+  checkUserLike: (feedId: string) =>
+    http.get<ResponseCheckUserLikeType>(API_URL.checkUserLike, {
+      params: { feedId },
+      headers: authHeader(),
+    }),
+
+  postLike: (data: {
+    postId: string
+    reactType: string | null
+    status: number
+  }) =>
+    http.post<ResponseLikeType>(API_URL.likeFeed, data, {
       headers: authHeader(),
     }),
 }

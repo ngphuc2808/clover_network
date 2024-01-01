@@ -12,11 +12,14 @@ import {
   useGetFeedDetail,
   useGetFeedLink,
   useGetFetchQuery,
+  useGetUserLike,
   usePostComment,
+  usePostLike,
 } from '@/hook'
 import images from '@/assets/images'
 import { listAudienceGroup } from '@/utils/data'
-import { CloverOutlineIcon } from '@/components/atoms/Icons'
+
+import { CloverLikeIcon, CloverOutlineIcon } from '@/components/atoms/Icons'
 import Button from '@/components/atoms/Button'
 import TimeAgo from '../TimeAgo'
 import FeedCardUserDetail from './FeedCardUserDetail'
@@ -39,6 +42,14 @@ const FeedCardUser = ({ data, userLastName, innerRef }: iProps) => {
   const getFeedLinkApi = useGetFeedLink()
 
   const commentApi = usePostComment()
+
+  const checkLikeApi = useGetUserLike()
+
+  const [isLike, setIsLike] = useState<string | null>(data.currentUserReact!)
+
+  const [totalLike, setTotalLike] = useState<number>(data.totalReact)
+
+  const likeApi = usePostLike()
 
   const formComment = useForm<FeedCommentType>({
     defaultValues: {
@@ -77,6 +88,42 @@ const FeedCardUser = ({ data, userLastName, innerRef }: iProps) => {
       onSuccess() {
         queryClient.invalidateQueries({ queryKey: ['ListComment'] })
         formComment.reset()
+      },
+    })
+  }
+
+  const handleReactFeed = () => {
+    checkLikeApi.mutate(data.feedItem.postId, {
+      onSuccess(dataFeed) {
+        if (dataFeed.data.data.currentUserLike) {
+          setIsLike(null)
+          likeApi.mutate(
+            {
+              postId: data.feedItem.postId,
+              reactType: 'LIKE',
+              status: 0,
+            },
+            {
+              onSuccess(dataLike) {
+                setTotalLike(dataLike.data.data)
+              },
+            },
+          )
+        } else {
+          setIsLike('LIKE')
+          likeApi.mutate(
+            {
+              postId: data.feedItem.postId,
+              reactType: 'LIKE',
+              status: 1,
+            },
+            {
+              onSuccess(dataLike) {
+                setTotalLike(dataLike.data.data)
+              },
+            },
+          )
+        }
       },
     })
   }
@@ -199,7 +246,7 @@ const FeedCardUser = ({ data, userLastName, innerRef }: iProps) => {
             <span className=' text-textPrimaryColor'>
               <CloverOutlineIcon height='20px' width='20px' />
             </span>
-            <p className='text-sm text-textPrimaryColor'>{data.totalReact}</p>
+            <p className='text-sm text-textPrimaryColor'>{totalLike}</p>
           </div>
           <div className='flex items-center gap-2'>
             <p className='text-sm text-textPrimaryColor'>
@@ -211,11 +258,24 @@ const FeedCardUser = ({ data, userLastName, innerRef }: iProps) => {
           <span className='h-px w-full bg-secondColor opacity-30'></span>
         </div>
         <div className='grid grid-cols-3'>
-          <div className='flex cursor-pointer items-center justify-center gap-2 px-3 py-1 hover:bg-primaryColor/10'>
+          <div
+            className='flex cursor-pointer items-center justify-center gap-2 px-3 py-1 hover:bg-primaryColor/10'
+            onClick={handleReactFeed}
+          >
             <span className='text-2xl text-textPrimaryColor'>
-              <CloverOutlineIcon height='28px' width='28px' />
+              {!isLike ? (
+                <CloverOutlineIcon height='28px' width='28px' />
+              ) : (
+                <CloverLikeIcon height='28px' width='28px' />
+              )}
             </span>
-            <p className='font-medium text-textPrimaryColor'>Like</p>
+            <p
+              className={`font-medium ${
+                isLike ? 'text-primaryColor' : 'text-textPrimaryColor'
+              }`}
+            >
+              Like
+            </p>
           </div>
           <div
             className='flex cursor-pointer items-center justify-center gap-2 px-3 py-1 hover:bg-primaryColor/10'
@@ -280,7 +340,13 @@ const FeedCardUser = ({ data, userLastName, innerRef }: iProps) => {
           </div>
         }
       >
-        <FeedCardUserDetail data={getFeedDetailApi.data?.data.data!} />
+        <FeedCardUserDetail
+          isLike={isLike}
+          setIsLike={setIsLike}
+          totalLike={totalLike}
+          setTotalLike={setTotalLike}
+          data={getFeedDetailApi.data?.data.data!}
+        />
       </Modal>
     </Fragment>
   )

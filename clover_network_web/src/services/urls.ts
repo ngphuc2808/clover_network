@@ -30,6 +30,8 @@ export const API_URL = {
   getFeedDetail: `${API_BASE}/feed/detail`,
   getFeedLink: `${API_BASE}/feed/get-link-detail-feed`,
   getListComment: `${API_BASE}/feed/get-list-comment`,
+  checkUserLike: `${API_BASE}/feed/check-user-like`,
+  likeFeed: `${API_BASE}/feed/react`,
 
   //group
   createGroup: `${API_BASE}/group/create-new-group`,

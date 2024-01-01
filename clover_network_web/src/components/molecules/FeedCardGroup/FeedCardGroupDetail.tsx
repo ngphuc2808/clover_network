@@ -1,20 +1,82 @@
 import images from '@/assets/images'
-import { CloverOutlineIcon } from '@/components/atoms/Icons'
+import { CloverLikeIcon, CloverOutlineIcon } from '@/components/atoms/Icons'
 import { listAudienceGroup } from '@/utils/data'
 import { PiShareFat } from 'react-icons/pi'
 import TimeAgo from '../TimeAgo'
 import { Fragment } from 'react'
 import { toast } from 'react-toastify'
 import Button from '@/components/atoms/Button'
-import { useGetFeedLink, useGetListComment } from '@/hook'
+import {
+  useGetFeedLink,
+  useGetListComment,
+  useGetUserLike,
+  usePostLike,
+} from '@/hook'
+import { useQueryClient } from '@tanstack/react-query'
 
 interface iProps {
   data: FeedGroupData
+  totalLike: number
+  setTotalLike: (totalLike: number) => void
+  isLike: string | null
+  setIsLike: (isLike: string | null) => void
   innerRef?: React.Ref<HTMLParagraphElement>
 }
 
-const FeedCardGroupDetail = ({ data, innerRef }: iProps) => {
+const FeedCardGroupDetail = ({
+  data,
+  totalLike,
+  isLike,
+  setIsLike,
+  setTotalLike,
+  innerRef,
+}: iProps) => {
+  const queryClient = useQueryClient()
+
   const getFeedLinkApi = useGetFeedLink()
+
+  const checkLikeApi = useGetUserLike()
+  const likeApi = usePostLike()
+
+  const handleReactFeed = () => {
+    checkLikeApi.mutate(data.feedItem.postId, {
+      onSuccess(dataFeed) {
+        if (dataFeed.data.data.currentUserLike) {
+          setIsLike(null)
+          likeApi.mutate(
+            {
+              postId: data.feedItem.postId,
+              reactType: 'LIKE',
+              status: 0,
+            },
+            {
+              onSuccess(dataLike) {
+                setTotalLike(dataLike.data.data)
+                queryClient.invalidateQueries({ queryKey: ['ListFeed'] })
+                queryClient.invalidateQueries({ queryKey: ['ListFeedOfGroup'] })
+              },
+            },
+          )
+        } else {
+          setIsLike('LIKE')
+          likeApi.mutate(
+            {
+              postId: data.feedItem.postId,
+              reactType: 'LIKE',
+              status: 1,
+            },
+            {
+              onSuccess(dataLike) {
+                setTotalLike(dataLike.data.data)
+                queryClient.invalidateQueries({ queryKey: ['ListFeed'] })
+                queryClient.invalidateQueries({ queryKey: ['ListFeedOfGroup'] })
+              },
+            },
+          )
+        }
+      },
+    })
+  }
 
   const handleCopyLink = () => {
     getFeedLinkApi.mutate(data.feedItem.postId, {
@@ -147,7 +209,7 @@ const FeedCardGroupDetail = ({ data, innerRef }: iProps) => {
             <span className=' text-textPrimaryColor'>
               <CloverOutlineIcon height='20px' width='20px' />
             </span>
-            <p className='text-sm text-textPrimaryColor'>{data.totalReact}</p>
+            <p className='text-sm text-textPrimaryColor'>{totalLike}</p>
           </div>
           <div className='flex items-center gap-2'>
             <p className='text-sm text-textPrimaryColor'>
@@ -158,12 +220,22 @@ const FeedCardGroupDetail = ({ data, innerRef }: iProps) => {
         <div className='my-3 flex items-center'>
           <span className='h-px w-full bg-secondColor opacity-30'></span>
         </div>
-        <div className='flex justify-between'>
+        <div className='flex justify-between' onClick={handleReactFeed}>
           <div className='flex cursor-pointer items-center justify-center gap-2 rounded-md px-3 py-1 hover:bg-primaryColor/10'>
             <span className='text-2xl text-textPrimaryColor'>
-              <CloverOutlineIcon height='28px' width='28px' />
+              {!isLike ? (
+                <CloverOutlineIcon height='28px' width='28px' />
+              ) : (
+                <CloverLikeIcon height='28px' width='28px' />
+              )}
             </span>
-            <p className='font-medium text-textPrimaryColor'>Like</p>
+            <p
+              className={`font-medium ${
+                isLike ? 'text-primaryColor' : 'text-textPrimaryColor'
+              }`}
+            >
+              Like
+            </p>
           </div>
           <div
             className='flex cursor-pointer items-center justify-center gap-2 rounded-md px-3 py-1 hover:bg-primaryColor/10'
@@ -178,7 +250,17 @@ const FeedCardGroupDetail = ({ data, innerRef }: iProps) => {
         <div>
           <h3
             className='my-3 cursor-pointer text-primaryColor'
-            onClick={() => getListCommnetApi.fetchNextPage()}
+            onClick={() => {
+              if (
+                getListCommnetApi.data?.pages[
+                  getListCommnetApi.data?.pages.length - 1
+                ].data.length! > 0
+              ) {
+                getListCommnetApi.hasNextPage &&
+                  getListCommnetApi.fetchNextPage()
+                return
+              }
+            }}
           >
             See more
           </h3>

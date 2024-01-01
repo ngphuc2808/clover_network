@@ -213,8 +213,12 @@ const MainHeader = () => {
                         to={`/profile/${it.userId}`}
                         className='lg:justify-none flex items-center justify-center gap-3'
                       >
-                        <figure className='w-10 overflow-hidden rounded-full'>
-                          <img src={it.avatar || images.avatar} alt='avatar' />
+                        <figure className='h-10 w-10 overflow-hidden rounded-full'>
+                          <img
+                            src={it.avatar || images.avatar}
+                            className='h-full w-full object-cover'
+                            alt='avatar'
+                          />
                         </figure>
                         {it.firstname} {it.lastname}
                       </Button>
@@ -249,10 +253,11 @@ const MainHeader = () => {
                       to={`/groups/${it.group.groupId}`}
                       className='lg:justify-none flex items-center justify-center gap-3'
                     >
-                      <figure className='w-10 overflow-hidden rounded-full'>
+                      <figure className='h-10 w-10 overflow-hidden rounded-full'>
                         <img
                           src={it.group.bannerUrl || images.miniBanner}
                           alt='avatar'
+                          className='h-full w-full object-cover'
                         />
                       </figure>
                       {it.group.groupName}

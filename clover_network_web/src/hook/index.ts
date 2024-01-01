@@ -336,6 +336,14 @@ export const usePostFeed = () => {
   })
 }
 
+export const useGetUserLike = () => {
+  return useMutation({
+    mutationFn: (feedId: string) => {
+      return FeedsApi.checkUserLike(feedId)
+    },
+  })
+}
+
 export const useGetFeedDetail = () => {
   return useMutation({
     mutationFn: (id: string) => {
@@ -370,6 +378,18 @@ export const usePostComment = () => {
   return useMutation({
     mutationFn: (body: FeedCommentType) => {
       return FeedsApi.postComment(body)
+    },
+  })
+}
+
+export const usePostLike = () => {
+  return useMutation({
+    mutationFn: (body: {
+      postId: string
+      reactType: string | null
+      status: number
+    }) => {
+      return FeedsApi.postLike(body)
     },
   })
 }
