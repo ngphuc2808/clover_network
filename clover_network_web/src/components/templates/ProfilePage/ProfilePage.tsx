@@ -25,11 +25,12 @@ import {
 import ModalAudience from '@/components/molecules/ModalAudience'
 import ModalPost from '@/components/molecules/ModalPost'
 import Button from '@/components/atoms/Button'
-import FeedCard from '@/components/molecules/FeedCard'
 import LoadingPage from '@/components/pages/LoadingPage'
 import { Col, Modal, Row, Tooltip } from 'antd'
 import { useQueryClient } from '@tanstack/react-query'
-import FeedCardUser from '@/components/molecules/FeedCardUser'
+import FeedItem from '@/components/molecules/FeedItem'
+import FeedCardUser from '@/components/molecules/FeedItem/FeedCardUser'
+import FeedCard from '@/components/molecules/FeedItem/FeedCard'
 
 const imageMimeType = /image\/(png|jpg|jpeg)/i
 
@@ -60,17 +61,9 @@ const ProfilePage = () => {
 
   const getUserInfo = useGetFetchQuery<ResponseUserType>(['UserInfo'])
 
-  const getListFollowersApi = useGetListFollowers({
-    userId: id!,
-    page: '0',
-    size: '20',
-  })
+  const getListFollowersApi = useGetListFollowers(id!)
 
-  const getListFollowingApi = useGetListFollowing({
-    userId: id!,
-    page: '0',
-    size: '20',
-  })
+  const getListFollowingApi = useGetListFollowing(id!)
 
   const connectApi = usePostConnectUser()
 
@@ -307,7 +300,7 @@ const ProfilePage = () => {
                   {getListFollowersApi.data?.pages.map(
                     (data) =>
                       data.data &&
-                      data.data.userProfiles.map(
+                      data.data?.userProfiles.map(
                         (it, i) =>
                           i < 6 && (
                             <Button
@@ -517,32 +510,41 @@ const ProfilePage = () => {
                     data.data.length === i + 1 ? (
                       it.feedItem.toUserId !== it.feedItem.authorId &&
                       it.feedItem.postToUserWall ? (
-                        <FeedCardUser
-                          key={it.feedItem.postId}
+                        <FeedItem
+                          data={it}
                           innerRef={ref}
+                          key={it.feedItem.postId}
+                        >
+                          <FeedCardUser
+                            data={it}
+                            userLastName={`${getUserProfileApi.data?.data
+                              .userInfo.firstname!} ${getUserProfileApi.data
+                              ?.data.userInfo.lastname!}`}
+                          />
+                        </FeedItem>
+                      ) : (
+                        <FeedItem
+                          data={it}
+                          innerRef={ref}
+                          key={it.feedItem.postId}
+                        >
+                          <FeedCard key={it.feedItem.postId} data={it} />
+                        </FeedItem>
+                      )
+                    ) : it.feedItem.toUserId !== it.feedItem.authorId &&
+                      it.feedItem.postToUserWall ? (
+                      <FeedItem data={it} key={it.feedItem.postId}>
+                        <FeedCardUser
                           data={it}
                           userLastName={`${getUserProfileApi.data?.data.userInfo
                             .firstname!} ${getUserProfileApi.data?.data.userInfo
                             .lastname!}`}
                         />
-                      ) : (
-                        <FeedCard
-                          key={it.feedItem.postId}
-                          innerRef={ref}
-                          data={it}
-                        />
-                      )
-                    ) : it.feedItem.toUserId !== it.feedItem.authorId &&
-                      it.feedItem.postToUserWall ? (
-                      <FeedCardUser
-                        key={it.feedItem.postId}
-                        data={it}
-                        userLastName={`${getUserProfileApi.data?.data.userInfo
-                          .firstname!} ${getUserProfileApi.data?.data.userInfo
-                          .lastname!}`}
-                      />
+                      </FeedItem>
                     ) : (
-                      <FeedCard key={it.feedItem.postId} data={it} />
+                      <FeedItem data={it} key={it.feedItem.postId}>
+                        <FeedCard data={it} />
+                      </FeedItem>
                     ),
                   )
                 ) : (
@@ -588,105 +590,90 @@ const ProfilePage = () => {
             className='cursor-pointer text-lg text-primaryColor'
             key='seemore'
             onClick={() => {
-              if (
-                modalFollow === 1 &&
-                getListFollowersApi.data?.pages[
-                  getListFollowersApi.data?.pages.length - 1
-                ].data.userProfiles.length! > 0
-              ) {
-                console.log(getListFollowersApi.data)
+              if (modalFollow === 1 && getListFollowersApi.hasNextPage) {
                 getListFollowersApi.fetchNextPage()
                 return
               }
-              if (
-                modalFollow === 2 &&
-                getListFollowingApi.data?.pages[
-                  getListFollowingApi.data?.pages.length - 1
-                ].data.userProfiles.length! > 0
-              ) {
-                console.log(getListFollowingApi.data?.pages)
-
+              if (modalFollow === 2 && getListFollowingApi.hasNextPage) {
                 getListFollowingApi.fetchNextPage()
                 return
               }
             }}
           >
-            See more
+            {modalFollow === 1
+              ? getListFollowersApi.hasNextPage
+                ? 'See more'
+                : 'No results were found'
+              : ''}
+            {modalFollow === 2
+              ? getListFollowingApi.hasNextPage
+                ? 'See more'
+                : 'No results were found'
+              : ''}
           </p>,
         ]}
       >
         <Row gutter={15}>
           {modalFollow === 1
-            ? getListFollowersApi.data?.pages.map((data, index) =>
-                data.data ? (
-                  data.data.userProfiles.map(
-                    (it) =>
-                      it.userId !== getUserInfo?.data.userId && (
-                        <Col
-                          xl={6}
-                          lg={8}
-                          md={12}
-                          sm={24}
-                          xs={24}
-                          key={it.userId}
-                        >
-                          <div className='mt-4 rounded-md bg-white p-3 shadow-lg'>
-                            <Row gutter={15} className='justify-between'>
-                              <Col span={6}>
-                                <figure className='h-[48px] w-[48px] overflow-hidden rounded-lg'>
-                                  <img
-                                    className='h-full w-full object-cover'
-                                    src={it.avatarImgUrl || images.avatar}
-                                    alt='avtGroup'
-                                  />
-                                </figure>
-                              </Col>
-                              <Col span={18}>
-                                <h1 className='line-clamp-1 font-semibold text-textHeadingColor'>
-                                  {it.displayName}
-                                </h1>
-                                <p className='line-clamp-1 text-textPrimaryColor'>
-                                  {it.email}
-                                </p>
-                              </Col>
-                            </Row>
-                            <div className='mt-3 flex items-center gap-2'>
-                              <Button
-                                to={`/profile/${it.userId}`}
-                                onClick={() => setModalFollow(0)}
-                                className='flex flex-1 items-center justify-center rounded-md bg-primaryColor/20 px-3 py-2 text-primaryColor hover:opacity-80'
-                              >
-                                View
-                              </Button>
-                              <Button
-                                onClick={() =>
-                                  handleConnectInList(
-                                    it.connected,
-                                    it.displayName,
-                                    it.userId,
-                                  )
-                                }
-                                className={`flex max-h-[38px] flex-1 items-center justify-center rounded-md px-3 py-2 ${
-                                  !it.connected
-                                    ? 'bg-primaryColor/20 text-primaryColor'
-                                    : 'border border-primaryColor bg-white  text-primaryColor'
-                                } hover:opacity-80`}
-                              >
-                                {!it.connected ? 'Follow' : 'Unfollow'}
-                              </Button>
-                            </div>
-                          </div>
-                        </Col>
-                      ),
-                  )
-                ) : (
-                  <h1 key={index} className='mt-3 text-center'>
-                    There are currently no followers
-                  </h1>
-                ),
+            ? getListFollowersApi.data?.pages.map(
+                (data) =>
+                  data.data &&
+                  data.data.userProfiles.map((it) => (
+                    <Col xl={6} lg={8} md={12} sm={24} xs={24} key={it.userId}>
+                      <div className='mt-4 rounded-md bg-white p-3 shadow-lg'>
+                        <Row gutter={15} className='justify-between'>
+                          <Col span={6}>
+                            <figure className='h-[48px] w-[48px] overflow-hidden rounded-lg'>
+                              <img
+                                className='h-full w-full object-cover'
+                                src={it.avatarImgUrl || images.avatar}
+                                alt='avtGroup'
+                              />
+                            </figure>
+                          </Col>
+                          <Col span={18}>
+                            <h1 className='line-clamp-1 font-semibold text-textHeadingColor'>
+                              {it.displayName}
+                            </h1>
+                            <p className='line-clamp-1 text-textPrimaryColor'>
+                              {it.email}
+                            </p>
+                          </Col>
+                        </Row>
+                        <div className='mt-3 flex items-center gap-2'>
+                          <Button
+                            to={`/profile/${it.userId}`}
+                            onClick={() => setModalFollow(0)}
+                            className='flex flex-1 items-center justify-center rounded-md bg-primaryColor/20 px-3 py-2 text-primaryColor hover:opacity-80'
+                          >
+                            View
+                          </Button>
+                          {it.userId !== getUserInfo?.data.userId && (
+                            <Button
+                              onClick={() =>
+                                handleConnectInList(
+                                  it.connected,
+                                  it.displayName,
+                                  it.userId,
+                                )
+                              }
+                              className={`flex max-h-[38px] flex-1 items-center justify-center rounded-md px-3 py-2 ${
+                                !it.connected
+                                  ? 'bg-primaryColor/20 text-primaryColor'
+                                  : 'border border-primaryColor bg-white  text-primaryColor'
+                              } hover:opacity-80`}
+                            >
+                              {!it.connected ? 'Follow' : 'Unfollow'}
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </Col>
+                  )),
               )
-            : getListFollowingApi.data?.pages.map((data, index) =>
-                data.data ? (
+            : getListFollowingApi.data?.pages.map(
+                (data) =>
+                  data.data &&
                   data.data.userProfiles.map(
                     (it) =>
                       it.userId !== getUserInfo?.data.userId && (
@@ -746,12 +733,7 @@ const ProfilePage = () => {
                           </div>
                         </Col>
                       ),
-                  )
-                ) : (
-                  <h1 key={index} className='mt-3 text-center'>
-                    There are currently no followers
-                  </h1>
-                ),
+                  ),
               )}
         </Row>
       </Modal>

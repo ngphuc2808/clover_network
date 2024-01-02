@@ -574,6 +574,7 @@ type ResponseGetGroupInfoType = {
       createdTime: string
       updatedTime: string
       delFlag: boolean
+      totalMember: number
     }
     currentUserRole: {
       roleId: string

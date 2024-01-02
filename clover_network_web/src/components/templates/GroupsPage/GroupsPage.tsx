@@ -9,9 +9,10 @@ import { IoChevronDown } from 'react-icons/io5'
 
 import images from '@/assets/images'
 import { useGetListAllGroup, useGetListAllGroupHome } from '@/hook'
-import FeedCardGroup from '@/components/molecules/FeedCardGroup'
 import Button from '@/components/atoms/Button'
 import Search from '@/components/molecules/Search'
+import FeedItem from '@/components/molecules/FeedItem'
+import FeedCardGroup from '@/components/molecules/FeedItem/FeedCardGroup'
 
 const GroupsPage = () => {
   const [searchTerm, setSearchTerm] = useState<string>('')
@@ -223,13 +224,13 @@ const GroupsPage = () => {
               data.data ? (
                 data.data.map((it, i) =>
                   data.data.length === i + 1 ? (
-                    <FeedCardGroup
-                      key={it.feedItem.postId}
-                      innerRef={ref}
-                      data={it}
-                    />
+                    <FeedItem data={it} innerRef={ref}>
+                      <FeedCardGroup data={it} />
+                    </FeedItem>
                   ) : (
-                    <FeedCardGroup key={it.feedItem.postId} data={it} />
+                    <FeedItem data={it}>
+                      <FeedCardGroup data={it} />
+                    </FeedItem>
                   ),
                 )
               ) : (

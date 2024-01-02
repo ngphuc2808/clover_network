@@ -1,13 +1,14 @@
-import { Fragment, useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
+import { Fragment, ReactNode, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
 import { Modal } from 'antd'
+import he from 'he'
 import { GoCommentDiscussion } from 'react-icons/go'
 import { PiShareFat } from 'react-icons/pi'
 import { IoMdSend } from 'react-icons/io'
-import { MdArrowRight } from 'react-icons/md'
 
+import images from '@/assets/images'
 import {
   useGetFeedDetail,
   useGetFeedLink,
@@ -16,21 +17,16 @@ import {
   usePostComment,
   usePostLike,
 } from '@/hook'
-import images from '@/assets/images'
-import { listAudienceGroup } from '@/utils/data'
-
 import { CloverLikeIcon, CloverOutlineIcon } from '@/components/atoms/Icons'
-import Button from '@/components/atoms/Button'
-import TimeAgo from '../TimeAgo'
-import FeedCardUserDetail from './FeedCardUserDetail'
+import FeedItemDetail from './FeedItemDetail'
 
 interface iProps {
   data: FeedGroupData
-  userLastName: string
   innerRef?: React.Ref<HTMLParagraphElement>
+  children: ReactNode
 }
 
-const FeedCardUser = ({ data, userLastName, innerRef }: iProps) => {
+const FeedItem = ({ data, innerRef, children }: iProps) => {
   const queryClient = useQueryClient()
   const getUserInfo = useGetFetchQuery<ResponseUserType>(['UserInfo'])
 
@@ -60,14 +56,6 @@ const FeedCardUser = ({ data, userLastName, innerRef }: iProps) => {
     },
   })
 
-  const handleGetFeedDetail = () => {
-    getFeedDetailApi.mutate(data.feedItem.postId, {
-      onSuccess() {
-        setOpenModalComment(true)
-      },
-    })
-  }
-
   const handleCopyLink = () => {
     getFeedLinkApi.mutate(data.feedItem.postId, {
       onSuccess(data) {
@@ -79,6 +67,14 @@ const FeedCardUser = ({ data, userLastName, innerRef }: iProps) => {
           .catch(() => {
             console.error('Copy path failed!')
           })
+      },
+    })
+  }
+
+  const handleGetFeedDetail = () => {
+    getFeedDetailApi.mutate(data.feedItem.postId, {
+      onSuccess() {
+        setOpenModalComment(true)
       },
     })
   }
@@ -134,51 +130,11 @@ const FeedCardUser = ({ data, userLastName, innerRef }: iProps) => {
         className='mt-4 w-full rounded-lg border bg-white p-3'
         ref={innerRef}
       >
-        <div className='flex items-center gap-3'>
-          <Button to={`/profile/${data.authorProfile.userId}`}>
-            <figure className='h-[40px] w-[40px] overflow-hidden rounded-full hover:cursor-pointer'>
-              <img
-                src={data.authorProfile.avatarImgUrl || images.avatar}
-                alt='avatar'
-              />
-            </figure>
-          </Button>
-          <div>
-            <div className='flex items-center gap-1'>
-              <Button
-                to={`/profile/${data.authorProfile.userId}`}
-                className='text-textHeadingColor'
-              >
-                {data.authorProfile.displayName}
-              </Button>
-              <span className='text-2xl'>
-                <MdArrowRight />
-              </span>
-              <Button
-                to={`/profile/${data.feedItem.toUserId}`}
-                className='text-textHeadingColor'
-              >
-                {userLastName}
-              </Button>
-            </div>
-            <h1 className='flex items-center gap-2 text-sm text-textPrimaryColor'>
-              <TimeAgo timestamp={data.feedItem.createdTime} />
-              {listAudienceGroup.map(
-                (it) =>
-                  it.value === data.feedItem.privacyType && (
-                    <div className='flex items-center gap-2' key={it.key}>
-                      <span className=''>
-                        <it.icon />
-                      </span>
-                    </div>
-                  ),
-              )}
-            </h1>
-          </div>
-        </div>
-        <p className='mt-3 text-sm text-textPrimaryColor'>
-          {data.feedItem.content}
-        </p>
+        {children}
+        <p
+          className='mt-3 text-sm text-textPrimaryColor'
+          dangerouslySetInnerHTML={{ __html: data.feedItem.htmlContent }}
+        />
         <div className='mt-3 grid gap-2'>
           {data.feedItem.feedImages &&
             (data.feedItem.feedImages.length === 1 ? (
@@ -257,7 +213,11 @@ const FeedCardUser = ({ data, userLastName, innerRef }: iProps) => {
         <div className='my-3 flex items-center'>
           <span className='h-px w-full bg-secondColor opacity-30'></span>
         </div>
-        <div className='grid grid-cols-3'>
+        <div
+          className={`grid ${
+            data.groupItem.groupType !== 2 ? ' grid-cols-3' : ' grid-cols-2'
+          }`}
+        >
           <div
             className='flex cursor-pointer items-center justify-center gap-2 px-3 py-1 hover:bg-primaryColor/10'
             onClick={handleReactFeed}
@@ -286,15 +246,17 @@ const FeedCardUser = ({ data, userLastName, innerRef }: iProps) => {
             </span>
             <p className='font-medium text-textPrimaryColor'>Comment</p>
           </div>
-          <div
-            className='flex cursor-pointer items-center justify-center gap-2 px-3 py-1 hover:bg-primaryColor/10'
-            onClick={handleCopyLink}
-          >
-            <span className='text-2xl text-textPrimaryColor'>
-              <PiShareFat />
-            </span>
-            <p className='font-medium text-textPrimaryColor'>Share</p>
-          </div>
+          {data.groupItem.groupType !== 2 && (
+            <div
+              className='flex cursor-pointer items-center justify-center gap-2 px-3 py-1 hover:bg-primaryColor/10'
+              onClick={handleCopyLink}
+            >
+              <span className='text-2xl text-textPrimaryColor'>
+                <PiShareFat />
+              </span>
+              <p className='font-medium text-textPrimaryColor'>Share</p>
+            </div>
+          )}
         </div>
       </div>
       <Modal
@@ -339,16 +301,18 @@ const FeedCardUser = ({ data, userLastName, innerRef }: iProps) => {
           </div>
         }
       >
-        <FeedCardUserDetail
+        <FeedItemDetail
           isLike={isLike}
           setIsLike={setIsLike}
           totalLike={totalLike}
           setTotalLike={setTotalLike}
           data={getFeedDetailApi.data?.data.data!}
-        />
+        >
+          {children}
+        </FeedItemDetail>
       </Modal>
     </Fragment>
   )
 }
 
-export default FeedCardUser
+export default FeedItem

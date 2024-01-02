@@ -113,37 +113,27 @@ export const handleSearchUserInfo = async (keyword: string) => {
   return data
 }
 
-export const handleGetListFollowers = async ({
-  userId,
-  page,
-  size,
-}: {
-  userId: string
-  page: string
-  size: string
-}) => {
-  const { data } = await UsersApi.getListFollowers({
-    userId,
-    page,
-    size,
-  })
+export const handleGetListFollowers = async (
+  {
+    pageParam,
+  }: {
+    pageParam: number
+  },
+  userId: string,
+) => {
+  const { data } = await UsersApi.getListFollowers(userId, pageParam - 1)
   return data
 }
 
-export const handleGetListFollowing = async ({
-  userId,
-  page,
-  size,
-}: {
-  userId: string
-  page: string
-  size: string
-}) => {
-  const { data } = await UsersApi.getListFollowing({
-    userId,
-    page,
-    size,
-  })
+export const handleGetListFollowing = async (
+  {
+    pageParam,
+  }: {
+    pageParam: number
+  },
+  userId: string,
+) => {
+  const { data } = await UsersApi.getListFollowing(userId, pageParam - 1)
   return data
 }
 
@@ -156,6 +146,7 @@ export const useGetUserInfo = (
     queryFn: () => handleGetUserInfo(),
     staleTime: 5000,
     retry: 2,
+    placeholderData: keepPreviousData,
     enabled: enabled,
     ...options,
   })
@@ -243,55 +234,25 @@ export const usePostConnectUser = () => {
   })
 }
 
-export const useGetListFollowers = ({
-  userId,
-  page,
-  size,
-}: {
-  userId: string
-  page: string
-  size: string
-}) => {
+export const useGetListFollowers = (userId: string) => {
   return useInfiniteQuery({
-    queryKey: ['ListFollowers', { userId, page, size }],
+    queryKey: ['ListFollowers', { userId }],
     initialPageParam: 1,
-    queryFn: () =>
-      handleGetListFollowers({
-        userId,
-        page,
-        size,
-      }),
+    queryFn: ({ pageParam }) => handleGetListFollowers({ pageParam }, userId),
     getNextPageParam: (lastPage, allPages) => {
-      const nextPage = lastPage.data.userProfiles
-        ? allPages.length + 1
-        : undefined
+      const nextPage = lastPage.data !== null ? allPages.length + 1 : undefined
       return nextPage
     },
   })
 }
 
-export const useGetListFollowing = ({
-  userId,
-  page,
-  size,
-}: {
-  userId: string
-  page: string
-  size: string
-}) => {
+export const useGetListFollowing = (userId: string) => {
   return useInfiniteQuery({
-    queryKey: ['ListFollowing', { userId, page, size }],
+    queryKey: ['ListFollowing', { userId }],
     initialPageParam: 1,
-    queryFn: () =>
-      handleGetListFollowing({
-        userId,
-        page,
-        size,
-      }),
+    queryFn: ({ pageParam }) => handleGetListFollowing({ pageParam }, userId),
     getNextPageParam: (lastPage, allPages) => {
-      const nextPage = lastPage.data.userProfiles
-        ? allPages.length + 1
-        : undefined
+      const nextPage = lastPage.data !== null ? allPages.length + 1 : undefined
       return nextPage
     },
   })
@@ -378,10 +339,10 @@ export const useGetListComment = (feedId: string) => {
     initialPageParam: 1,
     queryFn: ({ pageParam }) => handleGetListComment({ pageParam }, feedId),
     getNextPageParam: (lastPage, allPages) => {
-      const nextPage = lastPage.data ? allPages.length + 1 : undefined
+      const nextPage =
+        lastPage.data.length > 0 ? allPages.length + 1 : undefined
       return nextPage
     },
-    gcTime: 0,
     enabled: !!feedId,
   })
 }
@@ -443,8 +404,8 @@ export const useGetListFeedOfGroup = (groupId: string, enabled?: boolean) => {
       const nextPage = lastPage.data ? allPages.length + 1 : undefined
       return nextPage
     },
-    gcTime: 0,
     enabled: !!groupId && enabled,
+    gcTime: 0,
   })
 }
 
@@ -459,23 +420,20 @@ export const handleGetGroupInfo = async (id: string) => {
   return data
 }
 
-export const handleGetListMemberGroup = async ({
-  groupId,
-  roleId,
-  page,
-  size,
-}: {
-  groupId: string
-  roleId: string
-  page: string
-  size: string
-}) => {
-  const { data } = await GroupsApi.getListMemberGroup({
+export const handleGetListMemberGroup = async (
+  {
+    pageParam,
+  }: {
+    pageParam: number
+  },
+  groupId: string,
+  roleId: string,
+) => {
+  const { data } = await GroupsApi.getListMemberGroup(
+    pageParam - 1,
     groupId,
     roleId,
-    page,
-    size,
-  })
+  )
   return data
 }
 
@@ -527,30 +485,16 @@ export const useGetGroupInfo = (
   })
 }
 
-export const useGetListMemberGroup = (
-  {
-    groupId,
-    roleId,
-    page,
-    size,
-  }: {
-    groupId: string
-    roleId: string
-    page: string
-    size: string
-  },
-  options?: UseQueryOptions<ResponseListMemberGroupType>,
-) => {
-  return useQuery({
-    queryKey: ['ListMemberGroup', { groupId, page, size }],
-    queryFn: () =>
-      handleGetListMemberGroup({
-        groupId,
-        roleId,
-        page,
-        size,
-      }),
-    retry: 2,
-    ...options,
+export const useGetListMemberGroup = (groupId: string, roleId: string) => {
+  return useInfiniteQuery({
+    queryKey: ['ListMembers', { groupId, roleId }],
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) =>
+      handleGetListMemberGroup({ pageParam }, groupId, roleId),
+    getNextPageParam: (lastPage, allPages) => {
+      const nextPage =
+        lastPage.data.members.length > 0 ? allPages.length + 1 : undefined
+      return nextPage
+    },
   })
 }

@@ -22,6 +22,7 @@ import {
   useGetListAllGroup,
   useGetListFeedOfGroup,
   useGetListMemberGroup,
+  usePostConnectUser,
   usePostUploadBanner,
 } from '@/hook'
 
@@ -29,9 +30,10 @@ import Button from '@/components/atoms/Button'
 import Search from '@/components/molecules/Search'
 import images from '@/assets/images'
 import { listAudienceGroup } from '@/utils/data'
-import FeedCard from '@/components/molecules/FeedCard'
 import ModalPost from '@/components/molecules/ModalPost'
 import ModalAudience from '@/components/molecules/ModalAudience'
+import FeedItem from '@/components/molecules/FeedItem'
+import FeedCard from '@/components/molecules/FeedItem/FeedCard'
 
 const imageMimeType = /image\/(png|jpg|jpeg)/i
 
@@ -51,13 +53,13 @@ const GroupsInfoPage = () => {
     getGroupInfoApi.data?.data.currentUserRole === null ? false : true,
   )
 
-  const getListMemberApi = useGetListMemberGroup({
-    groupId: id!,
-    roleId: 'MEMBER',
-    page: '0',
-    size: '10',
-  })
+  const getListMemberApi = useGetListMemberGroup(id!, 'MEMBER')
 
+  const getListOwnerApi = useGetListMemberGroup(id!, 'OWNER')
+
+  const [roleList, setRoleList] = useState<number>(0)
+
+  const [modalListMember, setModalListMember] = useState<boolean>(false)
   const [openModalDelete, setOpenModalDelete] = useState<boolean>(false)
   const [previewBanner, setPreviewBanner] = useState<string>('')
   const [photos, setPhotos] = useState<string[]>([])
@@ -85,6 +87,8 @@ const GroupsInfoPage = () => {
   const uploadBannerApi = usePostUploadBanner()
 
   const deleteGroupApi = useDisableGroup()
+
+  const connectApi = usePostConnectUser()
 
   const fileListToArray = (fileList: FileList) => {
     const filesArray = []
@@ -175,6 +179,44 @@ const GroupsInfoPage = () => {
       label: <p>Groups</p>,
     },
   ]
+
+  const handleConnectInList = (
+    connected: boolean,
+    displayName: string,
+    userId: string,
+  ) => {
+    if (connected) {
+      connectApi.mutate(
+        {
+          targetUserId: userId,
+          status: 0,
+        },
+        {
+          onSuccess() {
+            toast.success(`You have unfollowed ${displayName}`)
+            queryClient.invalidateQueries({ queryKey: ['UserProfile'] })
+            queryClient.invalidateQueries({ queryKey: ['ListFollowers'] })
+            queryClient.invalidateQueries({ queryKey: ['ListFollowing'] })
+          },
+        },
+      )
+    } else {
+      connectApi.mutate(
+        {
+          targetUserId: userId,
+          status: 1,
+        },
+        {
+          onSuccess() {
+            toast.success(`Already follow ${displayName}`)
+            queryClient.invalidateQueries({ queryKey: ['UserProfile'] })
+            queryClient.invalidateQueries({ queryKey: ['ListFollowers'] })
+            queryClient.invalidateQueries({ queryKey: ['ListFollowing'] })
+          },
+        },
+      )
+    }
+  }
 
   return (
     <Fragment>
@@ -342,33 +384,14 @@ const GroupsInfoPage = () => {
                           ),
                       )}
                       {getGroupInfoApi.data?.data.currentUserRole !== null && (
-                        <p className='text-textPrimaryColor'>
-                          {getListMemberApi.data?.data.total} member
+                        <p
+                          className='cursor-pointer text-textPrimaryColor'
+                          onClick={() => setModalListMember(true)}
+                        >
+                          {getGroupInfoApi.data?.data.group.totalMember} members
                         </p>
                       )}
                     </span>
-                    <div className='mt-5 flex -space-x-4 rtl:space-x-reverse'>
-                      {getListMemberApi.data?.data.members &&
-                        getListMemberApi.data?.data.members
-                          .slice(0, 5)
-                          .map((it) => (
-                            <img
-                              key={it.userId}
-                              className='h-10 w-10 rounded-full border-2 border-white'
-                              src={it.avatarImgUrl || images.avatar}
-                            />
-                          ))}
-                      {getListMemberApi.data?.data.total! > 5 && (
-                        <Button
-                          className='flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-gray-700 text-xs font-medium text-white hover:bg-gray-600 dark:border-gray-800'
-                          to='#'
-                        >
-                          {getListMemberApi.data?.data.total! > 100
-                            ? '+99'
-                            : `+${getListMemberApi.data?.data.total}`}
-                        </Button>
-                      )}
-                    </div>
                   </div>
                   {getGroupInfoApi.data?.data.currentUserRole !== null ? (
                     <div className='flex items-center gap-3'>
@@ -528,13 +551,17 @@ const GroupsInfoPage = () => {
                     data.data ? (
                       data.data.map((it, i) =>
                         data.data.length === i + 1 ? (
-                          <FeedCard
+                          <FeedItem
                             key={it.feedItem.postId}
                             innerRef={ref}
                             data={it}
-                          />
+                          >
+                            <FeedCard data={it} />
+                          </FeedItem>
                         ) : (
-                          <FeedCard key={it.feedItem.postId} data={it} />
+                          <FeedItem key={it.feedItem.postId} data={it}>
+                            <FeedCard data={it} />
+                          </FeedItem>
                         ),
                       )
                     ) : (
@@ -640,6 +667,174 @@ const GroupsInfoPage = () => {
           handleCloseModalAudience={handleCloseModalAudience}
         />
       )}
+      <Modal
+        title={
+          <div className='flex items-center gap-2'>
+            <h1
+              className={`cursor-pointer ${
+                roleList === 0 && 'text-primaryColor'
+              }`}
+              onClick={() => setRoleList(0)}
+            >
+              List members
+            </h1>
+            <h1
+              className={`cursor-pointer ${
+                roleList === 1 && 'text-primaryColor'
+              }`}
+              onClick={() => setRoleList(1)}
+            >
+              List owners
+            </h1>
+          </div>
+        }
+        width='70%'
+        open={modalListMember}
+        onCancel={() => setModalListMember(false)}
+        footer={[
+          <p
+            className='cursor-pointer text-lg text-primaryColor'
+            key='seemore'
+            onClick={() => {
+              if (roleList === 0 && getListMemberApi.hasNextPage) {
+                getListMemberApi.fetchNextPage()
+                return
+              }
+              if (roleList === 1 && getListOwnerApi.hasNextPage) {
+                getListOwnerApi.fetchNextPage()
+                return
+              }
+            }}
+          >
+            {roleList === 0
+              ? getListMemberApi.hasNextPage
+                ? 'See more'
+                : 'No results were found'
+              : ''}
+            {roleList === 1
+              ? getListOwnerApi.hasNextPage
+                ? 'See more'
+                : 'No results were found'
+              : ''}
+          </p>,
+        ]}
+      >
+        <Row gutter={15}>
+          {roleList === 0
+            ? getListMemberApi.data?.pages.map(
+                (data) =>
+                  data.data &&
+                  data.data.members.map((it) => (
+                    <Col xl={6} lg={8} md={12} sm={24} xs={24} key={it.userId}>
+                      <div className='mt-4 rounded-md bg-white p-3 shadow-lg'>
+                        <Row gutter={15} className='justify-between'>
+                          <Col span={6}>
+                            <figure className='h-[48px] w-[48px] overflow-hidden rounded-lg'>
+                              <img
+                                className='h-full w-full object-cover'
+                                src={it.avatarImgUrl || images.avatar}
+                                alt='avtGroup'
+                              />
+                            </figure>
+                          </Col>
+                          <Col span={18}>
+                            <h1 className='line-clamp-1 font-semibold text-textHeadingColor'>
+                              {it.displayName}
+                            </h1>
+                            <p className='line-clamp-1 text-textPrimaryColor'>
+                              {it.email}
+                            </p>
+                          </Col>
+                        </Row>
+                        <div className='mt-3 flex items-center gap-2'>
+                          <Button
+                            to={`/profile/${it.userId}`}
+                            onClick={() => setModalListMember(false)}
+                            className='flex flex-1 items-center justify-center rounded-md bg-primaryColor/20 px-3 py-2 text-primaryColor hover:opacity-80'
+                          >
+                            View
+                          </Button>
+                          {it.userId !== getUserInfo?.data.userId && (
+                            <Button
+                              onClick={() =>
+                                handleConnectInList(
+                                  it.connected,
+                                  it.displayName,
+                                  it.userId,
+                                )
+                              }
+                              className={`flex max-h-[38px] flex-1 items-center justify-center rounded-md px-3 py-2 ${
+                                !it.connected
+                                  ? 'bg-primaryColor/20 text-primaryColor'
+                                  : 'border border-primaryColor bg-white  text-primaryColor'
+                              } hover:opacity-80`}
+                            >
+                              {!it.connected ? 'Follow' : 'Unfollow'}
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </Col>
+                  )),
+              )
+            : getListOwnerApi.data?.pages.map(
+                (data) =>
+                  data.data &&
+                  data.data.members.map((it) => (
+                    <Col xl={6} lg={8} md={12} sm={24} xs={24} key={it.userId}>
+                      <div className='mt-4 rounded-md bg-white p-3 shadow-lg'>
+                        <Row gutter={15} className='justify-between'>
+                          <Col span={6}>
+                            <figure className='h-[48px] w-[48px] overflow-hidden rounded-lg'>
+                              <img
+                                className='h-full w-full object-cover'
+                                src={it.avatarImgUrl || images.avatar}
+                                alt='avtGroup'
+                              />
+                            </figure>
+                          </Col>
+                          <Col span={18}>
+                            <h1 className='line-clamp-1 font-semibold text-textHeadingColor'>
+                              {it.displayName}
+                            </h1>
+                            <p className='line-clamp-1 text-textPrimaryColor'>
+                              {it.email}
+                            </p>
+                          </Col>
+                        </Row>
+                        <div className='mt-3 flex items-center gap-2'>
+                          <Button
+                            to={`/profile/${it.userId}`}
+                            onClick={() => setModalListMember(false)}
+                            className='flex flex-1 items-center justify-center rounded-md bg-primaryColor/20 px-3 py-2 text-primaryColor hover:opacity-80'
+                          >
+                            View
+                          </Button>
+                          {it.userId !== getUserInfo?.data.userId && (
+                            <Button
+                              onClick={() =>
+                                handleConnectInList(
+                                  it.connected,
+                                  it.displayName,
+                                  it.userId,
+                                )
+                              }
+                              className={`flex max-h-[38px] flex-1 items-center justify-center rounded-md px-3 py-2 ${
+                                !it.connected
+                                  ? 'bg-primaryColor/20 text-primaryColor'
+                                  : 'border border-primaryColor bg-white  text-primaryColor'
+                              } hover:opacity-80`}
+                            >
+                              {!it.connected ? 'Follow' : 'Unfollow'}
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </Col>
+                  )),
+              )}
+        </Row>
+      </Modal>
     </Fragment>
   )
 }

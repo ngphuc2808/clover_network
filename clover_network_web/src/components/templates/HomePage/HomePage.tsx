@@ -22,9 +22,11 @@ import ModalPost from '@/components/molecules/ModalPost'
 import ModalAudience from '@/components/molecules/ModalAudience'
 import Button from '@/components/atoms/Button'
 import LoadingPage from '@/components/pages/LoadingPage'
-import FeedCard from '@/components/molecules/FeedCard'
-import FeedCardGroup from '@/components/molecules/FeedCardGroup'
-import FeedCardUser from '@/components/molecules/FeedCardUser'
+import FeedItem from '@/components/molecules/FeedItem'
+import FeedCard from '@/components/molecules/FeedItem/FeedCard'
+import FeedCardUser from '@/components/molecules/FeedItem/FeedCardUser'
+import FeedCardGroup from '@/components/molecules/FeedItem/FeedCardGroup'
+import FeedCardAdmin from '@/components/molecules/FeedItem/FeedCardAdmin'
 
 const imageMimeType = /image\/(png|jpg|jpeg)/i
 
@@ -252,40 +254,49 @@ const HomePage = () => {
             data.data ? (
               data.data.map((it, i) =>
                 data.data.length === i + 1 ? (
-                  it.feedItem.toUserId === it.feedItem.authorId &&
-                  it.feedItem.postToUserWall ? (
-                    <FeedCard
-                      key={it.feedItem.postId}
-                      innerRef={ref}
-                      data={it}
-                    />
+                  it.groupItem.groupType === 2 ? (
+                    <FeedItem key={it.feedItem.postId} data={it} innerRef={ref}>
+                      <FeedCardAdmin />
+                    </FeedItem>
+                  ) : it.feedItem.toUserId === it.feedItem.authorId &&
+                    it.feedItem.postToUserWall ? (
+                    <FeedItem key={it.feedItem.postId} data={it} innerRef={ref}>
+                      <FeedCard data={it} />
+                    </FeedItem>
                   ) : it.feedItem.toUserId !== it.feedItem.authorId &&
                     it.feedItem.postToUserWall ? (
+                    <FeedItem key={it.feedItem.postId} data={it} innerRef={ref}>
+                      <FeedCardUser
+                        data={it}
+                        userLastName={it.groupItem.groupName}
+                      />
+                    </FeedItem>
+                  ) : (
+                    <FeedItem key={it.feedItem.postId} data={it} innerRef={ref}>
+                      <FeedCardGroup data={it} />
+                    </FeedItem>
+                  )
+                ) : it.groupItem.groupType === 2 ? (
+                  <FeedItem key={it.feedItem.postId} data={it}>
+                    <FeedCardAdmin />
+                  </FeedItem>
+                ) : it.feedItem.toUserId === it.feedItem.authorId &&
+                  it.feedItem.postToUserWall ? (
+                  <FeedItem key={it.feedItem.postId} data={it}>
+                    <FeedCard data={it} />
+                  </FeedItem>
+                ) : it.feedItem.toUserId !== it.feedItem.authorId &&
+                  it.feedItem.postToUserWall ? (
+                  <FeedItem key={it.feedItem.postId} data={it}>
                     <FeedCardUser
-                      key={it.feedItem.postId}
-                      innerRef={ref}
                       data={it}
                       userLastName={it.groupItem.groupName}
                     />
-                  ) : (
-                    <FeedCardGroup
-                      key={it.feedItem.postId}
-                      innerRef={ref}
-                      data={it}
-                    />
-                  )
-                ) : it.feedItem.toUserId === it.feedItem.authorId &&
-                  it.feedItem.postToUserWall ? (
-                  <FeedCard key={it.feedItem.postId} data={it} />
-                ) : it.feedItem.toUserId !== it.feedItem.authorId &&
-                  it.feedItem.postToUserWall ? (
-                  <FeedCardUser
-                    key={it.feedItem.postId}
-                    data={it}
-                    userLastName={it.groupItem.groupName}
-                  />
+                  </FeedItem>
                 ) : (
-                  <FeedCardGroup key={it.feedItem.postId} data={it} />
+                  <FeedItem key={it.feedItem.postId} data={it}>
+                    <FeedCardGroup data={it} />
+                  </FeedItem>
                 ),
               )
             ) : (
