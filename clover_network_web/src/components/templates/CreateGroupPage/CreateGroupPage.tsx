@@ -5,7 +5,7 @@ import { BsEmojiSmile } from 'react-icons/bs'
 import { FcAddImage } from 'react-icons/fc'
 import { IoChevronBack, IoChevronDown } from 'react-icons/io5'
 
-import { listAudienceGroup } from '@/utils/data'
+import { listAudience } from '@/utils/data'
 import { useGetFetchQuery, usePostCreateGroup } from '@/hook'
 import Button from '@/components/atoms/Button'
 import images from '@/assets/images'
@@ -75,7 +75,7 @@ const CreateGroupPage = () => {
             </div>
             {privacy && (
               <ul className='mt-4 max-h-[240px] overflow-y-scroll'>
-                {listAudienceGroup.map((it) => (
+                {listAudience.map((it) => (
                   <li
                     className={`flex cursor-pointer items-center gap-3 rounded-md p-2 hover:bg-gray-200/60`}
                     onClick={() => {
@@ -144,7 +144,7 @@ const CreateGroupPage = () => {
                   {watch('groupName') || 'Group name'}
                 </h1>
                 <span className='mt-3 text-lg text-textPrimaryColor'>
-                  {listAudienceGroup.map(
+                  {listAudience.map(
                     (it) =>
                       it.value === watch('groupPrivacy') && (
                         <div className='flex items-center gap-2' key={it.key}>
@@ -220,7 +220,7 @@ const CreateGroupPage = () => {
                   About
                 </h1>
                 <div className='mt-3 flex items-center gap-3'>
-                  {listAudienceGroup.map(
+                  {listAudience.map(
                     (it) =>
                       it.value === watch('groupPrivacy') && (
                         <div className='flex items-center gap-2' key={it.key}>

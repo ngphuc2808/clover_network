@@ -564,7 +564,7 @@ const ProfilePage = () => {
           </div>
         </div>
       </section>
-      {modalPost && !modalAudience && (
+      {modalPost && (
         <ModalPost
           setPhotos={setPhotos}
           handleUploadImage={handleUploadImage}

@@ -47,7 +47,7 @@ const FeedCardGroup = ({ data }: iProps) => {
           <TimeAgo timestamp={data.feedItem.createdTime} />
           {listAudienceGroup.map(
             (it) =>
-              it.value === data.feedItem.privacyType && (
+              it.key === data.feedItem.privacyType && (
                 <div className='flex items-center gap-2' key={it.key}>
                   <span className=''>
                     <it.icon />

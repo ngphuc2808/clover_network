@@ -33,7 +33,7 @@ import {
 import Button from '@/components/atoms/Button'
 import Search from '@/components/molecules/Search'
 import images from '@/assets/images'
-import { listAudienceGroup } from '@/utils/data'
+import { listAudience } from '@/utils/data'
 import ModalPost from '@/components/molecules/ModalPost'
 import ModalAudience from '@/components/molecules/ModalAudience'
 import FeedItem from '@/components/molecules/FeedItem'
@@ -518,7 +518,7 @@ const GroupsInfoPage = () => {
                         {getGroupInfoApi.data?.data.group.groupName}
                       </h1>
                       <span className='mt-3 flex items-center gap-4 text-lg text-textPrimaryColor'>
-                        {listAudienceGroup.map(
+                        {listAudience.map(
                           (it) =>
                             it.value ===
                               getGroupInfoApi.data?.data.group.groupPrivacy && (
@@ -771,7 +771,7 @@ const GroupsInfoPage = () => {
                       About
                     </h1>
                     <div className='mt-3 flex items-center gap-3'>
-                      {listAudienceGroup.map(
+                      {listAudience.map(
                         (it) =>
                           it.value ===
                             getGroupInfoApi.data?.data.group.groupPrivacy && (
@@ -824,7 +824,7 @@ const GroupsInfoPage = () => {
           Do you want to delete this group? Actions cannot be undone!
         </p>
       </Modal>
-      {modalPost && !modalAudience && (
+      {modalPost && (
         <ModalPost
           setPhotos={setPhotos}
           handleUploadImage={handleUploadImage}

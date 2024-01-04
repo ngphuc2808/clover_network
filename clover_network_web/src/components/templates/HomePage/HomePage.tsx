@@ -453,7 +453,7 @@ const HomePage = () => {
           </div>
         </div>
       </div>
-      {modalPost && !modalAudience && (
+      {modalPost && (
         <ModalPost
           setPhotos={setPhotos}
           handleUploadImage={handleUploadImage}
