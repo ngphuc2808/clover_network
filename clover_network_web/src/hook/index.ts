@@ -214,7 +214,7 @@ export const usePostUploadBanner = () => {
   })
 }
 
-export const useGetSearchUserInfo = (
+export const useGetSearchInfo = (
   keyword: string,
   options?: UseQueryOptions<ResponseSearchUserType>,
 ) => {
@@ -265,6 +265,11 @@ export const handleGetListFeed = async ({
   pageParam: number
 }) => {
   const { data } = await FeedsApi.listFeed(pageParam - 1)
+  return data
+}
+
+export const handleCheckCanPost = async (groupId: string) => {
+  const { data } = await GroupsApi.checkCanPost(groupId)
   return data
 }
 
@@ -367,6 +372,19 @@ export const usePostLike = () => {
   })
 }
 
+export const useCheckCanPostFeed = (
+  groupId: string,
+  options?: UseQueryOptions<boolean>,
+) => {
+  return useQuery({
+    queryKey: ['CheckCanPost', { groupId }],
+    queryFn: () => handleCheckCanPost(groupId),
+    retry: 2,
+    enabled: !!groupId,
+    ...options,
+  })
+}
+
 export const useGetListFeed = () => {
   return useInfiniteQuery({
     queryKey: ['ListFeed'],
@@ -453,6 +471,14 @@ export const useJoinGroup = () => {
   })
 }
 
+export const useLeaveGroup = () => {
+  return useMutation({
+    mutationFn: (groupId: string) => {
+      return GroupsApi.leaveGroup(groupId)
+    },
+  })
+}
+
 export const useDisableGroup = () => {
   return useMutation({
     mutationFn: (groupId: string) => {
@@ -493,7 +519,7 @@ export const useGetListMemberGroup = (groupId: string, roleId: string) => {
       handleGetListMemberGroup({ pageParam }, groupId, roleId),
     getNextPageParam: (lastPage, allPages) => {
       const nextPage =
-        lastPage.data.members.length > 0 ? allPages.length + 1 : undefined
+        lastPage.data.members?.length! > 0 ? allPages.length + 1 : undefined
       return nextPage
     },
   })

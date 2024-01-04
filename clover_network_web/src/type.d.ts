@@ -173,7 +173,7 @@ type ResponseSearchUserType = {
       postToUserWall: string
       delFlag: string
       pin: string
-    }
+    }[]
   }
   messageEN: string
   messageVN: string
@@ -528,7 +528,7 @@ type ResponseDeleteGroupType = {
   messageVN: string
 }
 
-type ResponseJoinGroupType = {
+type ResponseJoinLeaveGroupType = {
   code: number
   data: string
   messageEN: string

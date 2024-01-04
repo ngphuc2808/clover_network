@@ -2,7 +2,6 @@ import { useRef, ChangeEvent } from 'react'
 
 import { AiOutlineClose, AiOutlineLoading3Quarters } from 'react-icons/ai'
 import { HiOutlineMagnifyingGlass } from 'react-icons/hi2'
-import { Dropdown, type MenuProps } from 'antd'
 
 interface iProps {
   title: string
@@ -13,7 +12,6 @@ interface iProps {
   handleSearchChange: (e: ChangeEvent<HTMLInputElement>) => void
   handleClearChange: () => void
   loading?: boolean
-  items?: MenuProps['items']
 }
 
 const Search = ({
@@ -25,7 +23,6 @@ const Search = ({
   handleSearchChange,
   handleClearChange,
   loading,
-  items,
 }: iProps) => {
   const inputRef = useRef() as React.MutableRefObject<HTMLInputElement>
 
@@ -37,11 +34,9 @@ const Search = ({
       } items-center ${openSearch ? 'w-auto' : ''}
       relative justify-between overflow-hidden rounded-full bg-bgPrimaryColor md:w-auto lg:mt-0 lg:w-auto`}
     >
-      <Dropdown menu={{ items }} placement='bottom'>
-        <span className='cursor-pointer p-3 text-2xl text-primaryColor hover:text-secondColor sm:px-3 sm:py-[5px]'>
-          <HiOutlineMagnifyingGlass />
-        </span>
-      </Dropdown>
+      <span className='cursor-pointer p-3 text-2xl text-primaryColor hover:text-secondColor sm:px-3 sm:py-[5px]'>
+        <HiOutlineMagnifyingGlass />
+      </span>
 
       <input
         className='h-full flex-1 bg-transparent text-textPrimaryColor outline-none'

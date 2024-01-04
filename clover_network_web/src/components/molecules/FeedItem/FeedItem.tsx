@@ -126,7 +126,7 @@ const FeedItem = ({ data, innerRef, children }: iProps) => {
   return (
     <Fragment>
       <div
-        className='mt-4 w-full rounded-lg border bg-white p-3'
+        className='mb-4 w-full rounded-lg border bg-white p-3'
         ref={innerRef}
       >
         {children}

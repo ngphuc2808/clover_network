@@ -42,6 +42,8 @@ export const API_URL = {
   updateBanner: `${API_BASE}/group/change-group-banner`,
   disableGroup: `${API_BASE}/group/disable-group`,
   joinGroup: `${API_BASE}/group/join`,
+  checkCanPost: `${API_BASE}/group/canPost`,
+  leaveGroup: `${API_BASE}/group/leave`,
 
   //connect
   connectUser: `${API_BASE}/connection/connect-user`,

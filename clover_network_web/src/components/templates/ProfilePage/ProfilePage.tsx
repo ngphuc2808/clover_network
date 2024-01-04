@@ -13,6 +13,7 @@ import { CiCamera } from 'react-icons/ci'
 
 import images from '@/assets/images'
 import {
+  useCheckCanPostFeed,
   useGetFetchQuery,
   useGetListFeedOfGroup,
   useGetListFollowers,
@@ -54,6 +55,10 @@ const ProfilePage = () => {
   const { ref, inView } = useInView()
 
   const getUserProfileApi = useGetUserProfile(id!)
+
+  const checkCanPost = useCheckCanPostFeed(
+    getUserProfileApi.data?.data.userInfo.userWallId!,
+  )
 
   const getListFeedOfGroupApi = useGetListFeedOfGroup(
     getUserProfileApi.data?.data.userInfo.userWallId!,
@@ -245,7 +250,7 @@ const ProfilePage = () => {
               <>
                 <label
                   htmlFor='banner'
-                  className='absolute bottom-8 right-8 flex cursor-pointer items-center gap-2 rounded-md border border-primaryColor px-3 py-2 text-primaryColor'
+                  className='absolute bottom-8 right-8 flex cursor-pointer items-center gap-2 rounded-md bg-gray-900/40 px-3 py-2 text-white'
                 >
                   <span className='text-2xl'>
                     <CiCamera />
@@ -434,76 +439,78 @@ const ProfilePage = () => {
               </div>
             </div>
             <div className='col-span-full lg:col-span-6'>
-              <div className='rounded-lg border bg-white p-3'>
-                <div className='flex items-center gap-3'>
-                  <figure className='h-[40px] w-[40px] overflow-hidden rounded-full hover:cursor-pointer'>
+              {checkCanPost.data && (
+                <div className='mb-4 rounded-lg border bg-white p-3'>
+                  <div className='flex items-center gap-3'>
+                    <figure className='h-[40px] w-[40px] overflow-hidden rounded-full hover:cursor-pointer'>
+                      {checkOwner.userId !==
+                      getUserProfileApi.data?.data.userInfo.userId ? (
+                        <img
+                          src={getUserInfo?.data.avatar || images.avatar}
+                          alt='avatar'
+                        />
+                      ) : (
+                        <img
+                          src={
+                            getUserProfileApi?.data?.data.userInfo.avatar ||
+                            images.avatar
+                          }
+                          alt='avatar'
+                        />
+                      )}
+                    </figure>
                     {checkOwner.userId !==
                     getUserProfileApi.data?.data.userInfo.userId ? (
-                      <img
-                        src={getUserInfo?.data.avatar || images.avatar}
-                        alt='avatar'
-                      />
+                      <Button
+                        className='flex-1 rounded-full bg-bgPrimaryColor p-3 text-left text-sm text-textPrimaryColor hover:bg-primaryColor/10'
+                        onClick={() => setModalPost(true)}
+                      >
+                        Write something to{' '}
+                        {getUserProfileApi?.data?.data.userInfo.lastname} ?
+                      </Button>
                     ) : (
-                      <img
-                        src={
-                          getUserProfileApi?.data?.data.userInfo.avatar ||
-                          images.avatar
-                        }
-                        alt='avatar'
-                      />
+                      <Button
+                        className='flex-1 rounded-full bg-bgPrimaryColor p-3 text-left text-sm text-textPrimaryColor hover:bg-primaryColor/10'
+                        onClick={() => setModalPost(true)}
+                      >
+                        What's on your mind, {getUserInfo?.data.lastname} ?
+                      </Button>
                     )}
-                  </figure>
-                  {checkOwner.userId !==
-                  getUserProfileApi.data?.data.userInfo.userId ? (
-                    <Button
-                      className='flex-1 rounded-full bg-bgPrimaryColor p-3 text-left text-sm text-textPrimaryColor hover:bg-primaryColor/10'
-                      onClick={() => setModalPost(true)}
+                  </div>
+                  <div className='my-3 flex items-center'>
+                    <span className='h-px w-full bg-secondColor opacity-30'></span>
+                  </div>
+                  <div className='flex items-center justify-center'>
+                    <label
+                      htmlFor='uploadFilesHome'
+                      className='flex cursor-pointer items-center gap-2 p-3 hover:bg-primaryColor/10'
                     >
-                      Write something to{' '}
-                      {getUserProfileApi?.data?.data.userInfo.lastname} ?
-                    </Button>
-                  ) : (
-                    <Button
-                      className='flex-1 rounded-full bg-bgPrimaryColor p-3 text-left text-sm text-textPrimaryColor hover:bg-primaryColor/10'
-                      onClick={() => setModalPost(true)}
-                    >
-                      What's on your mind, {getUserInfo?.data.lastname} ?
-                    </Button>
-                  )}
-                </div>
-                <div className='my-3 flex items-center'>
-                  <span className='h-px w-full bg-secondColor opacity-30'></span>
-                </div>
-                <div className='flex items-center justify-center'>
-                  <label
-                    htmlFor='uploadFilesHome'
-                    className='flex cursor-pointer items-center gap-2 p-3 hover:bg-primaryColor/10'
-                  >
-                    <span className='text-2xl'>
-                      <FcAddImage />
-                    </span>
-                    <p className='font-medium text-textPrimaryColor'>
-                      Photo/video
-                    </p>
-                    <input
-                      id='uploadFilesHome'
-                      type='file'
-                      onChange={handleUploadImage}
-                      accept='image/*'
-                      multiple
-                      hidden
-                    />
-                  </label>
-                  <div className='flex cursor-pointer items-center gap-2 p-3 hover:bg-primaryColor/10'>
-                    <span className='text-2xl text-orange-400'>
-                      <BsEmojiSmile />
-                    </span>
-                    <p className='font-medium text-textPrimaryColor'>
-                      Feeling/activity
-                    </p>
+                      <span className='text-2xl'>
+                        <FcAddImage />
+                      </span>
+                      <p className='font-medium text-textPrimaryColor'>
+                        Photo/video
+                      </p>
+                      <input
+                        id='uploadFilesHome'
+                        type='file'
+                        onChange={handleUploadImage}
+                        accept='image/*'
+                        multiple
+                        hidden
+                      />
+                    </label>
+                    <div className='flex cursor-pointer items-center gap-2 p-3 hover:bg-primaryColor/10'>
+                      <span className='text-2xl text-orange-400'>
+                        <BsEmojiSmile />
+                      </span>
+                      <p className='font-medium text-textPrimaryColor'>
+                        Feeling/activity
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
               {getListFeedOfGroupApi.data?.pages.map((data, index) =>
                 data.data ? (
                   data.data.map((it, i) =>

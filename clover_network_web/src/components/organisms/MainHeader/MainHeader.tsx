@@ -2,7 +2,6 @@ import { ChangeEvent, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { useQueryClient } from '@tanstack/react-query'
-import type { MenuProps } from 'antd'
 import Tippy from '@tippyjs/react/headless'
 import { BiBell, BiMessageRounded } from 'react-icons/bi'
 import { IoLogOutOutline } from 'react-icons/io5'
@@ -15,8 +14,9 @@ import {
   useDebounce,
   useDeleteLogout,
   useGetFetchQuery,
-  useGetSearchUserInfo,
+  useGetSearchInfo,
   useJoinGroup,
+  useLeaveGroup,
   useOutsideClick,
   usePostConnectUser,
 } from '@/hook'
@@ -53,11 +53,13 @@ const MainHeader = () => {
 
   const debouncedSearchTerm = useDebounce(searchTerm, 500)
 
-  const searchUserApi = useGetSearchUserInfo(debouncedSearchTerm.trim())
+  const searchApi = useGetSearchInfo(debouncedSearchTerm.trim())
 
   const connectApi = usePostConnectUser()
 
   const joinGroupApi = useJoinGroup()
+
+  const leaveGroupApi = useLeaveGroup()
 
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value)
@@ -83,7 +85,6 @@ const MainHeader = () => {
   }
 
   const handleConnect = (connected: boolean, id: string, lastName: string) => {
-    console.log(connected)
     if (connected) {
       connectApi.mutate(
         {
@@ -115,51 +116,37 @@ const MainHeader = () => {
     }
   }
 
-  const handleJoinGroup = (id: string) => {
-    joinGroupApi.mutate(id, {
-      onSuccess(data) {
-        console.log(data)
-        toast.success('Joined the group successfully')
-        queryClient.invalidateQueries({ queryKey: ['SearchUserInfo'] })
-        queryClient.invalidateQueries({ queryKey: ['GroupInfo'] })
-      },
-    })
+  const handleJoinLeaveGroup = (id: string, role: string) => {
+    if (role === 'WAITING_FOR_APPROVE' || role === 'APPROVED') {
+      leaveGroupApi.mutate(id, {
+        onSuccess() {
+          toast.success(
+            `${
+              role === 'WAITING_FOR_APPROVE'
+                ? 'Canceled the group successfully'
+                : 'Leaved the group successfully'
+            }`,
+          )
+          queryClient.invalidateQueries({ queryKey: ['SearchUserInfo'] })
+          queryClient.invalidateQueries({ queryKey: ['GroupInfo'] })
+        },
+      })
+    } else {
+      joinGroupApi.mutate(id, {
+        onSuccess() {
+          toast.success('Joined the group successfully')
+          queryClient.invalidateQueries({ queryKey: ['SearchUserInfo'] })
+          queryClient.invalidateQueries({ queryKey: ['GroupInfo'] })
+        },
+      })
+    }
   }
-
   const wrapperRef = useRef<HTMLDivElement>(null)
 
   useOutsideClick(wrapperRef, () => {
     setSearchTerm('')
   })
 
-  const items: MenuProps['items'] = [
-    {
-      key: '0',
-      label: (
-        <p
-          className={`${
-            searchMode === 0 && 'bg-primaryColor/70 text-white'
-          } rounded-md p-1`}
-          onClick={() => setSearchMode(0)}
-        >
-          Users
-        </p>
-      ),
-    },
-    {
-      key: '1',
-      label: (
-        <p
-          className={`${
-            searchMode === 1 && 'bg-primaryColor/70 text-white'
-          } rounded-md p-1`}
-          onClick={() => setSearchMode(1)}
-        >
-          Groups
-        </p>
-      ),
-    },
-  ]
   return (
     <header className='fixed left-0 right-0 top-0 z-50 flex h-[61px] items-center bg-white px-3 shadow-md sm:grid sm:grid-cols-3 sm:grid-rows-1'>
       <div className='sm:col-span-1'>
@@ -196,18 +183,37 @@ const MainHeader = () => {
           handleClearChange={handleClearChange}
           handleSearchChange={handleSearchChange}
           searchTerm={searchTerm}
-          loading={searchUserApi.isLoading}
-          items={items}
+          loading={searchApi.isLoading}
         />
         {searchTerm &&
-          (!searchUserApi.isLoading ? (
-            <ul className='absolute mt-3 max-h-[600px] w-full overflow-y-auto rounded-md bg-white px-2 shadow-md [&>:last-child]:border-none '>
+          (!searchApi.isLoading ? (
+            <ul className='absolute mt-3 max-h-[600px] w-full overflow-y-auto rounded-md bg-white shadow-md [&>:last-child]:border-none '>
+              <li className='block items-center md:flex'>
+                <p
+                  className={`w-full cursor-pointer p-3 text-center hover:bg-primaryColor/20 hover:text-primaryColor md:w-1/2 ${
+                    searchMode === 0 &&
+                    'border-b-2 border-primaryColor text-primaryColor'
+                  }`}
+                  onClick={() => setSearchMode(0)}
+                >
+                  Find users
+                </p>
+                <p
+                  className={`w-full cursor-pointer p-3 text-center hover:bg-primaryColor/20 hover:text-primaryColor md:w-1/2 ${
+                    searchMode === 1 &&
+                    'border-b-2 border-primaryColor text-primaryColor'
+                  }`}
+                  onClick={() => setSearchMode(1)}
+                >
+                  Find groups
+                </p>
+              </li>
               {searchMode === 0 ? (
-                searchUserApi.data?.data.users !== null ? (
-                  searchUserApi.data?.data.users.map((it) => (
+                searchApi.data?.data.users !== null ? (
+                  searchApi.data?.data.users.map((it) => (
                     <li
                       key={it.userId}
-                      className='block cursor-pointer items-center justify-between gap-3 border-b p-4 hover:bg-gray-100 lg:flex '
+                      className='block cursor-pointer items-center justify-between gap-3 border-b p-4 px-2 hover:bg-gray-100 lg:flex '
                     >
                       <Button
                         to={`/profile/${it.userId}`}
@@ -243,8 +249,8 @@ const MainHeader = () => {
                     User not found!
                   </li>
                 )
-              ) : searchUserApi.data?.data.groups !== null ? (
-                searchUserApi.data?.data.groups.map((it) => (
+              ) : searchApi.data?.data.groups !== null ? (
+                searchApi.data?.data.groups.map((it) => (
                   <li
                     key={it.group.groupId}
                     className='block cursor-pointer items-center justify-between gap-3 border-b p-4 hover:bg-gray-100 lg:flex '
@@ -264,18 +270,26 @@ const MainHeader = () => {
                     </Button>
                     <div>
                       <Button
-                        className={`mt-3 flex w-full items-center items-center justify-center gap-2 rounded-lg px-4 py-2  hover:opacity-80 lg:mt-0 lg:w-auto ${
+                        className={`mt-3 flex w-auto items-center items-center justify-center gap-2 rounded-lg px-4 py-2  hover:opacity-80 lg:mt-0 ${
                           it.currentUserRole !== null &&
-                          it.currentUserRole.status === 'APPROVED'
+                          (it.currentUserRole.status === 'APPROVED' ||
+                            it.currentUserRole.status === 'WAITING_FOR_APPROVE')
                             ? 'border border-primaryColor text-primaryColor'
                             : 'bg-primaryColor  text-white'
                         }`}
-                        onClick={() => handleJoinGroup(it.group.groupId)}
+                        onClick={() =>
+                          handleJoinLeaveGroup(
+                            it.group.groupId,
+                            it.currentUserRole?.status!,
+                          )
+                        }
                       >
                         <p>
-                          {it.currentUserRole !== null &&
-                          it.currentUserRole.status === 'APPROVED'
-                            ? 'Leave'
+                          {it.currentUserRole !== null
+                            ? it.currentUserRole.status === 'APPROVED'
+                              ? 'Leave'
+                              : it.currentUserRole.status ===
+                                  'WAITING_FOR_APPROVE' && 'Cancel'
                             : 'Join'}
                         </p>
                       </Button>

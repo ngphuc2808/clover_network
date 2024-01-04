@@ -15,6 +15,22 @@ export const GroupsApi = {
       }),
     }),
 
+  checkCanPost: (groupId: string) =>
+    http.get<boolean>(API_URL.checkCanPost, {
+      headers: authHeader(),
+      params: {
+        groupId,
+      },
+    }),
+
+  leaveGroup: (groupId: string) =>
+    http.get<ResponseJoinLeaveGroupType>(API_URL.leaveGroup, {
+      headers: authHeader(),
+      params: {
+        groupId,
+      },
+    }),
+
   getGroupInfo: (id: string) =>
     http.get<ResponseGetGroupInfoType>(`${API_URL.getGroupInfo}/${id}`, {
       headers: authHeader(),
@@ -37,7 +53,7 @@ export const GroupsApi = {
     }),
 
   joinGroup: (groupId: string) =>
-    http.post<ResponseJoinGroupType>(API_URL.joinGroup, null, {
+    http.post<ResponseJoinLeaveGroupType>(API_URL.joinGroup, null, {
       params: {
         groupId,
       },

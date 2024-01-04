@@ -203,7 +203,7 @@ const HomePage = () => {
           </div>
         </div>
         <div className='col-span-1'>
-          <div className='mt-4 w-full rounded-lg border bg-white p-3'>
+          <div className='my-4 w-full rounded-lg border bg-white p-3'>
             <div className='flex items-center gap-3'>
               <figure className='h-[40px] w-[40px] overflow-hidden rounded-full hover:cursor-pointer'>
                 <img

@@ -54,7 +54,13 @@ const ModalPost = ({
 
   const getUserProfileApi = useGetUserProfile(id!)
 
-  const { register, watch, setValue, handleSubmit } = useForm<FeedsType>({
+  const {
+    register,
+    watch,
+    setValue,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FeedsType>({
     defaultValues: {
       authorId: getUserInfo?.data.userId!,
       content: '',
@@ -75,7 +81,12 @@ const ModalPost = ({
     },
   })
 
-  const { ref, ...rest } = register('content')
+  const { ref, ...rest } = register('content', {
+    required: {
+      value: true,
+      message: 'Please enter content!',
+    },
+  })
 
   const textAreaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -229,6 +240,10 @@ const ModalPost = ({
                   </Tippy>
                 </div>
               </div>
+              <p className='mt-3 text-sm text-red-500'>
+                {errors.content?.message}
+              </p>
+
               <div
                 className={`mt-4  max-h-[300px] grid-cols-1 gap-2 overflow-y-scroll rounded-xl border p-2 ${
                   photos && photos.length > 0 ? 'grid' : 'hidden'

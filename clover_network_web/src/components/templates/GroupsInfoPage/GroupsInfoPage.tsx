@@ -1,7 +1,7 @@
 import { ChangeEvent, Fragment, useEffect, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Col, MenuProps, Modal, Row } from 'antd'
+import { Col, Modal, Row } from 'antd'
 import { useInView } from 'react-intersection-observer'
 import { IoIosSettings } from 'react-icons/io'
 import { MdFeed, MdGroups } from 'react-icons/md'
@@ -16,12 +16,16 @@ import { RiDeleteBin5Line } from 'react-icons/ri'
 import { CiCamera } from 'react-icons/ci'
 
 import {
+  useDebounce,
   useDisableGroup,
   useGetFetchQuery,
   useGetGroupInfo,
   useGetListAllGroup,
   useGetListFeedOfGroup,
   useGetListMemberGroup,
+  useGetSearchInfo,
+  useJoinGroup,
+  useLeaveGroup,
   usePostConnectUser,
   usePostUploadBanner,
 } from '@/hook'
@@ -90,6 +94,10 @@ const GroupsInfoPage = () => {
 
   const connectApi = usePostConnectUser()
 
+  const joinGroupApi = useJoinGroup()
+
+  const leaveGroupApi = useLeaveGroup()
+
   const fileListToArray = (fileList: FileList) => {
     const filesArray = []
     for (const file of fileList) {
@@ -138,6 +146,10 @@ const GroupsInfoPage = () => {
     setSearchTerm('')
   }
 
+  const debouncedSearchTerm = useDebounce(searchTerm, 500)
+
+  const searchApi = useGetSearchInfo(debouncedSearchTerm.trim())
+
   const handleChangeBanner = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const formData = new FormData()
@@ -169,16 +181,64 @@ const GroupsInfoPage = () => {
     })
   }
 
-  const items: MenuProps['items'] = [
-    {
-      key: '1',
-      label: <p>Feeds</p>,
-    },
-    {
-      key: '2',
-      label: <p>Groups</p>,
-    },
-  ]
+  const handleJoinLeaveGroup = (id: string, role: string) => {
+    if (role === 'WAITING_FOR_APPROVE' || role === 'APPROVED') {
+      leaveGroupApi.mutate(id, {
+        onSuccess() {
+          toast.success(
+            `${
+              role === 'WAITING_FOR_APPROVE'
+                ? 'Canceled the group successfully'
+                : 'Leaved the group successfully'
+            }`,
+          )
+          queryClient.invalidateQueries({ queryKey: ['SearchUserInfo'] })
+          queryClient.invalidateQueries({ queryKey: ['GroupInfo'] })
+        },
+      })
+    } else {
+      joinGroupApi.mutate(id, {
+        onSuccess() {
+          toast.success('Joined the group successfully')
+          queryClient.invalidateQueries({ queryKey: ['SearchUserInfo'] })
+          queryClient.invalidateQueries({ queryKey: ['GroupInfo'] })
+        },
+      })
+    }
+  }
+
+  const handleLeaveGroup = () => {
+    if (
+      getGroupInfoApi.data?.data.currentUserRole?.status === 'APPROVED' ||
+      getGroupInfoApi.data?.data.currentUserRole?.status ===
+        'WAITING_FOR_APPROVE'
+    ) {
+      leaveGroupApi.mutate(id!, {
+        onSuccess() {
+          toast.success(
+            `${
+              getGroupInfoApi.data?.data.currentUserRole?.status ===
+              'WAITING_FOR_APPROVE'
+                ? 'Canceled the group successfully'
+                : 'Leaved the group successfully'
+            }`,
+          )
+          queryClient.invalidateQueries({ queryKey: ['SearchUserInfo'] })
+          queryClient.invalidateQueries({ queryKey: ['GroupInfo'] })
+        },
+      })
+    }
+  }
+
+  const handleJoinGroup = () => {
+    joinGroupApi.mutate(id!, {
+      onSuccess() {
+        toast.success('Joined the group successfully')
+        queryClient.invalidateQueries({ queryKey: ['SearchUserInfo'] })
+        queryClient.invalidateQueries({ queryKey: ['GroupInfo'] })
+      },
+    })
+  }
 
   const handleConnectInList = (
     connected: boolean,
@@ -220,7 +280,12 @@ const GroupsInfoPage = () => {
 
   return (
     <Fragment>
-      <Row className='mt-[61px]' gutter={15}>
+      <Row
+        className={`mt-[61px] ${
+          searchApi.data?.data.groups && 'justify-between'
+        }`}
+        gutter={!searchApi.data?.data.groups ? 15 : 0}
+      >
         <Col
           xl={6}
           lg={6}
@@ -239,17 +304,18 @@ const GroupsInfoPage = () => {
               </span>
             </div>
             <Search
-              title='Search Groups'
+              title='Search groups'
               handleClearChange={handleClearChange}
               handleSearchChange={handleSearchChange}
               searchTerm={searchTerm}
-              items={items}
+              loading={searchApi.isLoading}
             />
             <ul className='mt-3'>
               <li className='cursor-pointer rounded-md p-2 text-lg hover:bg-bgPrimaryColor'>
                 <Button
                   to={`/groups/feeds`}
                   className='flex items-center gap-2'
+                  onClick={() => setSearchTerm('')}
                 >
                   <span className='flex h-[40px] w-[40px] items-center justify-center rounded-full text-2xl'>
                     <MdFeed />
@@ -261,6 +327,7 @@ const GroupsInfoPage = () => {
                 <Button
                   to={`/groups/list-groups`}
                   className='flex items-center gap-2'
+                  onClick={() => setSearchTerm('')}
                 >
                   <span className='flex h-[40px] w-[40px] items-center justify-center rounded-full text-2xl '>
                     <MdGroups />
@@ -295,6 +362,7 @@ const GroupsInfoPage = () => {
                   <Button
                     to={`/groups/${it.groupId}`}
                     className='flex items-center gap-3'
+                    onClick={() => setSearchTerm('')}
                   >
                     <figure className='h-[48px] w-[48px] overflow-hidden rounded-md'>
                       <img
@@ -323,49 +391,386 @@ const GroupsInfoPage = () => {
             </div>
           </div>
         </Col>
-        <Col xl={18} lg={18} md={24} sm={24} xs={24}>
-          <div className='overflow-auto rounded-md'>
-            <div className='bg-white p-4 shadow-md'>
-              <div>
-                <div className='relative h-[350px] w-full overflow-hidden rounded-lg border border-gray-200'>
-                  <figure className='h-full w-full '>
-                    <img
-                      className='h-full w-full object-cover'
-                      src={
-                        previewBanner ||
-                        getGroupInfoApi.data?.data.group.bannerUrl ||
-                        images.banner
-                      }
-                    />
-                  </figure>
-                  {getGroupInfoApi.data?.data.group.groupOwnerId ===
-                    getUserInfo?.data.userId && (
-                    <>
+        <Col
+          xl={searchApi.data?.data.groups ? 16 : 18}
+          lg={searchApi.data?.data.groups ? 16 : 18}
+          md={24}
+          sm={24}
+          xs={24}
+          className={`${searchApi.data?.data.groups && 'mb-5 px-3'}`}
+        >
+          {searchApi.data?.data ? (
+            <div className={`${searchApi.data.data.groups ? '' : 'px-36'}`}>
+              <h1 className='pt-5 text-lg font-semibold text-textHeadingColor'>
+                Find groups
+              </h1>
+              <Row gutter={15}>
+                {searchApi.data?.data.groups ? (
+                  searchApi.data?.data.groups.map((it) => (
+                    <Col
+                      xl={8}
+                      lg={12}
+                      md={12}
+                      sm={24}
+                      xs={24}
+                      key={it.group.groupId}
+                    >
+                      <div className='mt-4 rounded-md bg-white p-3 shadow-md'>
+                        <div className='flex items-center gap-3'>
+                          <figure className='h-[80px] w-[80px] overflow-hidden rounded-lg'>
+                            <img
+                              className='h-full w-full object-cover'
+                              src={it.group.bannerUrl || images.miniBanner}
+                              alt='avtGroup'
+                            />
+                          </figure>
+                          <div className='flex-1'>
+                            <h1 className='line-clamp-2 font-semibold text-textHeadingColor'>
+                              {it.group.groupName}
+                            </h1>
+                            <p>{it.group.groupDesc}</p>
+                          </div>
+                        </div>
+                        <div className='mt-3 flex items-center gap-2'>
+                          <Button
+                            to={`/groups/${it.group.groupId}`}
+                            className='flex flex-1 items-center justify-center rounded-md bg-primaryColor/20 px-3 py-2 text-primaryColor hover:opacity-80'
+                            onClick={() => setSearchTerm('')}
+                          >
+                            View group
+                          </Button>
+                          <Button
+                            className={`mt-3 flex w-auto items-center items-center justify-center gap-2 rounded-lg px-4 py-2  hover:opacity-80 lg:mt-0 ${
+                              it.currentUserRole !== null &&
+                              (it.currentUserRole.status === 'APPROVED' ||
+                                it.currentUserRole.status ===
+                                  'WAITING_FOR_APPROVE')
+                                ? 'border border-primaryColor text-primaryColor'
+                                : 'bg-primaryColor  text-white'
+                            }`}
+                            onClick={() =>
+                              handleJoinLeaveGroup(
+                                it.group.groupId,
+                                it.currentUserRole?.status!,
+                              )
+                            }
+                          >
+                            <p>
+                              {it.currentUserRole !== null
+                                ? it.currentUserRole.status === 'APPROVED'
+                                  ? 'Leave'
+                                  : it.currentUserRole.status ===
+                                      'WAITING_FOR_APPROVE' && 'Cancel'
+                                : 'Join'}
+                            </p>
+                          </Button>
+                        </div>
+                      </div>
+                    </Col>
+                  ))
+                ) : (
+                  <Col xl={8} lg={12} md={12} sm={24} xs={24}>
+                    <h1 className='mt-3'>No groups were found</h1>
+                  </Col>
+                )}
+              </Row>
+            </div>
+          ) : (
+            <div className='overflow-auto rounded-md'>
+              <div className='bg-white p-4 shadow-md'>
+                <div>
+                  <div className='relative h-[350px] w-full overflow-hidden rounded-lg border border-gray-200'>
+                    <figure className='h-full w-full '>
+                      <img
+                        className='h-full w-full object-cover'
+                        src={
+                          previewBanner ||
+                          getGroupInfoApi.data?.data.group.bannerUrl ||
+                          images.banner
+                        }
+                      />
+                    </figure>
+                    {getGroupInfoApi.data?.data.group.groupOwnerId ===
+                      getUserInfo?.data.userId && (
+                      <>
+                        <label
+                          htmlFor='banner'
+                          className='absolute bottom-8 right-8 flex cursor-pointer items-center gap-2 rounded-md bg-gray-900/40 px-3 py-2 text-white'
+                        >
+                          <span className='text-2xl'>
+                            <CiCamera />
+                          </span>
+                          Change banner
+                        </label>
+                        <input
+                          id='banner'
+                          type='file'
+                          onChange={handleChangeBanner}
+                          accept='image/*'
+                          hidden
+                        />
+                      </>
+                    )}
+                  </div>
+                  <div className='mt-3 flex justify-between'>
+                    <div>
+                      <h1 className='text-2xl font-bold text-textHeadingColor'>
+                        {getGroupInfoApi.data?.data.group.groupName}
+                      </h1>
+                      <span className='mt-3 flex items-center gap-4 text-lg text-textPrimaryColor'>
+                        {listAudienceGroup.map(
+                          (it) =>
+                            it.value ===
+                              getGroupInfoApi.data?.data.group.groupPrivacy && (
+                              <div
+                                className='flex items-center gap-2'
+                                key={it.key}
+                              >
+                                <span className='text-lg'>
+                                  <it.icon />
+                                </span>
+                                <h1 className='flex items-center gap-2'>
+                                  {it.key}
+                                </h1>
+                              </div>
+                            ),
+                        )}
+                        {getGroupInfoApi.data?.data.currentUserRole !==
+                          null && (
+                          <p
+                            className='cursor-pointer text-textPrimaryColor'
+                            onClick={() => setModalListMember(true)}
+                          >
+                            {getGroupInfoApi.data?.data.group.totalMember}{' '}
+                            members
+                          </p>
+                        )}
+                      </span>
+                    </div>
+                    {getGroupInfoApi.data?.data.currentUserRole !== null ? (
+                      <div className='flex items-center gap-3'>
+                        <Button className='flex items-center gap-2 rounded-md bg-primaryColor px-3 py-2 text-white hover:opacity-80'>
+                          <span>
+                            <FaUserPlus />
+                          </span>
+                          Invite
+                        </Button>
+                        {getGroupInfoApi.data?.data.group.groupOwnerId !==
+                          getUserInfo?.data.userId && (
+                          <Button
+                            className='flex items-center gap-2 rounded-md border border-gray-300 px-3 py-2 text-textHeadingColor hover:opacity-80'
+                            onClick={handleLeaveGroup}
+                          >
+                            <span>
+                              <TbDoorExit />
+                            </span>
+                            {getGroupInfoApi.data?.data.currentUserRole
+                              .status === 'APPROVED'
+                              ? 'Leave group'
+                              : 'Wait for approval'}
+                          </Button>
+                        )}
+                        {getGroupInfoApi.data?.data.group.groupOwnerId ===
+                          getUserInfo?.data.userId && (
+                          <Button
+                            onClick={() => setOpenModalDelete(true)}
+                            className='flex items-center gap-2 rounded-md border border-gray-300 px-3 py-2 text-textHeadingColor hover:border-red-500 hover:text-red-500 hover:opacity-80'
+                          >
+                            <span>
+                              <RiDeleteBin5Line />
+                            </span>
+                            Delete group
+                          </Button>
+                        )}
+                      </div>
+                    ) : (
+                      <div className='flex items-center gap-3'>
+                        <Button
+                          className='flex items-center gap-2 rounded-md bg-primaryColor px-3 py-2 text-white hover:opacity-80'
+                          onClick={handleJoinGroup}
+                        >
+                          <span>
+                            <TbDoorEnter />
+                          </span>
+                          Join
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className='my-3 flex items-center'>
+                  <span className='h-px flex-1 bg-secondColor opacity-30'></span>
+                </div>
+                <ul className='flex items-center justify-start gap-5 text-lg'>
+                  <li className='cursor-pointer border-b border-transparent p-3 text-textPrimaryColor'>
+                    <h1 className='text-xl font-semibold text-textHeadingColor'>
+                      Posts
+                    </h1>
+                  </li>
+                  <li className='cursor-pointer border-b border-transparent p-3 text-textPrimaryColor'>
+                    <h1 className='text-xl font-semibold text-textHeadingColor'>
+                      About
+                    </h1>
+                  </li>
+                </ul>
+              </div>
+              <Row className='p-4' gutter={15}>
+                <Col
+                  xl={{
+                    order: 1,
+                    span: 14,
+                  }}
+                  lg={{
+                    order: 1,
+                    span: 14,
+                  }}
+                  md={{
+                    order: 1,
+                    span: 14,
+                  }}
+                  sm={{
+                    order: 2,
+                    span: 24,
+                  }}
+                  xs={{
+                    order: 2,
+                    span: 24,
+                  }}
+                  className='mt-2'
+                >
+                  <div className='mb-4 rounded-lg border bg-white p-3'>
+                    <div className='flex items-center gap-3'>
+                      <figure className='h-[40px] w-[40px] overflow-hidden rounded-full hover:cursor-pointer'>
+                        <img
+                          src={getUserInfo?.data.avatar || images.avatar}
+                          alt='avatar'
+                        />
+                      </figure>
+                      <Button
+                        className={`flex-1 ${
+                          getGroupInfoApi.data?.data.currentUserRole === null ||
+                          getGroupInfoApi.data?.data.currentUserRole.status ===
+                            'WAITING_FOR_APPROVE'
+                            ? 'cursor-not-allowed'
+                            : 'cursor-pointer'
+                        } rounded-full bg-bgPrimaryColor p-3 text-left text-sm text-textPrimaryColor hover:bg-primaryColor/10`}
+                        onClick={() =>
+                          getGroupInfoApi.data?.data.currentUserRole === null ||
+                          getGroupInfoApi.data?.data.currentUserRole.status ===
+                            'WAITING_FOR_APPROVE'
+                            ? {}
+                            : setModalPost(true)
+                        }
+                      >
+                        What's on your mind, {getUserInfo?.data.lastname} ?
+                      </Button>
+                    </div>
+                    <div className='my-3 flex items-center'>
+                      <span className='h-px w-full bg-secondColor opacity-30'></span>
+                    </div>
+                    <div className='flex items-center justify-center'>
                       <label
-                        htmlFor='banner'
-                        className='absolute bottom-8 right-8 flex cursor-pointer items-center gap-2 rounded-md border border-primaryColor px-3 py-2 text-primaryColor'
+                        htmlFor='uploadFilesHome'
+                        className={`flex ${
+                          getGroupInfoApi.data?.data.currentUserRole === null ||
+                          getGroupInfoApi.data?.data.currentUserRole.status ===
+                            'WAITING_FOR_APPROVE'
+                            ? 'cursor-not-allowed'
+                            : 'cursor-pointer'
+                        } items-center gap-2 p-3 hover:bg-primaryColor/10`}
                       >
                         <span className='text-2xl'>
-                          <CiCamera />
+                          <FcAddImage />
                         </span>
-                        Change banner
+                        <p className='font-medium text-textPrimaryColor'>
+                          Photo/video
+                        </p>
+                        <input
+                          id='uploadFilesHome'
+                          type='file'
+                          onChange={handleUploadImage}
+                          accept='image/*'
+                          multiple
+                          hidden
+                          disabled={
+                            getGroupInfoApi.data?.data.currentUserRole ===
+                              null ||
+                            getGroupInfoApi.data?.data.currentUserRole
+                              .status === 'WAITING_FOR_APPROVE'
+                              ? true
+                              : false
+                          }
+                        />
                       </label>
-                      <input
-                        id='banner'
-                        type='file'
-                        onChange={handleChangeBanner}
-                        accept='image/*'
-                        hidden
-                      />
-                    </>
-                  )}
-                </div>
-                <div className='mt-3 flex justify-between'>
-                  <div>
-                    <h1 className='text-2xl font-bold text-textHeadingColor'>
-                      {getGroupInfoApi.data?.data.group.groupName}
+                      <div
+                        className={`flex ${
+                          getGroupInfoApi.data?.data.currentUserRole === null
+                            ? 'cursor-not-allowed'
+                            : 'cursor-pointer'
+                        } items-center gap-2 p-3 hover:bg-primaryColor/10`}
+                      >
+                        <span className='text-2xl text-orange-400'>
+                          <BsEmojiSmile />
+                        </span>
+                        <p className='font-medium text-textPrimaryColor'>
+                          Feeling/activity
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  {getGroupInfoApi.data?.data.currentUserRole !== null &&
+                    getListFeedOfGroupApi.data?.pages.map((data, index) =>
+                      data.data ? (
+                        data.data.map((it, i) =>
+                          data.data.length === i + 1 ? (
+                            <FeedItem
+                              key={it.feedItem.postId}
+                              innerRef={ref}
+                              data={it}
+                            >
+                              <FeedCard data={it} />
+                            </FeedItem>
+                          ) : (
+                            <FeedItem key={it.feedItem.postId} data={it}>
+                              <FeedCard data={it} />
+                            </FeedItem>
+                          ),
+                        )
+                      ) : (
+                        <h1 key={index} className='mt-3 text-center'>
+                          End of article
+                        </h1>
+                      ),
+                    )}
+                </Col>
+                <Col
+                  xl={{
+                    order: 2,
+                    span: 10,
+                  }}
+                  lg={{
+                    order: 2,
+                    span: 10,
+                  }}
+                  md={{
+                    order: 2,
+                    span: 10,
+                  }}
+                  sm={{
+                    order: 1,
+                    span: 24,
+                  }}
+                  xs={{
+                    order: 1,
+                    span: 24,
+                  }}
+                  className='mt-2'
+                >
+                  <div className='min-h-[143px] rounded-lg border bg-white p-3'>
+                    <h1 className='text-lg font-semibold text-textHeadingColor'>
+                      About
                     </h1>
-                    <span className='mt-3 flex items-center gap-4 text-lg text-textPrimaryColor'>
+                    <div className='mt-3 flex items-center gap-3'>
                       {listAudienceGroup.map(
                         (it) =>
                           it.value ===
@@ -377,250 +782,21 @@ const GroupsInfoPage = () => {
                               <span className='text-lg'>
                                 <it.icon />
                               </span>
-                              <h1 className='flex items-center gap-2'>
+                              <h1 className='flex items-center gap-2 text-lg text-textHeadingColor'>
                                 {it.key}
                               </h1>
                             </div>
                           ),
                       )}
-                      {getGroupInfoApi.data?.data.currentUserRole !== null && (
-                        <p
-                          className='cursor-pointer text-textPrimaryColor'
-                          onClick={() => setModalListMember(true)}
-                        >
-                          {getGroupInfoApi.data?.data.group.totalMember} members
-                        </p>
-                      )}
-                    </span>
+                    </div>
+                    <p className='mt-3 text-textPrimaryColor'>
+                      {getGroupInfoApi.data?.data.group.groupDesc}
+                    </p>
                   </div>
-                  {getGroupInfoApi.data?.data.currentUserRole !== null ? (
-                    <div className='flex items-center gap-3'>
-                      <Button className='flex items-center gap-2 rounded-md bg-primaryColor px-3 py-2 text-white hover:opacity-80'>
-                        <span>
-                          <FaUserPlus />
-                        </span>
-                        Invite
-                      </Button>
-                      {getGroupInfoApi.data?.data.group.groupOwnerId !==
-                        getUserInfo?.data.userId && (
-                        <Button className='flex items-center gap-2 rounded-md border border-gray-300 px-3 py-2 text-textHeadingColor hover:opacity-80 '>
-                          <span>
-                            <TbDoorExit />
-                          </span>
-                          Leave group
-                        </Button>
-                      )}
-                      {getGroupInfoApi.data?.data.group.groupOwnerId ===
-                        getUserInfo?.data.userId && (
-                        <Button
-                          onClick={() => setOpenModalDelete(true)}
-                          className='flex items-center gap-2 rounded-md border border-gray-300 px-3 py-2 text-textHeadingColor hover:border-red-500 hover:text-red-500 hover:opacity-80'
-                        >
-                          <span>
-                            <RiDeleteBin5Line />
-                          </span>
-                          Delete group
-                        </Button>
-                      )}
-                    </div>
-                  ) : (
-                    <div className='flex items-center gap-3'>
-                      <Button className='flex items-center gap-2 rounded-md bg-primaryColor px-3 py-2 text-white hover:opacity-80'>
-                        <span>
-                          <TbDoorEnter />
-                        </span>
-                        Join
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className='my-3 flex items-center'>
-                <span className='h-px flex-1 bg-secondColor opacity-30'></span>
-              </div>
-              <ul className='flex items-center justify-start gap-5 text-lg'>
-                <li className='cursor-pointer border-b border-transparent p-3 text-textPrimaryColor'>
-                  <h1 className='text-xl font-semibold text-textHeadingColor'>
-                    Posts
-                  </h1>
-                </li>
-                <li className='cursor-pointer border-b border-transparent p-3 text-textPrimaryColor'>
-                  <h1 className='text-xl font-semibold text-textHeadingColor'>
-                    About
-                  </h1>
-                </li>
-              </ul>
+                </Col>
+              </Row>
             </div>
-            <Row className='p-4' gutter={15}>
-              <Col
-                xl={{
-                  order: 1,
-                  span: 14,
-                }}
-                lg={{
-                  order: 1,
-                  span: 14,
-                }}
-                md={{
-                  order: 1,
-                  span: 14,
-                }}
-                sm={{
-                  order: 2,
-                  span: 24,
-                }}
-                xs={{
-                  order: 2,
-                  span: 24,
-                }}
-                className='mt-2'
-              >
-                <div className='rounded-lg border bg-white p-3'>
-                  <div className='flex items-center gap-3'>
-                    <figure className='h-[40px] w-[40px] overflow-hidden rounded-full hover:cursor-pointer'>
-                      <img
-                        src={getUserInfo?.data.avatar || images.avatar}
-                        alt='avatar'
-                      />
-                    </figure>
-                    <Button
-                      className={`flex-1 ${
-                        getGroupInfoApi.data?.data.currentUserRole === null
-                          ? 'cursor-not-allowed'
-                          : 'cursor-pointer'
-                      } rounded-full bg-bgPrimaryColor p-3 text-left text-sm text-textPrimaryColor hover:bg-primaryColor/10`}
-                      onClick={() =>
-                        getGroupInfoApi.data?.data.currentUserRole === null
-                          ? {}
-                          : setModalPost(true)
-                      }
-                    >
-                      What's on your mind, {getUserInfo?.data.lastname} ?
-                    </Button>
-                  </div>
-                  <div className='my-3 flex items-center'>
-                    <span className='h-px w-full bg-secondColor opacity-30'></span>
-                  </div>
-                  <div className='flex items-center justify-center'>
-                    <label
-                      htmlFor='uploadFilesHome'
-                      className={`flex ${
-                        getGroupInfoApi.data?.data.currentUserRole === null
-                          ? 'cursor-not-allowed'
-                          : 'cursor-pointer'
-                      } items-center gap-2 p-3 hover:bg-primaryColor/10`}
-                    >
-                      <span className='text-2xl'>
-                        <FcAddImage />
-                      </span>
-                      <p className='font-medium text-textPrimaryColor'>
-                        Photo/video
-                      </p>
-                      <input
-                        id='uploadFilesHome'
-                        type='file'
-                        onChange={handleUploadImage}
-                        accept='image/*'
-                        multiple
-                        hidden
-                        disabled={
-                          getGroupInfoApi.data?.data.currentUserRole === null
-                            ? true
-                            : false
-                        }
-                      />
-                    </label>
-                    <div
-                      className={`flex ${
-                        getGroupInfoApi.data?.data.currentUserRole === null
-                          ? 'cursor-not-allowed'
-                          : 'cursor-pointer'
-                      } items-center gap-2 p-3 hover:bg-primaryColor/10`}
-                    >
-                      <span className='text-2xl text-orange-400'>
-                        <BsEmojiSmile />
-                      </span>
-                      <p className='font-medium text-textPrimaryColor'>
-                        Feeling/activity
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                {getGroupInfoApi.data?.data.currentUserRole !== null &&
-                  getListFeedOfGroupApi.data?.pages.map((data, index) =>
-                    data.data ? (
-                      data.data.map((it, i) =>
-                        data.data.length === i + 1 ? (
-                          <FeedItem
-                            key={it.feedItem.postId}
-                            innerRef={ref}
-                            data={it}
-                          >
-                            <FeedCard data={it} />
-                          </FeedItem>
-                        ) : (
-                          <FeedItem key={it.feedItem.postId} data={it}>
-                            <FeedCard data={it} />
-                          </FeedItem>
-                        ),
-                      )
-                    ) : (
-                      <h1 key={index} className='mt-3 text-center'>
-                        End of article
-                      </h1>
-                    ),
-                  )}
-              </Col>
-              <Col
-                xl={{
-                  order: 2,
-                  span: 10,
-                }}
-                lg={{
-                  order: 2,
-                  span: 10,
-                }}
-                md={{
-                  order: 2,
-                  span: 10,
-                }}
-                sm={{
-                  order: 1,
-                  span: 24,
-                }}
-                xs={{
-                  order: 1,
-                  span: 24,
-                }}
-                className='mt-2'
-              >
-                <div className='min-h-[143px] rounded-lg border bg-white p-3'>
-                  <h1 className='text-lg font-semibold text-textHeadingColor'>
-                    About
-                  </h1>
-                  <div className='mt-3 flex items-center gap-3'>
-                    {listAudienceGroup.map(
-                      (it) =>
-                        it.value ===
-                          getGroupInfoApi.data?.data.group.groupPrivacy && (
-                          <div className='flex items-center gap-2' key={it.key}>
-                            <span className='text-lg'>
-                              <it.icon />
-                            </span>
-                            <h1 className='flex items-center gap-2 text-lg text-textHeadingColor'>
-                              {it.key}
-                            </h1>
-                          </div>
-                        ),
-                    )}
-                  </div>
-                  <p className='mt-3 text-textPrimaryColor'>
-                    {getGroupInfoApi.data?.data.group.groupDesc}
-                  </p>
-                </div>
-              </Col>
-            </Row>
-          </div>
+          )}
         </Col>
       </Row>
       <Modal
@@ -700,19 +876,10 @@ const GroupsInfoPage = () => {
                 getListMemberApi.fetchNextPage()
                 return
               }
-              if (roleList === 1 && getListOwnerApi.hasNextPage) {
-                getListOwnerApi.fetchNextPage()
-                return
-              }
             }}
           >
             {roleList === 0
               ? getListMemberApi.hasNextPage
-                ? 'See more'
-                : 'No results were found'
-              : ''}
-            {roleList === 1
-              ? getListOwnerApi.hasNextPage
                 ? 'See more'
                 : 'No results were found'
               : ''}
@@ -721,10 +888,11 @@ const GroupsInfoPage = () => {
       >
         <Row gutter={15}>
           {roleList === 0
-            ? getListMemberApi.data?.pages.map(
+            ? getListMemberApi.data &&
+              getListMemberApi.data?.pages.map(
                 (data) =>
                   data.data &&
-                  data.data.members.map((it) => (
+                  data.data.members?.map((it) => (
                     <Col xl={6} lg={8} md={12} sm={24} xs={24} key={it.userId}>
                       <div className='mt-4 rounded-md bg-white p-3 shadow-lg'>
                         <Row gutter={15} className='justify-between'>
@@ -777,7 +945,8 @@ const GroupsInfoPage = () => {
                     </Col>
                   )),
               )
-            : getListOwnerApi.data?.pages.map(
+            : getListOwnerApi.data &&
+              getListOwnerApi.data?.pages.map(
                 (data) =>
                   data.data &&
                   data.data.members.map((it) => (
