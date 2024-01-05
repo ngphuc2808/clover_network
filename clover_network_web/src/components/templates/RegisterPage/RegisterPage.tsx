@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
+import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
-import { Helmet, HelmetProvider } from 'react-helmet-async'
 import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import DatePicker from 'react-datepicker'
@@ -66,7 +66,7 @@ const RegisterPage = () => {
           toast.success('Sign up successful, please confirm email!')
           return
         }
-        if (data.data.messageEN === 'Existed user ') {
+        if (data.data.messageEN === 'Existed user') {
           toast.error('Sign up failed, account already exists!')
           return
         }
@@ -75,9 +75,10 @@ const RegisterPage = () => {
   }
 
   return (
-    <HelmetProvider>
+    <Fragment>
       <Helmet>
         <title>Register</title>
+        <meta name='description' content='Register page' />
       </Helmet>
       <div className='col-span-full flex h-full flex-col justify-center p-8 md:p-20 lg:col-span-6 lg:px-32 lg:py-8'>
         <div className='mb-5 flex items-center justify-center gap-3'>
@@ -247,7 +248,7 @@ const RegisterPage = () => {
                     })}
                     value={0}
                     className="visible after:relative after:left-[-2px] after:top-[-4px] after:inline-block after:h-4 after:w-4 after:cursor-pointer after:rounded-full  after:bg-[#d1d3d1] after:content-['']
-                      checked:after:visible checked:after:relative checked:after:left-[-2px] checked:after:top-[-4px] checked:after:inline-block checked:after:h-4 checked:after:w-4 checked:after:cursor-pointer checked:after:rounded-full checked:after:bg-green-500 checked:after:content-['']"
+                    checked:after:visible checked:after:relative checked:after:left-[-2px] checked:after:top-[-4px] checked:after:inline-block checked:after:h-4 checked:after:w-4 checked:after:cursor-pointer checked:after:rounded-full checked:after:bg-green-500 checked:after:content-['']"
                   />
                   <p
                     className={`text-sm ${
@@ -267,7 +268,7 @@ const RegisterPage = () => {
                     })}
                     value={1}
                     className="visible after:relative after:left-[-2px] after:top-[-4px] after:inline-block after:h-4 after:w-4 after:cursor-pointer after:rounded-full  after:bg-[#d1d3d1] after:content-['']
-                      checked:after:visible checked:after:relative checked:after:left-[-2px] checked:after:top-[-4px] checked:after:inline-block checked:after:h-4 checked:after:w-4 checked:after:cursor-pointer checked:after:rounded-full checked:after:bg-green-500 checked:after:content-['']"
+                    checked:after:visible checked:after:relative checked:after:left-[-2px] checked:after:top-[-4px] checked:after:inline-block checked:after:h-4 checked:after:w-4 checked:after:cursor-pointer checked:after:rounded-full checked:after:bg-green-500 checked:after:content-['']"
                   />
                   <p
                     className={`text-sm ${
@@ -287,7 +288,7 @@ const RegisterPage = () => {
                     })}
                     value={2}
                     className="visible after:relative after:left-[-2px] after:top-[-4px] after:inline-block after:h-4 after:w-4 after:cursor-pointer after:rounded-full  after:bg-[#d1d3d1] after:content-['']
-                      checked:after:visible checked:after:relative checked:after:left-[-2px] checked:after:top-[-4px] checked:after:inline-block checked:after:h-4 checked:after:w-4 checked:after:cursor-pointer checked:after:rounded-full checked:after:bg-green-500 checked:after:content-['']"
+                    checked:after:visible checked:after:relative checked:after:left-[-2px] checked:after:top-[-4px] checked:after:inline-block checked:after:h-4 checked:after:w-4 checked:after:cursor-pointer checked:after:rounded-full checked:after:bg-green-500 checked:after:content-['']"
                   />
                   <p
                     className={`text-sm ${
@@ -318,7 +319,7 @@ const RegisterPage = () => {
           </Button>
         </div>
       </div>
-    </HelmetProvider>
+    </Fragment>
   )
 }
 

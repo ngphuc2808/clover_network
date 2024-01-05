@@ -1,4 +1,5 @@
 import { Suspense, useEffect, useState } from 'react'
+import { Helmet } from 'react-helmet'
 import { useIsFetching, useIsMutating } from '@tanstack/react-query'
 import { Outlet, useNavigate } from 'react-router-dom'
 
@@ -42,6 +43,10 @@ const MainPage = () => {
 
   return (
     <section>
+      <Helmet>
+        <title>Clover Network</title>
+        <meta name='description' content='Clover Network application' />
+      </Helmet>
       <MainHeader />
       <Suspense fallback={<LoadingPage />}>
         {suspended ? <Outlet /> : <LoadingPage />}

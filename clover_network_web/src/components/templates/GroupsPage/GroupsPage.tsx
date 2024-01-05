@@ -79,6 +79,7 @@ const GroupsPage = () => {
           )
           queryClient.invalidateQueries({ queryKey: ['SearchUserInfo'] })
           queryClient.invalidateQueries({ queryKey: ['GroupInfo'] })
+          queryClient.invalidateQueries({ queryKey: ['ListAllGroup'] })
         },
       })
     } else {
@@ -87,6 +88,7 @@ const GroupsPage = () => {
           toast.success('Joined the group successfully')
           queryClient.invalidateQueries({ queryKey: ['SearchUserInfo'] })
           queryClient.invalidateQueries({ queryKey: ['GroupInfo'] })
+          queryClient.invalidateQueries({ queryKey: ['ListAllGroup'] })
         },
       })
     }
@@ -100,7 +102,7 @@ const GroupsPage = () => {
         md={24}
         sm={24}
         xs={24}
-        className='bg-white p-4 shadow-md'
+        className='min-h-screen bg-white p-4 shadow-md'
       >
         <div className='mb-2 flex items-center justify-between'>
           <h1 className='text-xl font-semibold text-textHeadingColor'>

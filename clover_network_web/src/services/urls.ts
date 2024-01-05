@@ -39,11 +39,13 @@ export const API_URL = {
   getGroupInfo: `${API_BASE}/group/get-group-info`,
   getListAllGroup: `${API_BASE}/group/list-all-group-of-user`,
   getListMemberGroup: `${API_BASE}/group/list-member-group`,
+  getListMemberWaiting: `${API_BASE}/group/list-member-waiting`,
   updateBanner: `${API_BASE}/group/change-group-banner`,
   disableGroup: `${API_BASE}/group/disable-group`,
   joinGroup: `${API_BASE}/group/join`,
   checkCanPost: `${API_BASE}/group/canPost`,
   leaveGroup: `${API_BASE}/group/leave`,
+  approveMember: `${API_BASE}/group/approve-member`,
 
   //connect
   connectUser: `${API_BASE}/connection/connect-user`,

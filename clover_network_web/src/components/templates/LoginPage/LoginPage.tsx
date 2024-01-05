@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
+import { Helmet } from 'react-helmet'
+
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
-import { Helmet, HelmetProvider } from 'react-helmet-async'
 import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
@@ -61,9 +62,10 @@ const LoginPage = () => {
   }
 
   return (
-    <HelmetProvider>
+    <Fragment>
       <Helmet>
         <title>Login</title>
+        <meta name='description' content='Login page' />
       </Helmet>
       <div className='col-span-full flex flex-col justify-center p-8 md:p-20 lg:col-span-6 lg:p-32'>
         <div className='mb-5 flex items-center justify-center gap-3'>
@@ -163,7 +165,7 @@ const LoginPage = () => {
           </div>
         </div>
       </div>
-    </HelmetProvider>
+    </Fragment>
   )
 }
 

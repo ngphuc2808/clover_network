@@ -5,13 +5,18 @@ import { BsEmojiSmile } from 'react-icons/bs'
 import { FcAddImage } from 'react-icons/fc'
 import { IoChevronBack, IoChevronDown } from 'react-icons/io5'
 
-import { listAudience } from '@/utils/data'
+import { listAudience, listAudienceGroup } from '@/utils/data'
 import { useGetFetchQuery, usePostCreateGroup } from '@/hook'
 import Button from '@/components/atoms/Button'
 import images from '@/assets/images'
 import { toast } from 'react-toastify'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 const CreateGroupPage = () => {
+  const location = useLocation()
+
+  const navigate = useNavigate()
+
   const getUserInfo = useGetFetchQuery<ResponseUserType>(['UserInfo'])
   const [privacy, setPrivacy] = useState<boolean>(false)
 
@@ -27,8 +32,11 @@ const CreateGroupPage = () => {
 
   const handleCreateGroup = (value: CreateGroupType) => {
     createGroupApi.mutate(value, {
-      onSuccess() {
+      onSuccess(data) {
         toast.success('Create group successfully!')
+        setTimeout(() => {
+          navigate(`/groups/${data.data.data.groupId}`)
+        }, 1000)
       },
     })
   }
@@ -75,29 +83,49 @@ const CreateGroupPage = () => {
             </div>
             {privacy && (
               <ul className='mt-4 max-h-[240px] overflow-y-scroll'>
-                {listAudience.map((it) => (
-                  <li
-                    className={`flex cursor-pointer items-center gap-3 rounded-md p-2 hover:bg-gray-200/60`}
-                    onClick={() => {
-                      setValue('groupPrivacy', it.value)
-                    }}
-                    key={it.key}
-                  >
-                    <span className='rounded-full bg-gray-200 p-3 text-xl'>
-                      {<it.icon />}
-                    </span>
-                    <div className='flex-1 text-left'>
-                      <h1 className='text-lg font-semibold text-textHeadingColor'>
-                        {it.value}
-                      </h1>
-                      <p className='text-textPrimaryColor'>{it.desc}</p>
-                    </div>
-                    <Radio
-                      value={it.key}
-                      checked={watch('groupPrivacy') === it.value}
-                    />
-                  </li>
-                ))}
+                {!location.pathname.includes('groups')
+                  ? listAudience.map((it) => (
+                      <li
+                        className={`flex cursor-pointer items-center gap-3 rounded-md p-2 hover:bg-gray-200/60`}
+                        onClick={() => setValue('groupPrivacy', it.key)}
+                        key={it.key}
+                      >
+                        <span className='rounded-full bg-gray-200 p-5 text-2xl'>
+                          {<it.icon />}
+                        </span>
+                        <div className='flex-1 text-left'>
+                          <h1 className='text-xl font-semibold text-textHeadingColor'>
+                            {it.value}
+                          </h1>
+                          <p className='text-textPrimaryColor'>{it.desc}</p>
+                        </div>
+                        <Radio
+                          value={it.key}
+                          checked={watch('groupPrivacy') === it.key}
+                        />
+                      </li>
+                    ))
+                  : listAudienceGroup.map((it) => (
+                      <li
+                        className={`flex cursor-pointer items-center gap-3 rounded-md p-2 hover:bg-gray-200/60`}
+                        onClick={() => setValue('groupPrivacy', it.key)}
+                        key={it.key}
+                      >
+                        <span className='rounded-full bg-gray-200 p-5 text-2xl'>
+                          {<it.icon />}
+                        </span>
+                        <div className='flex-1 text-left'>
+                          <h1 className='text-xl font-semibold text-textHeadingColor'>
+                            {it.value}
+                          </h1>
+                          <p className='text-textPrimaryColor'>{it.desc}</p>
+                        </div>
+                        <Radio
+                          value={it.key}
+                          checked={watch('groupPrivacy') === it.key}
+                        />
+                      </li>
+                    ))}
               </ul>
             )}
           </div>

@@ -535,6 +535,21 @@ type ResponseJoinLeaveGroupType = {
   messageVN: string
 }
 
+type ResponseListMemberWaitingType = {
+  code: 200
+  data: {
+    userId: string
+    displayName: string
+    avatarImgUrl: string
+    phoneNo: string
+    email: string
+    userWallId: string
+    connected: boolean
+  }[]
+  messageEN: string
+  messageVN: string
+}
+
 type ResponseGetListGroupType = {
   data: Omit<iGroup, 'description'>[]
   code: number

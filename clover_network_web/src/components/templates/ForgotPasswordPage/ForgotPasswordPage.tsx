@@ -1,4 +1,5 @@
 import { Fragment, useState } from 'react'
+import { Helmet } from 'react-helmet'
 import { useForm } from 'react-hook-form'
 import { toast } from 'react-toastify'
 
@@ -58,6 +59,10 @@ const ForgotPasswordPage = () => {
 
   return (
     <Fragment>
+      <Helmet>
+        <title>Identify</title>
+        <meta name='description' content='Forgot password page' />
+      </Helmet>
       {step === 0 ? (
         <div className='mt-[61px] flex flex-1 items-center justify-center bg-[#e9ebee] py-20'>
           <div className='my-10 w-[500px] max-w-[95%] rounded-xl bg-white shadow-shadowPrimary sm:my-0'>

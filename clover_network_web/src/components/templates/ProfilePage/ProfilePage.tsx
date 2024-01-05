@@ -56,9 +56,18 @@ const ProfilePage = () => {
 
   const getUserProfileApi = useGetUserProfile(id!)
 
-  const checkCanPost = useCheckCanPostFeed(
+  const checkCanPostApi = useCheckCanPostFeed(
     getUserProfileApi.data?.data.userInfo.userWallId!,
   )
+
+  useEffect(() => {
+    if (!checkCanPostApi.isLoading) {
+      setCheckCanPost(checkCanPostApi.data)
+      return
+    }
+  }, [checkCanPostApi.isLoading])
+
+  const [checkCanPost, setCheckCanPost] = useState<boolean>()
 
   const getListFeedOfGroupApi = useGetListFeedOfGroup(
     getUserProfileApi.data?.data.userInfo.userWallId!,
@@ -165,6 +174,7 @@ const ProfilePage = () => {
             queryClient.invalidateQueries({ queryKey: ['UserProfile'] })
             queryClient.invalidateQueries({ queryKey: ['ListFollowers'] })
             queryClient.invalidateQueries({ queryKey: ['ListFollowing'] })
+            setCheckCanPost(false)
           },
         },
       )
@@ -182,6 +192,7 @@ const ProfilePage = () => {
             queryClient.invalidateQueries({ queryKey: ['UserProfile'] })
             queryClient.invalidateQueries({ queryKey: ['ListFollowers'] })
             queryClient.invalidateQueries({ queryKey: ['ListFollowing'] })
+            setCheckCanPost(true)
           },
         },
       )
@@ -205,6 +216,7 @@ const ProfilePage = () => {
             queryClient.invalidateQueries({ queryKey: ['UserProfile'] })
             queryClient.invalidateQueries({ queryKey: ['ListFollowers'] })
             queryClient.invalidateQueries({ queryKey: ['ListFollowing'] })
+            queryClient.invalidateQueries({ queryKey: ['CheckCanPost'] })
           },
         },
       )
@@ -220,6 +232,7 @@ const ProfilePage = () => {
             queryClient.invalidateQueries({ queryKey: ['UserProfile'] })
             queryClient.invalidateQueries({ queryKey: ['ListFollowers'] })
             queryClient.invalidateQueries({ queryKey: ['ListFollowing'] })
+            queryClient.invalidateQueries({ queryKey: ['CheckCanPost'] })
           },
         },
       )
@@ -283,10 +296,11 @@ const ProfilePage = () => {
             <div className='col-span-full mt-[100px] flex flex-col items-start justify-between lg:col-span-7 lg:mt-[50px] lg:flex-row'>
               <div className='w-full lg:w-auto'>
                 <h1 className='text-center text-3xl font-bold text-textHeadingColor lg:text-left'>
-                  {getUserProfileApi?.data?.data.userInfo.firstname}{' '}
+                  {getUserProfileApi?.data?.data.userInfo.firstname}
+                  &nbsp;
                   {getUserProfileApi?.data?.data.userInfo.lastname}
                 </h1>
-                <span className='mt-2 flex items-center justify-center gap-2 text-lg text-textPrimaryColor'>
+                <span className='mt-2 flex items-center justify-center gap-2 text-lg text-textPrimaryColor lg:justify-start'>
                   <p
                     className='cursor-pointer text-textPrimaryColor'
                     onClick={() => setModalFollow(1)}
@@ -439,7 +453,7 @@ const ProfilePage = () => {
               </div>
             </div>
             <div className='col-span-full lg:col-span-6'>
-              {checkCanPost.data && (
+              {checkCanPost && (
                 <div className='mb-4 rounded-lg border bg-white p-3'>
                   <div className='flex items-center gap-3'>
                     <figure className='h-[40px] w-[40px] overflow-hidden rounded-full hover:cursor-pointer'>
@@ -465,7 +479,7 @@ const ProfilePage = () => {
                         className='flex-1 rounded-full bg-bgPrimaryColor p-3 text-left text-sm text-textPrimaryColor hover:bg-primaryColor/10'
                         onClick={() => setModalPost(true)}
                       >
-                        Write something to{' '}
+                        Write something to &nbsp;
                         {getUserProfileApi?.data?.data.userInfo.lastname} ?
                       </Button>
                     ) : (

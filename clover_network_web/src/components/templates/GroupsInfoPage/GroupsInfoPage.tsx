@@ -16,6 +16,7 @@ import { RiDeleteBin5Line } from 'react-icons/ri'
 import { CiCamera } from 'react-icons/ci'
 
 import {
+  useApproveMember,
   useDebounce,
   useDisableGroup,
   useGetFetchQuery,
@@ -23,6 +24,7 @@ import {
   useGetListAllGroup,
   useGetListFeedOfGroup,
   useGetListMemberGroup,
+  useGetListMemberWaiting,
   useGetSearchInfo,
   useJoinGroup,
   useLeaveGroup,
@@ -30,10 +32,10 @@ import {
   usePostUploadBanner,
 } from '@/hook'
 
+import { listAudienceGroup } from '@/utils/data'
+import images from '@/assets/images'
 import Button from '@/components/atoms/Button'
 import Search from '@/components/molecules/Search'
-import images from '@/assets/images'
-import { listAudience } from '@/utils/data'
 import ModalPost from '@/components/molecules/ModalPost'
 import ModalAudience from '@/components/molecules/ModalAudience'
 import FeedItem from '@/components/molecules/FeedItem'
@@ -47,6 +49,8 @@ const GroupsInfoPage = () => {
   const { id } = useParams()
 
   const navigate = useNavigate()
+
+  const [isListApprove, setIsListApprove] = useState<boolean>(false)
 
   const queryClient = useQueryClient()
 
@@ -98,6 +102,13 @@ const GroupsInfoPage = () => {
 
   const leaveGroupApi = useLeaveGroup()
 
+  const approveMemberApi = useApproveMember()
+
+  const getListMemberWaiting = useGetListMemberWaiting(
+    id!,
+    getGroupInfoApi.data?.data.currentUserRole?.roleId === 'OWNER',
+  )
+
   const fileListToArray = (fileList: FileList) => {
     const filesArray = []
     for (const file of fileList) {
@@ -106,7 +117,7 @@ const GroupsInfoPage = () => {
     return filesArray
   }
 
-  const handleUploadImage = async (e: ChangeEvent<HTMLInputElement>) => {
+  const handleUploadImage = (e: ChangeEvent<HTMLInputElement>) => {
     let input = e.currentTarget
     if (input.files?.length) {
       setModalPost(true)
@@ -156,9 +167,12 @@ const GroupsInfoPage = () => {
       formData.append('groupId', id!)
       formData.append('bannerFile', e.target.files[0])
       uploadBannerApi.mutate(formData, {
-        onSuccess() {
+        onSuccess(data) {
           toast.success('Change banner successful!')
+          queryClient.invalidateQueries({ queryKey: ['GroupInfo'] })
           queryClient.invalidateQueries({ queryKey: ['ListAllGroup'] })
+          setPreviewBanner('')
+          console.log(data.data.data)
         },
       })
       setPreviewBanner(URL.createObjectURL(e.target.files[0]))
@@ -194,6 +208,7 @@ const GroupsInfoPage = () => {
           )
           queryClient.invalidateQueries({ queryKey: ['SearchUserInfo'] })
           queryClient.invalidateQueries({ queryKey: ['GroupInfo'] })
+          queryClient.invalidateQueries({ queryKey: ['ListAllGroup'] })
         },
       })
     } else {
@@ -202,6 +217,7 @@ const GroupsInfoPage = () => {
           toast.success('Joined the group successfully')
           queryClient.invalidateQueries({ queryKey: ['SearchUserInfo'] })
           queryClient.invalidateQueries({ queryKey: ['GroupInfo'] })
+          queryClient.invalidateQueries({ queryKey: ['ListAllGroup'] })
         },
       })
     }
@@ -223,6 +239,7 @@ const GroupsInfoPage = () => {
                 : 'Leaved the group successfully'
             }`,
           )
+          queryClient.invalidateQueries({ queryKey: ['ListAllGroup'] })
           queryClient.invalidateQueries({ queryKey: ['SearchUserInfo'] })
           queryClient.invalidateQueries({ queryKey: ['GroupInfo'] })
         },
@@ -234,6 +251,7 @@ const GroupsInfoPage = () => {
     joinGroupApi.mutate(id!, {
       onSuccess() {
         toast.success('Joined the group successfully')
+        queryClient.invalidateQueries({ queryKey: ['ListAllGroup'] })
         queryClient.invalidateQueries({ queryKey: ['SearchUserInfo'] })
         queryClient.invalidateQueries({ queryKey: ['GroupInfo'] })
       },
@@ -278,6 +296,21 @@ const GroupsInfoPage = () => {
     }
   }
 
+  const handleApprove = (userId: string) => {
+    const data = {
+      groupId: id!,
+      userId: userId,
+    }
+
+    approveMemberApi.mutate(data, {
+      onSuccess() {
+        toast.success('Member approval successful')
+        queryClient.invalidateQueries({ queryKey: ['GroupInfo'] })
+        queryClient.invalidateQueries({ queryKey: ['ListMemberWaiting'] })
+      },
+    })
+  }
+
   return (
     <Fragment>
       <Row
@@ -292,7 +325,7 @@ const GroupsInfoPage = () => {
           md={24}
           sm={24}
           xs={24}
-          className='mb-4 bg-white shadow-md lg:mb-0'
+          className='mb-4 min-h-screen bg-white shadow-md lg:mb-0'
         >
           <div className='p-2'>
             <div className='mb-2 flex items-center justify-between'>
@@ -354,37 +387,38 @@ const GroupsInfoPage = () => {
               </h1>
             </div>
             <ul className='mt-3 max-h-[800px] overflow-y-auto'>
-              {getAllGroupApi.data?.data.map((it) => (
-                <li
-                  className='mt-3  cursor-pointer  rounded-md p-2 hover:bg-bgPrimaryColor'
-                  key={it.groupId}
-                >
-                  <Button
-                    to={`/groups/${it.groupId}`}
-                    className='flex items-center gap-3'
-                    onClick={() => setSearchTerm('')}
+              {getAllGroupApi.data?.data &&
+                getAllGroupApi.data?.data.map((it) => (
+                  <li
+                    className='mt-3  cursor-pointer  rounded-md p-2 hover:bg-bgPrimaryColor'
+                    key={it.groupId}
                   >
-                    <figure className='h-[48px] w-[48px] overflow-hidden rounded-md'>
-                      <img
-                        className='h-full w-full object-cover'
-                        src={it.bannerUrl || images.miniBanner}
-                        alt='avtGroup'
-                      />
-                    </figure>
-                    <div className='flex-1'>
-                      <h1 className='line-clamp-2 font-semibold text-textHeadingColor'>
-                        {it.groupName}
-                      </h1>
-                      <p className='line-clamp-2 text-textPrimaryColor'>
-                        {it.groupDesc}
-                      </p>
-                    </div>
-                    <span>
-                      <IoChevronDown />
-                    </span>
-                  </Button>
-                </li>
-              ))}
+                    <Button
+                      to={`/groups/${it.groupId}`}
+                      className='flex items-center gap-3'
+                      onClick={() => setSearchTerm('')}
+                    >
+                      <figure className='h-[48px] w-[48px] overflow-hidden rounded-md'>
+                        <img
+                          className='h-full w-full object-cover'
+                          src={it.bannerUrl || images.miniBanner}
+                          alt='avtGroup'
+                        />
+                      </figure>
+                      <div className='flex-1'>
+                        <h1 className='line-clamp-2 font-semibold text-textHeadingColor'>
+                          {it.groupName}
+                        </h1>
+                        <p className='line-clamp-2 text-textPrimaryColor'>
+                          {it.groupDesc}
+                        </p>
+                      </div>
+                      <span>
+                        <IoChevronDown />
+                      </span>
+                    </Button>
+                  </li>
+                ))}
             </ul>
             <div className='my-5 flex items-center'>
               <span className='h-px flex-1 bg-secondColor opacity-30'></span>
@@ -518,9 +552,9 @@ const GroupsInfoPage = () => {
                         {getGroupInfoApi.data?.data.group.groupName}
                       </h1>
                       <span className='mt-3 flex items-center gap-4 text-lg text-textPrimaryColor'>
-                        {listAudience.map(
+                        {listAudienceGroup.map(
                           (it) =>
-                            it.value ===
+                            it.key ===
                               getGroupInfoApi.data?.data.group.groupPrivacy && (
                               <div
                                 className='flex items-center gap-2'
@@ -530,7 +564,7 @@ const GroupsInfoPage = () => {
                                   <it.icon />
                                 </span>
                                 <h1 className='flex items-center gap-2'>
-                                  {it.key}
+                                  {it.value}
                                 </h1>
                               </div>
                             ),
@@ -541,20 +575,23 @@ const GroupsInfoPage = () => {
                             className='cursor-pointer text-textPrimaryColor'
                             onClick={() => setModalListMember(true)}
                           >
-                            {getGroupInfoApi.data?.data.group.totalMember}{' '}
-                            members
+                            {getGroupInfoApi.data?.data.group.totalMember}
+                            &nbsp; members
                           </p>
                         )}
                       </span>
                     </div>
                     {getGroupInfoApi.data?.data.currentUserRole !== null ? (
                       <div className='flex items-center gap-3'>
-                        <Button className='flex items-center gap-2 rounded-md bg-primaryColor px-3 py-2 text-white hover:opacity-80'>
-                          <span>
-                            <FaUserPlus />
-                          </span>
-                          Invite
-                        </Button>
+                        {getGroupInfoApi.data?.data.currentUserRole.status ===
+                          'APPROVED' && (
+                          <Button className='flex items-center gap-2 rounded-md bg-primaryColor px-3 py-2 text-white hover:opacity-80'>
+                            <span>
+                              <FaUserPlus />
+                            </span>
+                            Invite
+                          </Button>
+                        )}
                         {getGroupInfoApi.data?.data.group.groupOwnerId !==
                           getUserInfo?.data.userId && (
                           <Button
@@ -602,198 +639,271 @@ const GroupsInfoPage = () => {
                   <span className='h-px flex-1 bg-secondColor opacity-30'></span>
                 </div>
                 <ul className='flex items-center justify-start gap-5 text-lg'>
-                  <li className='cursor-pointer border-b border-transparent p-3 text-textPrimaryColor'>
-                    <h1 className='text-xl font-semibold text-textHeadingColor'>
-                      Posts
-                    </h1>
+                  <li
+                    className={`cursor-pointer p-3 ${
+                      !isListApprove
+                        ? 'border-b-2 border-primaryColor text-primaryColor'
+                        : 'border-b border-transparent text-textPrimaryColor'
+                    }`}
+                    onClick={() => setIsListApprove(false)}
+                  >
+                    <h1 className='text-xl font-semibold'>Posts</h1>
                   </li>
-                  <li className='cursor-pointer border-b border-transparent p-3 text-textPrimaryColor'>
-                    <h1 className='text-xl font-semibold text-textHeadingColor'>
-                      About
-                    </h1>
-                  </li>
+                  {getGroupInfoApi.data?.data.currentUserRole?.roleId ===
+                    'OWNER' && (
+                    <li
+                      className={`cursor-pointer p-3 ${
+                        isListApprove
+                          ? 'border-b-2 border-primaryColor text-primaryColor'
+                          : 'border-b border-transparent text-textPrimaryColor'
+                      }`}
+                      onClick={() => setIsListApprove(true)}
+                    >
+                      <h1 className='text-xl font-semibold'>
+                        Waiting list for approval
+                      </h1>
+                    </li>
+                  )}
                 </ul>
               </div>
               <Row className='p-4' gutter={15}>
-                <Col
-                  xl={{
-                    order: 1,
-                    span: 14,
-                  }}
-                  lg={{
-                    order: 1,
-                    span: 14,
-                  }}
-                  md={{
-                    order: 1,
-                    span: 14,
-                  }}
-                  sm={{
-                    order: 2,
-                    span: 24,
-                  }}
-                  xs={{
-                    order: 2,
-                    span: 24,
-                  }}
-                  className='mt-2'
-                >
-                  <div className='mb-4 rounded-lg border bg-white p-3'>
-                    <div className='flex items-center gap-3'>
-                      <figure className='h-[40px] w-[40px] overflow-hidden rounded-full hover:cursor-pointer'>
-                        <img
-                          src={getUserInfo?.data.avatar || images.avatar}
-                          alt='avatar'
-                        />
-                      </figure>
-                      <Button
-                        className={`flex-1 ${
-                          getGroupInfoApi.data?.data.currentUserRole === null ||
-                          getGroupInfoApi.data?.data.currentUserRole.status ===
-                            'WAITING_FOR_APPROVE'
-                            ? 'cursor-not-allowed'
-                            : 'cursor-pointer'
-                        } rounded-full bg-bgPrimaryColor p-3 text-left text-sm text-textPrimaryColor hover:bg-primaryColor/10`}
-                        onClick={() =>
-                          getGroupInfoApi.data?.data.currentUserRole === null ||
-                          getGroupInfoApi.data?.data.currentUserRole.status ===
-                            'WAITING_FOR_APPROVE'
-                            ? {}
-                            : setModalPost(true)
-                        }
-                      >
-                        What's on your mind, {getUserInfo?.data.lastname} ?
-                      </Button>
-                    </div>
-                    <div className='my-3 flex items-center'>
-                      <span className='h-px w-full bg-secondColor opacity-30'></span>
-                    </div>
-                    <div className='flex items-center justify-center'>
-                      <label
-                        htmlFor='uploadFilesHome'
-                        className={`flex ${
-                          getGroupInfoApi.data?.data.currentUserRole === null ||
-                          getGroupInfoApi.data?.data.currentUserRole.status ===
-                            'WAITING_FOR_APPROVE'
-                            ? 'cursor-not-allowed'
-                            : 'cursor-pointer'
-                        } items-center gap-2 p-3 hover:bg-primaryColor/10`}
-                      >
-                        <span className='text-2xl'>
-                          <FcAddImage />
-                        </span>
-                        <p className='font-medium text-textPrimaryColor'>
-                          Photo/video
-                        </p>
-                        <input
-                          id='uploadFilesHome'
-                          type='file'
-                          onChange={handleUploadImage}
-                          accept='image/*'
-                          multiple
-                          hidden
-                          disabled={
-                            getGroupInfoApi.data?.data.currentUserRole ===
-                              null ||
-                            getGroupInfoApi.data?.data.currentUserRole
-                              .status === 'WAITING_FOR_APPROVE'
-                              ? true
-                              : false
-                          }
-                        />
-                      </label>
-                      <div
-                        className={`flex ${
-                          getGroupInfoApi.data?.data.currentUserRole === null
-                            ? 'cursor-not-allowed'
-                            : 'cursor-pointer'
-                        } items-center gap-2 p-3 hover:bg-primaryColor/10`}
-                      >
-                        <span className='text-2xl text-orange-400'>
-                          <BsEmojiSmile />
-                        </span>
-                        <p className='font-medium text-textPrimaryColor'>
-                          Feeling/activity
+                {!isListApprove ? (
+                  <>
+                    <Col
+                      xl={{
+                        order: 1,
+                        span: 14,
+                      }}
+                      lg={{
+                        order: 1,
+                        span: 14,
+                      }}
+                      md={{
+                        order: 1,
+                        span: 14,
+                      }}
+                      sm={{
+                        order: 2,
+                        span: 24,
+                      }}
+                      xs={{
+                        order: 2,
+                        span: 24,
+                      }}
+                      className='mt-2'
+                    >
+                      <div className='mb-4 rounded-lg border bg-white p-3'>
+                        <div className='flex items-center gap-3'>
+                          <figure className='h-[40px] w-[40px] overflow-hidden rounded-full hover:cursor-pointer'>
+                            <img
+                              src={getUserInfo?.data.avatar || images.avatar}
+                              alt='avatar'
+                            />
+                          </figure>
+                          <Button
+                            className={`flex-1 ${
+                              getGroupInfoApi.data?.data.currentUserRole ===
+                                null ||
+                              getGroupInfoApi.data?.data.currentUserRole
+                                .status === 'WAITING_FOR_APPROVE'
+                                ? 'cursor-not-allowed'
+                                : 'cursor-pointer'
+                            } rounded-full bg-bgPrimaryColor p-3 text-left text-sm text-textPrimaryColor hover:bg-primaryColor/10`}
+                            onClick={() =>
+                              getGroupInfoApi.data?.data.currentUserRole ===
+                                null ||
+                              getGroupInfoApi.data?.data.currentUserRole
+                                .status === 'WAITING_FOR_APPROVE'
+                                ? {}
+                                : setModalPost(true)
+                            }
+                          >
+                            What's on your mind, {getUserInfo?.data.lastname} ?
+                          </Button>
+                        </div>
+                        <div className='my-3 flex items-center'>
+                          <span className='h-px w-full bg-secondColor opacity-30'></span>
+                        </div>
+                        <div className='flex items-center justify-center'>
+                          <label
+                            htmlFor='uploadFilesHome'
+                            className={`flex ${
+                              getGroupInfoApi.data?.data.currentUserRole ===
+                                null ||
+                              getGroupInfoApi.data?.data.currentUserRole
+                                .status === 'WAITING_FOR_APPROVE'
+                                ? 'cursor-not-allowed'
+                                : 'cursor-pointer'
+                            } items-center gap-2 p-3 hover:bg-primaryColor/10`}
+                          >
+                            <span className='text-2xl'>
+                              <FcAddImage />
+                            </span>
+                            <p className='font-medium text-textPrimaryColor'>
+                              Photo/video
+                            </p>
+                            <input
+                              id='uploadFilesHome'
+                              type='file'
+                              onChange={handleUploadImage}
+                              accept='image/*'
+                              multiple
+                              hidden
+                              disabled={
+                                getGroupInfoApi.data?.data.currentUserRole ===
+                                  null ||
+                                getGroupInfoApi.data?.data.currentUserRole
+                                  .status === 'WAITING_FOR_APPROVE'
+                                  ? true
+                                  : false
+                              }
+                            />
+                          </label>
+                          <div
+                            className={`flex ${
+                              getGroupInfoApi.data?.data.currentUserRole ===
+                              null
+                                ? 'cursor-not-allowed'
+                                : 'cursor-pointer'
+                            } items-center gap-2 p-3 hover:bg-primaryColor/10`}
+                          >
+                            <span className='text-2xl text-orange-400'>
+                              <BsEmojiSmile />
+                            </span>
+                            <p className='font-medium text-textPrimaryColor'>
+                              Feeling/activity
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      {getGroupInfoApi.data?.data.currentUserRole?.status ===
+                        'APPROVED' &&
+                        getGroupInfoApi.data?.data.currentUserRole !== null &&
+                        getListFeedOfGroupApi.data?.pages.map((data, index) =>
+                          data.data ? (
+                            data.data.map((it, i) =>
+                              data.data.length === i + 1 ? (
+                                <FeedItem
+                                  key={it.feedItem.postId}
+                                  innerRef={ref}
+                                  data={it}
+                                >
+                                  <FeedCard data={it} />
+                                </FeedItem>
+                              ) : (
+                                <FeedItem key={it.feedItem.postId} data={it}>
+                                  <FeedCard data={it} />
+                                </FeedItem>
+                              ),
+                            )
+                          ) : (
+                            <h1 key={index} className='mt-3 text-center'>
+                              End of article
+                            </h1>
+                          ),
+                        )}
+                    </Col>
+                    <Col
+                      xl={{
+                        order: 2,
+                        span: 10,
+                      }}
+                      lg={{
+                        order: 2,
+                        span: 10,
+                      }}
+                      md={{
+                        order: 2,
+                        span: 10,
+                      }}
+                      sm={{
+                        order: 1,
+                        span: 24,
+                      }}
+                      xs={{
+                        order: 1,
+                        span: 24,
+                      }}
+                      className='mt-2'
+                    >
+                      <div className='min-h-[143px] rounded-lg border bg-white p-3'>
+                        <h1 className='text-lg font-semibold text-textHeadingColor'>
+                          About
+                        </h1>
+                        <div className='mt-3 flex items-center gap-3'>
+                          {listAudienceGroup.map(
+                            (it) =>
+                              it.key ===
+                                getGroupInfoApi.data?.data.group
+                                  .groupPrivacy && (
+                                <div
+                                  className='flex items-center gap-2'
+                                  key={it.key}
+                                >
+                                  <span className='text-lg'>
+                                    <it.icon />
+                                  </span>
+                                  <h1 className='flex items-center gap-2 text-lg text-textHeadingColor'>
+                                    {it.value}
+                                  </h1>
+                                </div>
+                              ),
+                          )}
+                        </div>
+                        <p className='mt-3 text-textPrimaryColor'>
+                          {getGroupInfoApi.data?.data.group.groupDesc}
                         </p>
                       </div>
-                    </div>
-                  </div>
-                  {getGroupInfoApi.data?.data.currentUserRole !== null &&
-                    getListFeedOfGroupApi.data?.pages.map((data, index) =>
-                      data.data ? (
-                        data.data.map((it, i) =>
-                          data.data.length === i + 1 ? (
-                            <FeedItem
-                              key={it.feedItem.postId}
-                              innerRef={ref}
-                              data={it}
-                            >
-                              <FeedCard data={it} />
-                            </FeedItem>
-                          ) : (
-                            <FeedItem key={it.feedItem.postId} data={it}>
-                              <FeedCard data={it} />
-                            </FeedItem>
-                          ),
-                        )
-                      ) : (
-                        <h1 key={index} className='mt-3 text-center'>
-                          End of article
-                        </h1>
-                      ),
-                    )}
-                </Col>
-                <Col
-                  xl={{
-                    order: 2,
-                    span: 10,
-                  }}
-                  lg={{
-                    order: 2,
-                    span: 10,
-                  }}
-                  md={{
-                    order: 2,
-                    span: 10,
-                  }}
-                  sm={{
-                    order: 1,
-                    span: 24,
-                  }}
-                  xs={{
-                    order: 1,
-                    span: 24,
-                  }}
-                  className='mt-2'
-                >
-                  <div className='min-h-[143px] rounded-lg border bg-white p-3'>
-                    <h1 className='text-lg font-semibold text-textHeadingColor'>
-                      About
-                    </h1>
-                    <div className='mt-3 flex items-center gap-3'>
-                      {listAudience.map(
-                        (it) =>
-                          it.value ===
-                            getGroupInfoApi.data?.data.group.groupPrivacy && (
-                            <div
-                              className='flex items-center gap-2'
-                              key={it.key}
-                            >
-                              <span className='text-lg'>
-                                <it.icon />
-                              </span>
-                              <h1 className='flex items-center gap-2 text-lg text-textHeadingColor'>
-                                {it.key}
+                    </Col>
+                  </>
+                ) : (
+                  <Row gutter={15} className='w-full'>
+                    {getGroupInfoApi.data?.data.currentUserRole?.roleId ===
+                      'OWNER' &&
+                      getListMemberWaiting.data?.data.map((it) => (
+                        <Col
+                          xl={8}
+                          lg={8}
+                          md={12}
+                          sm={24}
+                          xs={24}
+                          key={it.userId}
+                        >
+                          <div className='mt-4 rounded-md bg-white p-3 shadow-lg'>
+                            <div className='mb-6 flex items-center gap-3'>
+                              <figure className='h-[48px] w-[48px] overflow-hidden rounded-lg'>
+                                <img
+                                  src={it.avatarImgUrl || images.avatar}
+                                  className='h-full w-full object-cover'
+                                  alt='avtGroup'
+                                />
+                              </figure>
+                              <h1 className='line-clamp-1 font-semibold text-textHeadingColor'>
+                                {it.displayName}
                               </h1>
+                              <p className='line-clamp-1 text-textPrimaryColor'>
+                                {it.email}
+                              </p>
                             </div>
-                          ),
-                      )}
-                    </div>
-                    <p className='mt-3 text-textPrimaryColor'>
-                      {getGroupInfoApi.data?.data.group.groupDesc}
-                    </p>
-                  </div>
-                </Col>
+                            <div className='mt-3 flex items-center gap-2'>
+                              <Button
+                                to={`/profile/${it.userId}`}
+                                className='flex flex-1 items-center justify-center rounded-md bg-primaryColor/20 px-3 py-2 text-primaryColor hover:opacity-80'
+                              >
+                                View
+                              </Button>
+                              <Button
+                                className='flex flex-1 items-center justify-center rounded-md bg-primaryColor/20 px-3 py-2 text-primaryColor hover:opacity-80'
+                                onClick={() => handleApprove(it.userId)}
+                              >
+                                Approve
+                              </Button>
+                            </div>
+                          </div>
+                        </Col>
+                      ))}
+                  </Row>
+                )}
               </Row>
             </div>
           )}

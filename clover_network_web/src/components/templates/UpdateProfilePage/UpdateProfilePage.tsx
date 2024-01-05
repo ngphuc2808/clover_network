@@ -544,7 +544,7 @@ const UpdateProfilePage = () => {
                   {changePassApi.isPending ? (
                     <BiLoaderAlt className='animate-spin text-3xl' />
                   ) : (
-                    'Sign up'
+                    'Update'
                   )}
                 </Button>
               </form>

@@ -52,6 +52,19 @@ export const GroupsApi = {
       },
     }),
 
+  getListMemberWaiting: (groupId: string) =>
+    http.get<ResponseListMemberWaitingType>(API_URL.getListMemberWaiting, {
+      headers: authHeader(),
+      params: {
+        groupId,
+      },
+    }),
+
+  approveMember: (data: { groupId: string; userId: string }) =>
+    http.post<any>(API_URL.approveMember, data, {
+      headers: authHeader(),
+    }),
+
   joinGroup: (groupId: string) =>
     http.post<ResponseJoinLeaveGroupType>(API_URL.joinGroup, null, {
       params: {

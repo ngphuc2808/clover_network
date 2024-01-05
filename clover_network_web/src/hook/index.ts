@@ -438,6 +438,11 @@ export const handleGetGroupInfo = async (id: string) => {
   return data
 }
 
+export const handleGetListMemberWaitingGroup = async (groupId: string) => {
+  const { data } = await GroupsApi.getListMemberWaiting(groupId)
+  return data
+}
+
 export const handleGetListMemberGroup = async (
   {
     pageParam,
@@ -487,14 +492,36 @@ export const useDisableGroup = () => {
   })
 }
 
+export const useApproveMember = () => {
+  return useMutation({
+    mutationFn: (data: { groupId: string; userId: string }) => {
+      return GroupsApi.approveMember(data)
+    },
+  })
+}
+
 export const useGetListAllGroup = (
   options?: UseQueryOptions<ResponseGetListGroupType>,
 ) => {
   return useQuery({
     queryKey: ['ListAllGroup'],
     queryFn: () => handleGetAllListGroup(),
+    retry: 2,
+    ...options,
+  })
+}
+
+export const useGetListMemberWaiting = (
+  groupId: string,
+  enabled: boolean,
+  options?: UseQueryOptions<ResponseListMemberWaitingType>,
+) => {
+  return useQuery({
+    queryKey: ['ListMemberWaiting'],
+    queryFn: () => handleGetListMemberWaitingGroup(groupId),
     staleTime: 5000,
     retry: 2,
+    enabled: enabled,
     ...options,
   })
 }

@@ -1,5 +1,5 @@
 import { FaEarthAsia } from 'react-icons/fa6'
-import { RiGroup2Fill } from 'react-icons/ri'
+import { RiGroup2Fill, RiGitRepositoryPrivateFill } from 'react-icons/ri'
 
 export const listAudience = [
   {
@@ -7,6 +7,21 @@ export const listAudience = [
     key: 'PUBLIC',
     value: 'Public',
     desc: 'Anyone on or off Clover',
+  },
+  {
+    icon: RiGroup2Fill,
+    key: 'LIMITED_GROUP',
+    value: 'Limited group',
+    desc: '',
+  },
+]
+
+export const listAudienceUser = [
+  {
+    icon: FaEarthAsia,
+    key: 'PUBLIC',
+    value: 'Public',
+    desc: 'Anyone can see',
   },
   {
     icon: RiGroup2Fill,
@@ -24,9 +39,9 @@ export const listAudienceGroup = [
     desc: 'Anyone can see',
   },
   {
-    icon: RiGroup2Fill,
-    key: 'LIMITED_GROUP',
-    value: 'Limited group',
+    icon: RiGitRepositoryPrivateFill,
+    key: 'PRIVATE',
+    value: 'Private',
     desc: '',
   },
 ]

@@ -213,7 +213,7 @@ const MainHeader = () => {
                   searchApi.data?.data.users.map((it) => (
                     <li
                       key={it.userId}
-                      className='block cursor-pointer items-center justify-between gap-3 border-b p-4 px-2 hover:bg-gray-100 lg:flex '
+                      className='block cursor-pointer items-center justify-between gap-3 border-b p-4 hover:bg-gray-100 lg:flex '
                     >
                       <Button
                         to={`/profile/${it.userId}`}
@@ -270,7 +270,7 @@ const MainHeader = () => {
                     </Button>
                     <div>
                       <Button
-                        className={`mt-3 flex w-auto items-center items-center justify-center gap-2 rounded-lg px-4 py-2  hover:opacity-80 lg:mt-0 ${
+                        className={`mt-3 flex w-auto w-full items-center items-center justify-center gap-2 rounded-lg px-4 py-2 hover:opacity-80  lg:mt-0 lg:w-auto ${
                           it.currentUserRole !== null &&
                           (it.currentUserRole.status === 'APPROVED' ||
                             it.currentUserRole.status === 'WAITING_FOR_APPROVE')
