@@ -1,5 +1,5 @@
-import { Fragment, useEffect, useState } from 'react'
-import { Helmet } from 'react-helmet'
+import { useEffect, useState } from 'react'
+import { Helmet, HelmetProvider } from 'react-helmet-async'
 
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
@@ -62,7 +62,7 @@ const LoginPage = () => {
   }
 
   return (
-    <Fragment>
+    <HelmetProvider>
       <Helmet>
         <title>Login</title>
         <meta name='description' content='Login page' />
@@ -165,7 +165,7 @@ const LoginPage = () => {
           </div>
         </div>
       </div>
-    </Fragment>
+    </HelmetProvider>
   )
 }
 

@@ -1,5 +1,5 @@
 import { Suspense, useEffect, useState } from 'react'
-import { Helmet } from 'react-helmet'
+import { Helmet, HelmetProvider } from 'react-helmet-async'
 import { useIsFetching, useIsMutating } from '@tanstack/react-query'
 import { Outlet, useNavigate } from 'react-router-dom'
 
@@ -42,7 +42,7 @@ const MainPage = () => {
   }
 
   return (
-    <section>
+    <HelmetProvider>
       <Helmet>
         <title>Clover Network</title>
         <meta name='description' content='Clover Network application' />
@@ -57,7 +57,7 @@ const MainPage = () => {
           <span className='sr-only'>Loading...</span>
         </div>
       )}
-    </section>
+    </HelmetProvider>
   )
 }
 

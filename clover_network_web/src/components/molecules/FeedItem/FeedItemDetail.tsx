@@ -18,6 +18,7 @@ interface iProps {
   data: FeedGroupData
   totalLike: number
   setTotalLike: (totalLike: number) => void
+  totalComment: number
   isLike: string | null
   setIsLike: (isLike: string | null) => void
   innerRef?: React.Ref<HTMLParagraphElement>
@@ -27,6 +28,7 @@ interface iProps {
 const FeedItemDetail = ({
   data,
   totalLike,
+  totalComment,
   isLike,
   setIsLike,
   setTotalLike,
@@ -170,7 +172,7 @@ const FeedItemDetail = ({
           </div>
           <div className='flex items-center gap-2'>
             <p className='text-sm text-textPrimaryColor'>
-              {data.totalComment} comments
+              {totalComment} comments
             </p>
           </div>
         </div>

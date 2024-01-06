@@ -137,6 +137,20 @@ export const handleGetListFollowing = async (
   return data
 }
 
+export const handleGetListFriend = async ({
+  pageParam,
+}: {
+  pageParam: number
+}) => {
+  const { data } = await UsersApi.getListFriends(pageParam - 1)
+  return data
+}
+
+export const handleGetListFriendRequest = async () => {
+  const { data } = await UsersApi.getListFriendsRequest()
+  return data
+}
+
 export const useGetUserInfo = (
   enabled: boolean,
   options?: UseQueryOptions<ResponseUserType>,
@@ -210,6 +224,32 @@ export const usePostUploadBanner = () => {
   return useMutation({
     mutationFn: (file: FormData) => {
       return GroupsApi.uploadBanner(file)
+    },
+  })
+}
+
+export const useGetListFriendRequest = (
+  options?: UseQueryOptions<ResponseListFriendsType>,
+) => {
+  return useQuery({
+    queryKey: ['ListFriendRequest'],
+    queryFn: handleGetListFriendRequest,
+    retry: 2,
+    ...options,
+  })
+}
+
+export const useGetListFriend = () => {
+  return useInfiniteQuery({
+    queryKey: ['ListFriends'],
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) => handleGetListFriend({ pageParam }),
+    getNextPageParam: (lastPage, allPages) => {
+      const nextPage =
+        lastPage.data?.userProfiles?.length! > 0
+          ? allPages.length + 1
+          : undefined
+      return nextPage
     },
   })
 }

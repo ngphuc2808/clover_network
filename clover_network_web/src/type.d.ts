@@ -83,6 +83,24 @@ type ResponseUserType = {
   messageVN: string
 }
 
+type ResponseListFriendsType = {
+  code: number
+  data: {
+    userProfiles: {
+      userId: string
+      displayName: string
+      avatarImgUrl: string
+      phoneNo: string
+      email: string
+      userWallId: string
+      connected: boolean
+    }[]
+    total: number
+  } | null
+  messageEN: string
+  messageVN: string
+}
+
 type ResponseListFollowType = {
   code: number
   data: {

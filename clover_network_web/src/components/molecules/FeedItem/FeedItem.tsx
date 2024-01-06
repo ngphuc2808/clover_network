@@ -44,6 +44,8 @@ const FeedItem = ({ data, innerRef, children }: iProps) => {
 
   const [totalLike, setTotalLike] = useState<number>(data.totalReact)
 
+  const [totalComment, setTotalComment] = useState<number>(data.totalComment)
+
   const likeApi = usePostLike()
 
   const formComment = useForm<FeedCommentType>({
@@ -82,6 +84,7 @@ const FeedItem = ({ data, innerRef, children }: iProps) => {
     commentApi.mutate(value, {
       onSuccess() {
         queryClient.invalidateQueries({ queryKey: ['ListComment'] })
+        setTotalComment(totalComment + 1)
         formComment.reset()
       },
     })
@@ -205,7 +208,7 @@ const FeedItem = ({ data, innerRef, children }: iProps) => {
           </div>
           <div className='flex items-center gap-2'>
             <p className='text-sm text-textPrimaryColor'>
-              {data.totalComment} comments
+              {totalComment} comments
             </p>
           </div>
         </div>
@@ -301,6 +304,7 @@ const FeedItem = ({ data, innerRef, children }: iProps) => {
         }
       >
         <FeedItemDetail
+          totalComment={totalComment}
           isLike={isLike}
           setIsLike={setIsLike}
           totalLike={totalLike}

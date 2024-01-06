@@ -1,5 +1,5 @@
-import { Fragment, useState } from 'react'
-import { Helmet } from 'react-helmet'
+import { useState } from 'react'
+import { Helmet, HelmetProvider } from 'react-helmet-async'
 import { useForm } from 'react-hook-form'
 import { toast } from 'react-toastify'
 
@@ -58,7 +58,7 @@ const ForgotPasswordPage = () => {
   }
 
   return (
-    <Fragment>
+    <HelmetProvider>
       <Helmet>
         <title>Identify</title>
         <meta name='description' content='Forgot password page' />
@@ -273,7 +273,7 @@ const ForgotPasswordPage = () => {
           </div>
         </div>
       )}
-    </Fragment>
+    </HelmetProvider>
   )
 }
 

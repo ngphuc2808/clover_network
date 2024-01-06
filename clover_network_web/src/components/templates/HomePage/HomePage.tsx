@@ -1,17 +1,24 @@
 import { ChangeEvent, Fragment, useEffect, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
 import { useInView } from 'react-intersection-observer'
 import Tippy from '@tippyjs/react/headless'
 
 import { BiDotsHorizontalRounded } from 'react-icons/bi'
 import { BsEmojiSmile } from 'react-icons/bs'
-import { HiMagnifyingGlass } from 'react-icons/hi2'
 import { MdKeyboardArrowDown } from 'react-icons/md'
 import { FcAddImage } from 'react-icons/fc'
 
 import images from '@/assets/images'
 
-import { useGetFetchQuery, useGetListFeed } from '@/hook'
+import {
+  useGetFetchQuery,
+  useGetListAllGroup,
+  useGetListFeed,
+  useGetListFriend,
+  useGetListFriendRequest,
+  usePostConnectUser,
+} from '@/hook'
 import {
   CameraIcon,
   FriendsIcon,
@@ -27,13 +34,24 @@ import FeedCard from '@/components/molecules/FeedItem/FeedCard'
 import FeedCardUser from '@/components/molecules/FeedItem/FeedCardUser'
 import FeedCardGroup from '@/components/molecules/FeedItem/FeedCardGroup'
 import FeedCardAdmin from '@/components/molecules/FeedItem/FeedCardAdmin'
+import { Col, Modal, Row } from 'antd'
 
 const imageMimeType = /image\/(png|jpg|jpeg)/i
 
 const HomePage = () => {
+  const queryClient = useQueryClient()
+
   const getUserInfo = useGetFetchQuery<ResponseUserType>(['UserInfo'])
 
   const getListFeedApi = useGetListFeed()
+
+  const getListFriendsApi = useGetListFriend()
+
+  const getAllGroupApi = useGetListAllGroup()
+
+  const getListFriendRequest = useGetListFriendRequest()
+
+  const connectApi = usePostConnectUser()
 
   const { ref, inView } = useInView()
 
@@ -50,6 +68,10 @@ const HomePage = () => {
   const [modalPost, setModalPost] = useState<boolean>(false)
   const [modalAudience, setModalAudience] = useState<boolean>(false)
   const [audienceValue, setAudienceValue] = useState<string>('PUBLIC')
+
+  const [modalListFriend, setModalListFriend] = useState(false)
+
+  const [hideList, setHideList] = useState<boolean>(false)
 
   const handleOpenModalAudience = () => {
     setModalAudience(true)
@@ -94,6 +116,23 @@ const HomePage = () => {
     }
 
     e.currentTarget.value = ''
+  }
+
+  const handleConnect = (id: string, displayName: string) => {
+    connectApi.mutate(
+      {
+        targetUserId: id,
+        status: 1,
+      },
+      {
+        onSuccess() {
+          setModalListFriend(false)
+          toast.success(`Already follow ${displayName}`)
+          queryClient.invalidateQueries({ queryKey: ['ListFriends'] })
+          queryClient.invalidateQueries({ queryKey: ['ListFriendRequest'] })
+        },
+      },
+    )
   }
 
   return (
@@ -150,55 +189,25 @@ const HomePage = () => {
             </div>
             <h1 className='text-textPrimaryColor'>Shortcuts</h1>
             <ul className='mt-4'>
-              <li className='flex items-center gap-3'>
-                <figure className='h-[35px] w-[35px] overflow-hidden rounded-lg hover:cursor-pointer'>
-                  <img
-                    crossOrigin='anonymous'
-                    src={images.avatar}
-                    alt='avatar'
-                  />
-                </figure>
-                <p className='text-textHeadingColor'>
-                  {getUserInfo?.data.firstname}&nbsp;
-                  {getUserInfo?.data.lastname}
-                </p>
-              </li>
-              <li className='mt-4 flex cursor-pointer items-center gap-3'>
-                <figure className='h-[35px] w-[35px] overflow-hidden rounded-lg hover:cursor-pointer'>
-                  <img
-                    crossOrigin='anonymous'
-                    src={images.avatar}
-                    alt='avatar'
-                  />
-                </figure>
-                <p className='text-textPrimaryColor'>
-                  UI/UX Designer Community - @Figma
-                </p>
-              </li>
-              <li className='mt-4 flex cursor-pointer items-center gap-3'>
-                <figure className='h-[35px] w-[35px] overflow-hidden rounded-lg hover:cursor-pointer'>
-                  <img
-                    crossOrigin='anonymous'
-                    src={images.avatar}
-                    alt='avatar'
-                  />
-                </figure>
-                <p className='text-textPrimaryColor'>
-                  UI/UX Designer Community - @Figma
-                </p>
-              </li>
-              <li className='mt-4 flex cursor-pointer items-center gap-3'>
-                <figure className='h-[35px] w-[35px] overflow-hidden rounded-lg hover:cursor-pointer'>
-                  <img
-                    crossOrigin='anonymous'
-                    src={images.avatar}
-                    alt='avatar'
-                  />
-                </figure>
-                <p className='text-textPrimaryColor'>
-                  UI/UX Designer Community - @Figma
-                </p>
-              </li>
+              {getAllGroupApi.data?.data.slice(0, 5).map((it) => (
+                <li
+                  className='border-grey-500 mb-2 border-b p-2'
+                  key={it.groupId}
+                >
+                  <Button
+                    to={`/groups/${it.groupId}`}
+                    className='flex items-center gap-3'
+                  >
+                    <figure className='h-[35px] w-[35px] overflow-hidden rounded-lg hover:cursor-pointer'>
+                      <img
+                        src={it.bannerUrl || images.miniBanner}
+                        alt='banner'
+                      />
+                    </figure>
+                    <p className='text-textHeadingColor'>{it.groupName}</p>
+                  </Button>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
@@ -311,51 +320,42 @@ const HomePage = () => {
             <div>
               <div className='flex items-center justify-between'>
                 <h1 className='text-textHeadingColor'>Friend requests</h1>
-                <h2 className='cursor-pointer text-primaryColor'>See all</h2>
+                <h2
+                  className='cursor-pointer text-primaryColor'
+                  onClick={() => setModalListFriend(true)}
+                >
+                  See all
+                </h2>
               </div>
               <ul className='max-h-[400px] overflow-y-auto'>
-                <li className='mt-3 flex items-center justify-between gap-6 md:block xl:flex'>
-                  <div className='flex items-center gap-2'>
-                    <figure className='h-[40px] w-[40px] overflow-hidden rounded-full hover:cursor-pointer'>
-                      <img
-                        className='h-full w-full object-cover'
-                        src={images.avatar}
-                        alt='avatar'
-                      />
-                    </figure>
-                    <div>
-                      <h1 className='text-textHeadingColor'>Test Nguyen</h1>
-                      <h1 className='flex items-center gap-2 text-sm text-primaryColor'>
-                        2h
-                        <span className='block h-2.5 w-2.5 rounded-full bg-green-500'></span>
+                {getListFriendRequest.data?.data?.userProfiles.map((it) => (
+                  <li
+                    key={it.userId}
+                    className='mt-3 flex items-center justify-between gap-6 rounded-md bg-white p-2 md:block xl:flex'
+                  >
+                    <Button
+                      to={`/profile/${it.userId}`}
+                      className='flex flex-1 items-center gap-2'
+                    >
+                      <figure className='h-[40px] w-[40px] overflow-hidden rounded-full hover:cursor-pointer'>
+                        <img
+                          className='h-full w-full object-cover'
+                          src={it.avatarImgUrl || images.avatar}
+                          alt='avatar'
+                        />
+                      </figure>
+                      <h1 className='line-clamp-1 text-textHeadingColor'>
+                        {it.displayName}
                       </h1>
-                    </div>
-                  </div>
-                  <Button className='mt-0 w-auto rounded-lg bg-primaryColor px-3 py-2 text-white hover:opacity-90 md:mt-3 md:w-full xl:mt-0 xl:w-auto'>
-                    Follow back
-                  </Button>
-                </li>
-                <li className='mt-3 flex items-center justify-between gap-6 md:block xl:flex'>
-                  <div className='flex items-center gap-2'>
-                    <figure className='h-[40px] w-[40px] overflow-hidden rounded-full hover:cursor-pointer'>
-                      <img
-                        className='h-full w-full object-cover'
-                        src={images.avatar}
-                        alt='avatar'
-                      />
-                    </figure>
-                    <div>
-                      <h1 className='text-textHeadingColor'>Test Nguyen</h1>
-                      <h1 className='flex items-center gap-2 text-sm text-primaryColor'>
-                        2h
-                        <span className='block h-2.5 w-2.5 rounded-full bg-green-500'></span>
-                      </h1>
-                    </div>
-                  </div>
-                  <Button className='mt-0 w-auto rounded-lg bg-primaryColor px-3 py-2 text-white hover:opacity-90 md:mt-3 md:w-full xl:mt-0 xl:w-auto'>
-                    Follow back
-                  </Button>
-                </li>
+                    </Button>
+                    <Button
+                      className='mt-0 w-auto rounded-lg bg-primaryColor px-3 py-2 text-white hover:opacity-90 md:mt-3 md:w-full xl:mt-0 xl:w-auto'
+                      onClick={() => handleConnect(it.userId, it.displayName)}
+                    >
+                      Follow back
+                    </Button>
+                  </li>
+                ))}
               </ul>
             </div>
             <div className='my-5 flex items-center'>
@@ -364,9 +364,17 @@ const HomePage = () => {
             <div className='flex items-center justify-between'>
               <h1 className='text-textPrimaryColor'>Status of friends</h1>
               <div className='flex items-center gap-3'>
-                <span className='cursor-pointer text-xl text-primaryColor hover:opacity-80'>
-                  <HiMagnifyingGlass />
-                </span>
+                <h2
+                  className='cursor-pointer text-primaryColor'
+                  onClick={() => {
+                    if (getListFriendsApi.hasNextPage) {
+                      getListFriendsApi.fetchNextPage()
+                      return
+                    }
+                  }}
+                >
+                  See more
+                </h2>
                 <Tippy
                   interactive
                   arrow={true}
@@ -377,7 +385,10 @@ const HomePage = () => {
                       className="relative gap-2 rounded-md border-solid bg-white p-2 shadow before:absolute before:right-[5px] before:top-[-16px] before:border-[8px] before:border-x-transparent before:border-b-white before:border-t-transparent before:content-['']"
                       {...attrs}
                     >
-                      <li className='cursor-pointer rounded-md p-1 text-sm text-textPrimaryColor hover:bg-primaryColor/20'>
+                      <li
+                        className='cursor-pointer rounded-md p-1 text-sm text-textPrimaryColor hover:bg-primaryColor/20'
+                        onClick={() => setHideList(!hideList)}
+                      >
                         Hide list
                       </li>
                     </ul>
@@ -389,67 +400,39 @@ const HomePage = () => {
                 </Tippy>
               </div>
             </div>
-            <ul className='mt-4'>
-              <li className='flex items-center gap-3'>
-                <div className='relative'>
-                  <figure className='h-[35px] w-[35px] rounded-full hover:cursor-pointer'>
-                    <img
-                      crossOrigin='anonymous'
-                      src={images.avatar}
-                      className='rounded-full'
-                      alt='avatar'
-                    />
-                  </figure>
-                  <span className='border-px absolute -right-[2px] bottom-0 h-2.5 w-2.5 rounded-full border border-white bg-green-500'></span>
-                </div>
-                <p className='text-textHeadingColor'>
-                  {getUserInfo?.data.firstname}&nbsp;
-                  {getUserInfo?.data.lastname}
-                </p>
-              </li>
-              <li className='mt-4 flex cursor-pointer items-center gap-3'>
-                <div className='relative'>
-                  <figure className='h-[35px] w-[35px] rounded-full hover:cursor-pointer'>
-                    <img
-                      crossOrigin='anonymous'
-                      src={images.avatar}
-                      className='rounded-full'
-                      alt='avatar'
-                    />
-                  </figure>
-                  <span className='border-px absolute -right-[2px] bottom-0 h-2.5 w-2.5 rounded-full border border-white bg-green-500'></span>
-                </div>
-                <p className='text-textPrimaryColor'>Phúc</p>
-              </li>
-              <li className='mt-4 flex cursor-pointer items-center gap-3'>
-                <div className='relative'>
-                  <figure className='h-[35px] w-[35px] rounded-full hover:cursor-pointer'>
-                    <img
-                      crossOrigin='anonymous'
-                      src={images.avatar}
-                      className='rounded-full'
-                      alt='avatar'
-                    />
-                  </figure>
-                  <span className='border-px absolute -right-[2px] bottom-0 h-2.5 w-2.5 rounded-full border border-white bg-green-500'></span>
-                </div>
-                <p className='text-textPrimaryColor'>Phúc</p>
-              </li>
-              <li className='mt-4 flex cursor-pointer items-center gap-3'>
-                <div className='relative'>
-                  <figure className='h-[35px] w-[35px] rounded-full hover:cursor-pointer'>
-                    <img
-                      crossOrigin='anonymous'
-                      src={images.avatar}
-                      className='rounded-full'
-                      alt='avatar'
-                    />
-                  </figure>
-                  <span className='border-px absolute -right-[2px] bottom-0 h-2.5 w-2.5 rounded-full border border-white bg-green-500'></span>
-                </div>
-                <p className='text-textPrimaryColor'>Phúc</p>
-              </li>
-            </ul>
+            {!hideList && (
+              <ul className='max mt-4 max-h-[300px] overflow-y-auto'>
+                {getListFriendsApi.data?.pages.map(
+                  (data) =>
+                    data.data &&
+                    data.data?.userProfiles.map((it) => (
+                      <li
+                        className='mb-2 rounded-md bg-white p-2'
+                        key={it.userId}
+                      >
+                        <Button
+                          to={`/profile/${it.userId}`}
+                          className='flex w-full items-center gap-3'
+                        >
+                          <div className='relative'>
+                            <figure className='h-[35px] w-[35px] rounded-full hover:cursor-pointer'>
+                              <img
+                                src={it.avatarImgUrl || images.avatar}
+                                className='rounded-full'
+                                alt='avatar'
+                              />
+                            </figure>
+                            <span className='border-px absolute -right-[2px] bottom-0 h-2.5 w-2.5 rounded-full border border-white bg-green-500'></span>
+                          </div>
+                          <p className='text-textHeadingColor'>
+                            {it.displayName}
+                          </p>
+                        </Button>
+                      </li>
+                    )),
+                )}
+              </ul>
+            )}
           </div>
         </div>
       </div>
@@ -472,6 +455,44 @@ const HomePage = () => {
           handleCloseModalAudience={handleCloseModalAudience}
         />
       )}
+      <Modal
+        title='List Friends Request'
+        open={modalListFriend}
+        onCancel={() => setModalListFriend(false)}
+        footer={null}
+        style={{
+          minWidth: '70%',
+          maxWidth: '100%',
+        }}
+      >
+        <Row gutter={15} className='max-h-[500px] overflow-y-auto'>
+          {getListFriendRequest.data?.data?.userProfiles.map((it) => (
+            <Col xl={6} lg={8} md={12} sm={24} xs={24} key={it.userId}>
+              <div className='mt-3 rounded-md bg-white p-2 shadow-lg'>
+                <Button
+                  to={`/profile/${it.userId}`}
+                  className='flex items-center gap-2'
+                >
+                  <figure className='h-[40px] w-[40px] overflow-hidden rounded-full hover:cursor-pointer'>
+                    <img
+                      className='h-full w-full object-cover'
+                      src={it.avatarImgUrl || images.avatar}
+                      alt='avatar'
+                    />
+                  </figure>
+                  <h1 className='text-textHeadingColor'>{it.displayName}</h1>
+                </Button>
+                <Button
+                  className='mt-0 mt-3 w-full rounded-lg bg-primaryColor px-3 py-2 text-white hover:opacity-90 md:mt-3'
+                  onClick={() => handleConnect(it.userId, it.displayName)}
+                >
+                  Follow back
+                </Button>
+              </div>
+            </Col>
+          ))}
+        </Row>
+      </Modal>
     </Fragment>
   )
 }

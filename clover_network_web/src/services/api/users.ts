@@ -62,6 +62,20 @@ export const UsersApi = {
       headers: authHeader(),
     }),
 
+  getListFriends: (page: number) =>
+    http.get<ResponseListFriendsType>(API_URL.getListFriends, {
+      headers: authHeader(),
+      params: {
+        page,
+        size: 5,
+      },
+    }),
+
+  getListFriendsRequest: () =>
+    http.get<ResponseListFriendsType>(API_URL.getListFriendsRequest, {
+      headers: authHeader(),
+    }),
+
   getListFollowers: (userId: string, page: number) =>
     http.get<ResponseListFollowType>(API_URL.getListFollowers, {
       headers: authHeader(),
