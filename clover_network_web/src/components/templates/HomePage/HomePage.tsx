@@ -202,6 +202,7 @@ const HomePage = () => {
                       <img
                         src={it.bannerUrl || images.miniBanner}
                         alt='banner'
+                        className='h-full w-full object-cover'
                       />
                     </figure>
                     <p className='text-textHeadingColor'>{it.groupName}</p>

@@ -555,15 +555,17 @@ type ResponseJoinLeaveGroupType = {
 
 type ResponseListMemberWaitingType = {
   code: 200
-  data: {
-    userId: string
-    displayName: string
-    avatarImgUrl: string
-    phoneNo: string
-    email: string
-    userWallId: string
-    connected: boolean
-  }[]
+  data:
+    | {
+        userId: string
+        displayName: string
+        avatarImgUrl: string
+        phoneNo: string
+        email: string
+        userWallId: string
+        connected: boolean
+      }[]
+    | string
   messageEN: string
   messageVN: string
 }

@@ -396,7 +396,10 @@ const GroupsInfoPage = () => {
                     <Button
                       to={`/groups/${it.groupId}`}
                       className='flex items-center gap-3'
-                      onClick={() => setSearchTerm('')}
+                      onClick={() => {
+                        setIsListApprove(false)
+                        setSearchTerm('')
+                      }}
                     >
                       <figure className='h-[48px] w-[48px] overflow-hidden rounded-md'>
                         <img
@@ -860,6 +863,8 @@ const GroupsInfoPage = () => {
                   <Row gutter={15} className='w-full'>
                     {getGroupInfoApi.data?.data.currentUserRole?.roleId ===
                       'OWNER' &&
+                    typeof getListMemberWaiting.data?.data !== 'string' &&
+                    getListMemberWaiting.data?.data.length! > 0 ? (
                       getListMemberWaiting.data?.data.map((it) => (
                         <Col
                           xl={8}
@@ -901,7 +906,12 @@ const GroupsInfoPage = () => {
                             </div>
                           </div>
                         </Col>
-                      ))}
+                      ))
+                    ) : (
+                      <Col xl={8} lg={8} md={12} sm={24} xs={24}>
+                        <h1>The list is empty</h1>
+                      </Col>
+                    )}
                   </Row>
                 )}
               </Row>

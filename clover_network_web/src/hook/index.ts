@@ -557,7 +557,7 @@ export const useGetListMemberWaiting = (
   options?: UseQueryOptions<ResponseListMemberWaitingType>,
 ) => {
   return useQuery({
-    queryKey: ['ListMemberWaiting'],
+    queryKey: ['ListMemberWaiting', { groupId }],
     queryFn: () => handleGetListMemberWaitingGroup(groupId),
     staleTime: 5000,
     retry: 2,
