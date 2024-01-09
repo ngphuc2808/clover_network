@@ -76,6 +76,11 @@ export const UsersApi = {
       headers: authHeader(),
     }),
 
+  getListRecommend: () =>
+    http.get<ResponseListRecommendType>(API_URL.getListRecommend, {
+      headers: authHeader(),
+    }),
+
   getListFollowers: (userId: string, page: number) =>
     http.get<ResponseListFollowType>(API_URL.getListFollowers, {
       headers: authHeader(),

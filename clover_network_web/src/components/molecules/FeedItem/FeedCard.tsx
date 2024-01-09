@@ -1,7 +1,7 @@
 import Button from '@/components/atoms/Button'
 import TimeAgo from '../TimeAgo'
 import images from '@/assets/images'
-import { listAudienceUser } from '@/utils/data'
+import { listAudience } from '@/utils/data'
 
 interface iProps {
   data: FeedGroupData
@@ -27,7 +27,7 @@ const FeedCard = ({ data }: iProps) => {
         </Button>
         <h1 className='flex items-center gap-2 text-sm text-textPrimaryColor'>
           <TimeAgo timestamp={data.feedItem.createdTime} />
-          {listAudienceUser.map(
+          {listAudience.map(
             (it) =>
               it.key === data.feedItem.privacyType && (
                 <div className='flex items-center gap-2' key={it.key}>

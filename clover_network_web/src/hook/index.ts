@@ -151,6 +151,11 @@ export const handleGetListFriendRequest = async () => {
   return data
 }
 
+export const handleGetListRecommend = async () => {
+  const { data } = await UsersApi.getListRecommend()
+  return data
+}
+
 export const useGetUserInfo = (
   enabled: boolean,
   options?: UseQueryOptions<ResponseUserType>,
@@ -234,6 +239,17 @@ export const useGetListFriendRequest = (
   return useQuery({
     queryKey: ['ListFriendRequest'],
     queryFn: handleGetListFriendRequest,
+    retry: 2,
+    ...options,
+  })
+}
+
+export const useGetListRecommend = (
+  options?: UseQueryOptions<ResponseListRecommendType>,
+) => {
+  return useQuery({
+    queryKey: ['ListRecommend'],
+    queryFn: handleGetListRecommend,
     retry: 2,
     ...options,
   })

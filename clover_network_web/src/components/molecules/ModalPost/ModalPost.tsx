@@ -100,6 +100,7 @@ const ModalPost = ({
   }
 
   const handlePostFeed = (data: FeedsType) => {
+    data.privacyType = audienceValue
     const jsonData = JSON.stringify(data)
     const blobData = new Blob([jsonData], {
       type: 'application/json',
@@ -181,14 +182,14 @@ const ModalPost = ({
                     className={`mt-1 flex ${
                       id &&
                       id !== getUserInfo?.data.userId &&
-                      typeof getGroupInfoApi.data?.data !== 'object'
+                      typeof getGroupInfoApi.data?.data !== undefined
                         ? 'cursor-not-allowed'
                         : 'cursor-pointer'
                     } items-center gap-3 rounded-md bg-bgPrimaryColor px-2 py-1`}
                     onClick={() =>
                       id &&
                       id !== getUserInfo?.data.userId &&
-                      typeof getGroupInfoApi.data?.data !== 'object'
+                      typeof getGroupInfoApi.data?.data !== undefined
                         ? {}
                         : handleOpenModalAudience()
                     }

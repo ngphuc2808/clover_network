@@ -1,10 +1,9 @@
 import { Fragment, useState } from 'react'
-import { useLocation } from 'react-router-dom'
 import { Radio } from 'antd'
 
 import Button from '@/components/atoms/Button'
 import { BsArrowLeftShort } from 'react-icons/bs'
-import { listAudience, listAudienceGroup } from '@/utils/data'
+import { listAudience } from '@/utils/data'
 
 interface iProps {
   handleCloseModalAudience: () => void
@@ -18,8 +17,6 @@ const ModalAudience = ({
   setAudienceValue,
 }: iProps) => {
   const [value, setValue] = useState<string>(audienceValue)
-
-  const location = useLocation()
 
   return (
     <Fragment>
@@ -54,43 +51,24 @@ const ModalAudience = ({
                 </p>
               </div>
               <ul className='mt-4 max-h-[240px] overflow-y-scroll'>
-                {!location.pathname.includes('groups')
-                  ? listAudience.map((it) => (
-                      <li
-                        className={`flex cursor-pointer items-center gap-3 rounded-md p-2 hover:bg-gray-200/60`}
-                        onClick={() => setValue(it.key)}
-                        key={it.key}
-                      >
-                        <span className='rounded-full bg-gray-200 p-5 text-2xl'>
-                          {<it.icon />}
-                        </span>
-                        <div className='flex-1 text-left'>
-                          <h1 className='text-xl font-semibold text-textHeadingColor'>
-                            {it.value}
-                          </h1>
-                          <p className='text-textPrimaryColor'>{it.desc}</p>
-                        </div>
-                        <Radio value={it.key} checked={value === it.key} />
-                      </li>
-                    ))
-                  : listAudienceGroup.map((it) => (
-                      <li
-                        className={`flex cursor-pointer items-center gap-3 rounded-md p-2 hover:bg-gray-200/60`}
-                        onClick={() => setValue(it.key)}
-                        key={it.key}
-                      >
-                        <span className='rounded-full bg-gray-200 p-5 text-2xl'>
-                          {<it.icon />}
-                        </span>
-                        <div className='flex-1 text-left'>
-                          <h1 className='text-xl font-semibold text-textHeadingColor'>
-                            {it.value}
-                          </h1>
-                          <p className='text-textPrimaryColor'>{it.desc}</p>
-                        </div>
-                        <Radio value={it.key} checked={value === it.key} />
-                      </li>
-                    ))}
+                {listAudience.map((it) => (
+                  <li
+                    className={`flex cursor-pointer items-center gap-3 rounded-md p-2 hover:bg-gray-200/60`}
+                    onClick={() => setValue(it.key)}
+                    key={it.key}
+                  >
+                    <span className='rounded-full bg-gray-200 p-5 text-2xl'>
+                      {<it.icon />}
+                    </span>
+                    <div className='flex-1 text-left'>
+                      <h1 className='text-xl font-semibold text-textHeadingColor'>
+                        {it.value}
+                      </h1>
+                      <p className='text-textPrimaryColor'>{it.desc}</p>
+                    </div>
+                    <Radio value={it.key} checked={value === it.key} />
+                  </li>
+                ))}
               </ul>
               <div className='flex items-center justify-end gap-3'>
                 <Button

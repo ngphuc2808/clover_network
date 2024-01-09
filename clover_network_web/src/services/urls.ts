@@ -18,6 +18,7 @@ export const API_URL = {
   updateAvatar: `${API_BASE}/user/change-user-avatar`,
   getListFriends: `${API_BASE}/user/get-list-friend`,
   getListFriendsRequest: `${API_BASE}/user/get-list-friend-request`,
+  getListRecommend: `${API_BASE}/user/get-list-recommend`,
   getListFollowers: `${API_BASE}/user/get-list-connector`,
   getListFollowing: `${API_BASE}/user/get-list-connect`,
 

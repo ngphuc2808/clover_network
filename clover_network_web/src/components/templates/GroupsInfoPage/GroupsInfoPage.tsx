@@ -7,7 +7,6 @@ import { IoIosSettings } from 'react-icons/io'
 import { MdFeed, MdGroups } from 'react-icons/md'
 import { FaPlus } from 'react-icons/fa6'
 import { IoChevronDown } from 'react-icons/io5'
-import { FaUserPlus } from 'react-icons/fa'
 import { TbDoorEnter, TbDoorExit } from 'react-icons/tb'
 import { toast } from 'react-toastify'
 import { FcAddImage } from 'react-icons/fc'
@@ -586,15 +585,6 @@ const GroupsInfoPage = () => {
                     </div>
                     {getGroupInfoApi.data?.data.currentUserRole !== null ? (
                       <div className='flex items-center gap-3'>
-                        {getGroupInfoApi.data?.data.currentUserRole.status ===
-                          'APPROVED' && (
-                          <Button className='flex items-center gap-2 rounded-md bg-primaryColor px-3 py-2 text-white hover:opacity-80'>
-                            <span>
-                              <FaUserPlus />
-                            </span>
-                            Invite
-                          </Button>
-                        )}
                         {getGroupInfoApi.data?.data.group.groupOwnerId !==
                           getUserInfo?.data.userId && (
                           <Button
@@ -662,9 +652,7 @@ const GroupsInfoPage = () => {
                       }`}
                       onClick={() => setIsListApprove(true)}
                     >
-                      <h1 className='text-xl font-semibold'>
-                        Waiting list for approval
-                      </h1>
+                      <h1 className='text-xl font-semibold'>Join request</h1>
                     </li>
                   )}
                 </ul>
@@ -727,17 +715,10 @@ const GroupsInfoPage = () => {
                         <div className='my-3 flex items-center'>
                           <span className='h-px w-full bg-secondColor opacity-30'></span>
                         </div>
-                        <div className='flex items-center justify-center'>
+                        <div className='block items-center justify-center sm:flex'>
                           <label
                             htmlFor='uploadFilesHome'
-                            className={`flex ${
-                              getGroupInfoApi.data?.data.currentUserRole ===
-                                null ||
-                              getGroupInfoApi.data?.data.currentUserRole
-                                .status === 'WAITING_FOR_APPROVE'
-                                ? 'cursor-not-allowed'
-                                : 'cursor-pointer'
-                            } items-center gap-2 p-3 hover:bg-primaryColor/10`}
+                            className='sm:justify-none flex cursor-pointer items-center justify-center gap-2 p-3 hover:bg-primaryColor/10'
                           >
                             <span className='text-2xl'>
                               <FcAddImage />
@@ -752,24 +733,9 @@ const GroupsInfoPage = () => {
                               accept='image/*'
                               multiple
                               hidden
-                              disabled={
-                                getGroupInfoApi.data?.data.currentUserRole ===
-                                  null ||
-                                getGroupInfoApi.data?.data.currentUserRole
-                                  .status === 'WAITING_FOR_APPROVE'
-                                  ? true
-                                  : false
-                              }
                             />
                           </label>
-                          <div
-                            className={`flex ${
-                              getGroupInfoApi.data?.data.currentUserRole ===
-                              null
-                                ? 'cursor-not-allowed'
-                                : 'cursor-pointer'
-                            } items-center gap-2 p-3 hover:bg-primaryColor/10`}
-                          >
+                          <div className='sm:justify-none flex cursor-pointer items-center justify-center gap-2 p-3 hover:bg-primaryColor/10'>
                             <span className='text-2xl text-orange-400'>
                               <BsEmojiSmile />
                             </span>

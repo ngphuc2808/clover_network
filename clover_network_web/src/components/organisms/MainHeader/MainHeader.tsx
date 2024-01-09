@@ -148,7 +148,7 @@ const MainHeader = () => {
   })
 
   return (
-    <header className='fixed left-0 right-0 top-0 z-50 flex h-[61px] items-center bg-white px-3 shadow-md sm:grid sm:grid-cols-3 sm:grid-rows-1'>
+    <header className='fixed left-0 right-0 top-0 z-50 z-[99999] flex h-[61px] items-center bg-white px-3 shadow-md sm:grid sm:grid-cols-3 sm:grid-rows-1'>
       <div className='sm:col-span-1'>
         <span
           className={`mr-3 ${

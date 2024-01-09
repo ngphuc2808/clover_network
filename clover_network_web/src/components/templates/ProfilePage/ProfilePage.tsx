@@ -494,10 +494,10 @@ const ProfilePage = () => {
                   <div className='my-3 flex items-center'>
                     <span className='h-px w-full bg-secondColor opacity-30'></span>
                   </div>
-                  <div className='flex items-center justify-center'>
+                  <div className='block items-center justify-center sm:flex'>
                     <label
                       htmlFor='uploadFilesHome'
-                      className='flex cursor-pointer items-center gap-2 p-3 hover:bg-primaryColor/10'
+                      className='sm:justify-none flex cursor-pointer items-center justify-center gap-2 p-3 hover:bg-primaryColor/10'
                     >
                       <span className='text-2xl'>
                         <FcAddImage />
@@ -514,7 +514,7 @@ const ProfilePage = () => {
                         hidden
                       />
                     </label>
-                    <div className='flex cursor-pointer items-center gap-2 p-3 hover:bg-primaryColor/10'>
+                    <div className='sm:justify-none flex cursor-pointer items-center justify-center gap-2 p-3 hover:bg-primaryColor/10'>
                       <span className='text-2xl text-orange-400'>
                         <BsEmojiSmile />
                       </span>

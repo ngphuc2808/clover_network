@@ -2,6 +2,9 @@ import { ChangeEvent, Fragment, useEffect, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
 import { useInView } from 'react-intersection-observer'
+import Carousel from 'react-multi-carousel'
+import 'react-multi-carousel/lib/styles.css'
+
 import Tippy from '@tippyjs/react/headless'
 
 import { BiDotsHorizontalRounded } from 'react-icons/bi'
@@ -17,6 +20,7 @@ import {
   useGetListFeed,
   useGetListFriend,
   useGetListFriendRequest,
+  useGetListRecommend,
   usePostConnectUser,
 } from '@/hook'
 import {
@@ -38,6 +42,24 @@ import { Col, Modal, Row } from 'antd'
 
 const imageMimeType = /image\/(png|jpg|jpeg)/i
 
+const responsive = {
+  desktop: {
+    breakpoint: { max: 3000, min: 1024 },
+    items: 2,
+    slidesToSlide: 1,
+  },
+  tablet: {
+    breakpoint: { max: 1024, min: 768 },
+    items: 2,
+    slidesToSlide: 1,
+  },
+  mobile: {
+    breakpoint: { max: 767, min: 464 },
+    items: 2,
+    slidesToSlide: 1,
+  },
+}
+
 const HomePage = () => {
   const queryClient = useQueryClient()
 
@@ -49,7 +71,9 @@ const HomePage = () => {
 
   const getAllGroupApi = useGetListAllGroup()
 
-  const getListFriendRequest = useGetListFriendRequest()
+  const getListFriendRequestApi = useGetListFriendRequest()
+
+  const getListRecommendApi = useGetListRecommend()
 
   const connectApi = usePostConnectUser()
 
@@ -189,30 +213,68 @@ const HomePage = () => {
             </div>
             <h1 className='text-textPrimaryColor'>Shortcuts</h1>
             <ul className='mt-4'>
-              {getAllGroupApi.data?.data.slice(0, 5).map((it) => (
-                <li
-                  className='border-grey-500 mb-2 border-b p-2'
-                  key={it.groupId}
-                >
-                  <Button
-                    to={`/groups/${it.groupId}`}
-                    className='flex items-center gap-3'
+              {getAllGroupApi.data?.data &&
+                getAllGroupApi.data?.data?.slice(0, 5).map((it) => (
+                  <li
+                    className='border-grey-500 mb-2 border-b p-2'
+                    key={it.groupId}
                   >
-                    <figure className='h-[35px] w-[35px] overflow-hidden rounded-lg hover:cursor-pointer'>
-                      <img
-                        src={it.bannerUrl || images.miniBanner}
-                        alt='banner'
-                        className='h-full w-full object-cover'
-                      />
-                    </figure>
-                    <p className='text-textHeadingColor'>{it.groupName}</p>
-                  </Button>
-                </li>
-              ))}
+                    <Button
+                      to={`/groups/${it.groupId}`}
+                      className='flex items-center gap-3'
+                    >
+                      <figure className='h-[35px] w-[35px] overflow-hidden rounded-lg hover:cursor-pointer'>
+                        <img
+                          src={it.bannerUrl || images.miniBanner}
+                          alt='banner'
+                          className='h-full w-full object-cover'
+                        />
+                      </figure>
+                      <p className='text-textHeadingColor'>{it.groupName}</p>
+                    </Button>
+                  </li>
+                ))}
             </ul>
           </div>
         </div>
         <div className='col-span-1'>
+          <div className='mt-4'>
+            <Carousel
+              responsive={responsive}
+              autoPlay={true}
+              swipeable={true}
+              draggable={true}
+              showDots={false}
+              infinite={true}
+              partialVisible={false}
+              className='-mx-2 overflow-hidden rounded-md'
+            >
+              {getListRecommendApi.data?.data.userProfiles.length! > 0 &&
+                getListRecommendApi.data?.data.userProfiles.map((it) => (
+                  <div
+                    className='mx-2 overflow-hidden rounded-md bg-white p-3 shadow-md'
+                    key={it.userId}
+                  >
+                    <figure className='overflow-hidden rounded-md'>
+                      <img
+                        src={it.avatarImgUrl}
+                        className='h-full w-full rounded-md object-contain'
+                        alt='avatar'
+                      />
+                    </figure>
+                    <h1 className='mt-2 line-clamp-1 text-center text-sm text-textPrimaryColor'>
+                      {it.displayName}
+                    </h1>
+                    <Button
+                      to={`/profile/${it.userId}`}
+                      className='mt-3 w-full rounded-md bg-primaryColor px-3 py-2 text-center text-white'
+                    >
+                      View
+                    </Button>
+                  </div>
+                ))}
+            </Carousel>
+          </div>
           <div className='my-4 w-full rounded-lg border bg-white p-3'>
             <div className='flex items-center gap-3'>
               <figure className='h-[40px] w-[40px] overflow-hidden rounded-full hover:cursor-pointer'>
@@ -231,10 +293,10 @@ const HomePage = () => {
             <div className='my-3 flex items-center'>
               <span className='h-px w-full bg-secondColor opacity-30'></span>
             </div>
-            <div className='flex items-center justify-center'>
+            <div className='block items-center justify-center sm:flex'>
               <label
                 htmlFor='uploadFilesHome'
-                className='flex cursor-pointer items-center gap-2 p-3 hover:bg-primaryColor/10'
+                className='sm:justify-none flex cursor-pointer items-center justify-center gap-2 p-3 hover:bg-primaryColor/10'
               >
                 <span className='text-2xl'>
                   <FcAddImage />
@@ -249,7 +311,7 @@ const HomePage = () => {
                   hidden
                 />
               </label>
-              <div className='flex cursor-pointer items-center gap-2 p-3 hover:bg-primaryColor/10'>
+              <div className='sm:justify-none flex cursor-pointer items-center justify-center gap-2 p-3 hover:bg-primaryColor/10'>
                 <span className='text-2xl text-orange-400'>
                   <BsEmojiSmile />
                 </span>
@@ -259,7 +321,6 @@ const HomePage = () => {
               </div>
             </div>
           </div>
-
           {getListFeedApi.data?.pages.map((data, index) =>
             data.data ? (
               data.data.map((it, i) =>
@@ -329,7 +390,7 @@ const HomePage = () => {
                 </h2>
               </div>
               <ul className='max-h-[400px] overflow-y-auto'>
-                {getListFriendRequest.data?.data?.userProfiles.map((it) => (
+                {getListFriendRequestApi.data?.data?.userProfiles.map((it) => (
                   <li
                     key={it.userId}
                     className='mt-3 flex items-center justify-between gap-6 rounded-md bg-white p-2 md:block xl:flex'
@@ -467,7 +528,7 @@ const HomePage = () => {
         }}
       >
         <Row gutter={15} className='max-h-[500px] overflow-y-auto'>
-          {getListFriendRequest.data?.data?.userProfiles.map((it) => (
+          {getListFriendRequestApi.data?.data?.userProfiles.map((it) => (
             <Col xl={6} lg={8} md={12} sm={24} xs={24} key={it.userId}>
               <div className='mt-3 rounded-md bg-white p-2 shadow-lg'>
                 <Button
