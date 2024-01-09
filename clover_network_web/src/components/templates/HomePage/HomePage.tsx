@@ -50,12 +50,12 @@ const responsive = {
   },
   tablet: {
     breakpoint: { max: 1024, min: 768 },
-    items: 2,
+    items: 4,
     slidesToSlide: 1,
   },
   mobile: {
     breakpoint: { max: 767, min: 464 },
-    items: 2,
+    items: 3,
     slidesToSlide: 1,
   },
 }
@@ -238,7 +238,7 @@ const HomePage = () => {
           </div>
         </div>
         <div className='col-span-1'>
-          <div className='mt-4'>
+          <div className='mt-4 overflow-hidden'>
             <Carousel
               responsive={responsive}
               autoPlay={true}

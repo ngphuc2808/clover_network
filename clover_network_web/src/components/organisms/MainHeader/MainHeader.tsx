@@ -96,6 +96,8 @@ const MainHeader = () => {
             toast.success(`You have unfollowed ${lastName}`)
             queryClient.invalidateQueries({ queryKey: ['SearchUserInfo'] })
             queryClient.invalidateQueries({ queryKey: ['UserProfile'] })
+            queryClient.invalidateQueries({ queryKey: ['ListFriends'] })
+            queryClient.invalidateQueries({ queryKey: ['ListFriendRequest'] })
           },
         },
       )
@@ -110,6 +112,8 @@ const MainHeader = () => {
             toast.success(`Already follow ${lastName}`)
             queryClient.invalidateQueries({ queryKey: ['SearchUserInfo'] })
             queryClient.invalidateQueries({ queryKey: ['UserProfile'] })
+            queryClient.invalidateQueries({ queryKey: ['ListFriends'] })
+            queryClient.invalidateQueries({ queryKey: ['ListFriendRequest'] })
           },
         },
       )
@@ -129,6 +133,7 @@ const MainHeader = () => {
           )
           queryClient.invalidateQueries({ queryKey: ['SearchUserInfo'] })
           queryClient.invalidateQueries({ queryKey: ['GroupInfo'] })
+          queryClient.invalidateQueries({ queryKey: ['ListAllGroup'] })
         },
       })
     } else {
@@ -137,6 +142,7 @@ const MainHeader = () => {
           toast.success('Joined the group successfully')
           queryClient.invalidateQueries({ queryKey: ['SearchUserInfo'] })
           queryClient.invalidateQueries({ queryKey: ['GroupInfo'] })
+          queryClient.invalidateQueries({ queryKey: ['ListAllGroup'] })
         },
       })
     }
