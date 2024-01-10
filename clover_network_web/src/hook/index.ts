@@ -370,6 +370,14 @@ export const usePostFeed = () => {
   })
 }
 
+export const useDisableFeed = () => {
+  return useMutation({
+    mutationFn: (postId: string) => {
+      return FeedsApi.deleteFeed(postId)
+    },
+  })
+}
+
 export const useGetUserLike = () => {
   return useMutation({
     mutationFn: (feedId: string) => {

@@ -29,6 +29,14 @@ export const FeedsApi = {
       }),
     }),
 
+  deleteFeed: (postId: string) =>
+    http.delete<ResponseDeleteFeedsType>(API_URL.disableFeed, {
+      params: {
+        postId,
+      },
+      headers: authHeader(),
+    }),
+
   postComment: (comment: FeedCommentType) =>
     http.post<ResponseListCommentType>(API_URL.postComment, comment, {
       headers: authHeader(),

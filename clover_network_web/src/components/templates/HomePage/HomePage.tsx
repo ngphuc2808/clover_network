@@ -257,7 +257,7 @@ const HomePage = () => {
                   >
                     <figure className='overflow-hidden rounded-md'>
                       <img
-                        src={it.avatarImgUrl}
+                        src={it.avatarImgUrl || images.miniBanner}
                         className='h-full w-full rounded-md object-contain'
                         alt='avatar'
                       />
@@ -327,7 +327,7 @@ const HomePage = () => {
                 data.data.length === i + 1 ? (
                   it.groupItem.groupType === 2 ? (
                     <FeedItem key={it.feedItem.postId} data={it} innerRef={ref}>
-                      <FeedCardAdmin />
+                      <FeedCardAdmin data={it} />
                     </FeedItem>
                   ) : it.feedItem.toUserId === it.feedItem.authorId &&
                     it.feedItem.postToUserWall ? (
@@ -349,7 +349,7 @@ const HomePage = () => {
                   )
                 ) : it.groupItem.groupType === 2 ? (
                   <FeedItem key={it.feedItem.postId} data={it}>
-                    <FeedCardAdmin />
+                    <FeedCardAdmin data={it} />
                   </FeedItem>
                 ) : it.feedItem.toUserId === it.feedItem.authorId &&
                   it.feedItem.postToUserWall ? (

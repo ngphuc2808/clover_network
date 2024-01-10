@@ -361,7 +361,7 @@ const GroupsPage = () => {
                             key={it.feedItem.postId}
                             data={it}
                           >
-                            <FeedCardAdmin />
+                            <FeedCardAdmin data={it} />
                           </FeedItem>
                         ) : (
                           <FeedItem
@@ -374,7 +374,7 @@ const GroupsPage = () => {
                         )
                       ) : it.groupItem.groupType === 2 ? (
                         <FeedItem key={it.feedItem.postId} data={it}>
-                          <FeedCardAdmin />
+                          <FeedCardAdmin data={it} />
                         </FeedItem>
                       ) : (
                         <FeedItem key={it.feedItem.postId} data={it}>

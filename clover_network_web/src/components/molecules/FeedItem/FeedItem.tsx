@@ -2,13 +2,15 @@ import { Fragment, ReactNode, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
-import { Modal } from 'antd'
+import { Dropdown, Modal } from 'antd'
+import type { MenuProps } from 'antd'
 import { GoCommentDiscussion } from 'react-icons/go'
 import { PiShareFat } from 'react-icons/pi'
 import { IoMdSend } from 'react-icons/io'
 
 import images from '@/assets/images'
 import {
+  useDisableFeed,
   useGetFeedDetail,
   useGetFeedLink,
   useGetFetchQuery,
@@ -18,6 +20,7 @@ import {
 } from '@/hook'
 import { CloverLikeIcon, CloverOutlineIcon } from '@/components/atoms/Icons'
 import FeedItemDetail from './FeedItemDetail'
+import { BiDotsHorizontalRounded } from 'react-icons/bi'
 
 interface iProps {
   data: FeedGroupData
@@ -39,6 +42,8 @@ const FeedItem = ({ data, innerRef, children }: iProps) => {
   const commentApi = usePostComment()
 
   const checkLikeApi = useGetUserLike()
+
+  const deleteFeedApi = useDisableFeed()
 
   const [isLike, setIsLike] = useState<string | null>(data.currentUserReact!)
 
@@ -126,13 +131,52 @@ const FeedItem = ({ data, innerRef, children }: iProps) => {
     })
   }
 
+  const handleDeletePost = () => {
+    deleteFeedApi.mutate(data.feedItem.postId, {
+      onSuccess(data) {
+        console.log(data)
+        if (data.data.messageEN === 'Action success') {
+          toast.success('Delete feed successfully!')
+          queryClient.invalidateQueries({ queryKey: ['ListFeed'] })
+          queryClient.invalidateQueries({ queryKey: ['ListFeedOfGroup'] })
+          queryClient.invalidateQueries({ queryKey: ['ListAllGroupHome'] })
+        } else {
+          toast.error('You have not permission to do that!')
+        }
+      },
+    })
+  }
+
+  const items: MenuProps['items'] = [
+    {
+      key: '1',
+      label: <p>Edit</p>,
+    },
+    {
+      key: '2',
+      label: <p onClick={handleDeletePost}>Delete</p>,
+    },
+  ]
+
   return (
     <Fragment>
       <div
         className='mb-4 w-full rounded-lg border bg-white p-3'
         ref={innerRef}
       >
-        {children}
+        <div className='flex items-center justify-between'>
+          {children}
+          {(data.feedItem.authorId === getUserInfo?.data.userId ||
+            (data.currentUserRole !== null &&
+              (data.currentUserRole.roleId === 'OWNER' ||
+                data.currentUserRole.roleId === 'ADMIN'))) && (
+            <Dropdown menu={{ items }} placement='bottom'>
+              <span className='cursor-pointer text-xl text-primaryColor hover:opacity-80'>
+                <BiDotsHorizontalRounded />
+              </span>
+            </Dropdown>
+          )}
+        </div>
         <p
           className='mt-3 text-sm text-textPrimaryColor'
           dangerouslySetInnerHTML={{ __html: data.feedItem.htmlContent }}

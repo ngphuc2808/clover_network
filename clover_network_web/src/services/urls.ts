@@ -36,6 +36,7 @@ export const API_URL = {
   getListComment: `${API_BASE}/feed/get-list-comment`,
   checkUserLike: `${API_BASE}/feed/check-user-like`,
   likeFeed: `${API_BASE}/feed/react`,
+  disableFeed: `${API_BASE}/feed/disable-post`,
 
   //group
   createGroup: `${API_BASE}/group/create-new-group`,

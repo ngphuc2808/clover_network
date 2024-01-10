@@ -252,6 +252,13 @@ type ResponseFeedsType = {
   messageVN: string
 }
 
+type ResponseDeleteFeedsType = {
+  data: string
+  code: number
+  messageEN: string
+  messageVN: string
+}
+
 type PostType = {
   postId: string
   authorId: string
@@ -432,7 +439,13 @@ type FeedGroupData = {
     updatedTime: string
     delFlag: boolean
   }
-  currentUserRole: null
+  currentUserRole: {
+    roleId: string
+    status: string
+    enablePost: boolean
+    enableComment: boolean
+    enableShare: boolean
+  } | null
   totalReact: number
   totalComment: number
   currentUserReact: string | null

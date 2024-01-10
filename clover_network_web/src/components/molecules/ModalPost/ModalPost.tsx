@@ -146,7 +146,7 @@ const ModalPost = ({
   return (
     <Fragment>
       <div className='fixed inset-0 z-50 bg-gray-500 bg-opacity-40'></div>
-      <div className='fixed bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center transition'>
+      <div className='fixed bottom-0 left-0 right-0 top-0 z-50 z-[9999] flex items-center justify-center transition'>
         <div className='relative z-20 max-h-full w-full max-w-[90%] sm:max-w-lg'>
           <div className='relative rounded-md bg-white shadow'>
             <div className='p-4 text-center'>
@@ -213,59 +213,60 @@ const ModalPost = ({
                   </div>
                 </div>
               </div>
-              <div className='mt-4 flex items-center'>
-                <textarea
-                  {...rest}
-                  ref={textAreaRef}
-                  className='max-h-[300px] w-full resize-none border-none text-xl outline-none'
-                  placeholder={`What's on your mind, ${getUserInfo?.data.lastname}?`}
-                  rows={1}
-                />
-                <div>
-                  <Tippy
-                    interactive
-                    arrow={true}
-                    trigger='click'
-                    placement={
-                      window.innerWidth <= 640 ? 'bottom-start' : 'right'
-                    }
-                    render={(attrs) => (
-                      <div {...attrs}>
-                        <CustomEmoji handleEmojiClick={handleEmojiClick} />
-                      </div>
-                    )}
-                  >
-                    <span className='float-right block cursor-pointer text-xl text-primaryColor sm:text-lg'>
-                      <BsEmojiWink />
-                    </span>
-                  </Tippy>
-                </div>
-              </div>
-              <p className='mt-3 text-sm text-red-500'>
-                {errors.content?.message}
-              </p>
-
-              <div
-                className={`mt-4  max-h-[300px] grid-cols-1 gap-2 overflow-y-scroll rounded-xl border p-2 ${
-                  photos && photos.length > 0 ? 'grid' : 'hidden'
-                }`}
-              >
-                {photos &&
-                  photos.map((it, i) => (
-                    <figure className='relative mb-3' key={it}>
-                      <span
-                        className='absolute right-1 top-1 cursor-pointer rounded-full bg-primaryColor p-1 text-2xl text-white hover:text-red-500'
-                        onClick={() => handleDeletePhoto(it, i)}
-                      >
-                        <AiOutlineClose />
+              <div className='max-h-[350px] overflow-auto'>
+                <div className='mt-4 flex items-center'>
+                  <textarea
+                    {...rest}
+                    ref={textAreaRef}
+                    className='max-h-[200px] w-full resize-none border-none text-xl outline-none'
+                    placeholder={`What's on your mind, ${getUserInfo?.data.lastname}?`}
+                    rows={1}
+                  />
+                  <div>
+                    <Tippy
+                      interactive
+                      arrow={true}
+                      trigger='click'
+                      placement={
+                        window.innerWidth <= 640 ? 'bottom-start' : 'right'
+                      }
+                      render={(attrs) => (
+                        <div {...attrs}>
+                          <CustomEmoji handleEmojiClick={handleEmojiClick} />
+                        </div>
+                      )}
+                    >
+                      <span className='float-right block cursor-pointer text-xl text-primaryColor sm:text-lg'>
+                        <BsEmojiWink />
                       </span>
-                      <img
-                        className='h-auto w-full cursor-pointer rounded-lg'
-                        src={it}
-                        alt={`photo-${i}`}
-                      />
-                    </figure>
-                  ))}
+                    </Tippy>
+                  </div>
+                </div>
+                <p className='mt-3 text-sm text-red-500'>
+                  {errors.content?.message}
+                </p>
+                <div
+                  className={`mt-4  max-h-[300px] grid-cols-1 gap-2 overflow-y-scroll rounded-xl border p-2 ${
+                    photos && photos.length > 0 ? 'grid' : 'hidden'
+                  }`}
+                >
+                  {photos &&
+                    photos.map((it, i) => (
+                      <figure className='relative mb-3' key={it}>
+                        <span
+                          className='absolute right-1 top-1 cursor-pointer rounded-full bg-primaryColor p-1 text-2xl text-white hover:text-red-500'
+                          onClick={() => handleDeletePhoto(it, i)}
+                        >
+                          <AiOutlineClose />
+                        </span>
+                        <img
+                          className='h-auto w-full cursor-pointer rounded-lg'
+                          src={it}
+                          alt={`photo-${i}`}
+                        />
+                      </figure>
+                    ))}
+                </div>
               </div>
               <div className='mt-4 flex w-full items-center justify-between rounded-lg border p-2 shadow'>
                 <h1>Add to your post</h1>
