@@ -108,7 +108,7 @@ const FeedItemDetail = ({
           className='mt-3 text-sm text-textPrimaryColor'
           dangerouslySetInnerHTML={{ __html: data.feedItem.htmlContent }}
         />
-        <div className='mt-3 grid gap-2'>
+        <div className='mt-3 grid max-h-[250px] gap-2 overflow-auto'>
           {data.feedItem.feedImages &&
             (data.feedItem.feedImages.length === 1 ? (
               <figure className='h-auto max-h-[600px] w-full cursor-pointer overflow-hidden rounded-md border'>
@@ -230,7 +230,7 @@ const FeedItemDetail = ({
               ? 'See more'
               : 'There are currently no comments'}
           </h3>
-          <ul className='max-h-[230px] w-full overflow-y-auto'>
+          <ul className='max-h-[70px] w-full overflow-y-auto'>
             {getListCommentApi.data?.pages.map(
               (data) =>
                 data.data.length > 0 &&
@@ -257,7 +257,7 @@ const FeedItemDetail = ({
                       <h1 className='flex items-center justify-between gap-2 text-sm text-textHeadingColor'>
                         <p className='text-textPrimaryColor'>{it.content}</p>
                         <span className='text-xs'>
-                          <TimeAgo timestamp={it.createdTime} />
+                          <TimeAgo timestamp={it.updatedTime} />
                         </span>
                       </h1>
                     </div>

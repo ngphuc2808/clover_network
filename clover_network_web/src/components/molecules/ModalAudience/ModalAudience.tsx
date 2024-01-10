@@ -20,8 +20,8 @@ const ModalAudience = ({
 
   return (
     <Fragment>
-      <div className='fixed inset-0 z-50 bg-gray-500 bg-opacity-40'></div>
-      <div className='fixed bottom-0 left-0 right-0 top-0 z-50 flex items-center justify-center transition'>
+      <div className='fixed inset-0 z-[10000] bg-gray-500 bg-opacity-40'></div>
+      <div className='fixed bottom-0 left-0 right-0 top-0 z-[10000] flex items-center justify-center transition'>
         <div className='relative z-20 max-h-full w-full max-w-[90%] sm:max-w-lg'>
           <div className='relative rounded-md bg-white shadow'>
             <div className='p-4 text-center'>
