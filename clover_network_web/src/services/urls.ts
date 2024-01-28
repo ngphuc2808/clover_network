@@ -1,4 +1,4 @@
-export const BASE_URL = 'https://clover-network-app-rok7a.ondigitalocean.app'
+export const BASE_URL = 'https://clover-app-pju97.ondigitalocean.app'
 
 const API_BASE = `${BASE_URL}/api`
 
