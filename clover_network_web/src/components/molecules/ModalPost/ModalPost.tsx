@@ -117,6 +117,7 @@ const ModalPost = ({
 
     postFeedApi.mutate(formData, {
       onSuccess(data) {
+        photos && photos.map((it) => URL.revokeObjectURL(it))
         setPhotos && setPhotos([])
         setModalPost(false)
         setTimeout(() => {
