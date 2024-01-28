@@ -117,6 +117,7 @@ const ModalPost = ({
 
     postFeedApi.mutate(formData, {
       onSuccess(data) {
+        setPhotos && setPhotos([])
         setModalPost(false)
         setTimeout(() => {
           if (data.data.messageEN === 'Input invalid') {
